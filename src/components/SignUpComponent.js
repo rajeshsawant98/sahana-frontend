@@ -27,7 +27,7 @@ const SignUpComponent = () => {
       });
 
       console.log('Sign-up successful:', response.data);
-      navigate('/login');  // Redirect to login page after successful sign-up
+      navigate('/');  // Redirect to login page after successful sign-up
     } catch (error) {
       console.error('Sign-up failed!', error.response ? error.response.data : error);
       setError('Sign-up failed. Please try again.');

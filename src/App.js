@@ -4,15 +4,22 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import HomePage from './pages/HomePage';  // Import HomePage component
 import LoginPage from './pages/LoginPage';  // Import the combined LoginPage component
 import SignUpComponent from './components/SignUpComponent';  // Import your SignUp component
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
     <GoogleOAuthProvider clientId="505025857168-olhtcsvr2pmpu84k0gb25rkh61qksbm8.apps.googleusercontent.com">
       <Router>
         <Routes>
-          <Route path="/" element={<LoginPage />} />  {/* Route for the login page */}
-          <Route path="/signup" element={<SignUpComponent />} />  {/* Route for the sign-up page */}
-          <Route path="/home" element={<HomePage />} />  {/* Route for the home page */}
+          {/* Public Routes */}
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpComponent />} />
+          
+          {/* Protected Route */}
+          <Route 
+            path="/home" 
+            element={<ProtectedRoute element={<HomePage />} />} 
+          />
         </Routes>
       </Router>
     </GoogleOAuthProvider>

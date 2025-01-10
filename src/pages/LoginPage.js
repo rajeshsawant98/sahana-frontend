@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axiosInstance';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -14,12 +15,16 @@ const LoginPage = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/login', {
+      const response = await axiosInstance.post('/auth/login', {
         email,
         password,
       });
 
       console.log('Login successful:', response.data);
+
+       // Store the JWT token in localStorage
+       localStorage.setItem('access_token', response.data.access_token);
+
       navigate('/home'); // Redirect to home after successful login
     } catch (error) {
       console.error('Login failed!', error.response ? error.response.data : error);
@@ -32,8 +37,13 @@ const LoginPage = () => {
     const token = response.credential;
 
     try {
-      const backendResponse = await axios.post('http://localhost:8000/api/auth/google', { token });
+      const backendResponse = await axios.post('/auth/google', { token });
       console.log('Google login successful:', backendResponse.data);
+
+
+       // Store the JWT token in localStorage
+       localStorage.setItem('access_token', backendResponse.data.access_token);
+
       navigate('/home'); // Redirect to home after successful login
     } catch (error) {
       console.error('Google Login Failed!', error);

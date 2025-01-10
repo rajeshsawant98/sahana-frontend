@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../utils/axiosInstance';
 
 const SignUpComponent = () => {
   const navigate = useNavigate();
@@ -20,14 +21,23 @@ const SignUpComponent = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/register', {
-        email,  // Use email instead of username
+      const response = await axiosInstance.post('/auth/register', {
+        email,
         password,
-        name
+        name,
       });
-
-      console.log('Sign-up successful:', response.data);
-      navigate('/');  // Redirect to login page after successful sign-up
+    
+      // Logging the entire response for debugging
+      console.log('Backend response:', response.data);
+    
+      // Extract and store the access token
+      const { access_token } = response.data;
+      localStorage.setItem('access_token', access_token);
+    
+      console.log('Sign-up successful:', response.data.message);
+    
+      // Navigate to the home page
+      navigate('/home');
     } catch (error) {
       console.error('Sign-up failed!', error.response ? error.response.data : error);
       setError('Sign-up failed. Please try again.');

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
 
@@ -37,7 +36,7 @@ const LoginPage = () => {
     const token = response.credential;
 
     try {
-      const backendResponse = await axios.post('/auth/google', { token });
+      const backendResponse = await axiosInstance.post('/auth/google', { token });
       console.log('Google login successful:', backendResponse.data);
 
 

@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';  // Import HomePage component
 import LoginPage from './pages/LoginPage';  // Import the combined LoginPage component
 import SignUpComponent from './components/SignUpComponent';  // Import your SignUp component
 import ProtectedRoute from './components/ProtectedRoute';
+import ProfilePage from './pages/ProfilePage';
 
 const App = () => {
   return (
@@ -19,6 +20,10 @@ const App = () => {
           <Route 
             path="/home" 
             element={<ProtectedRoute element={<HomePage />} />} 
+          />
+           <Route 
+            path="/profile" 
+            element={<ProtectedRoute element={<ProfilePage />} />} 
           />
         </Routes>
       </Router>

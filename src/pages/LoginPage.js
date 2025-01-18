@@ -1,127 +1,146 @@
-import React, { useState } from 'react';
-import { GoogleLogin } from '@react-oauth/google';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../utils/axiosInstance';
+import React, { useState } from "react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../utils/axiosInstance";
+import { Box, TextField, Button, Typography } from "@mui/material";
+import backgroundImage from "../assets/26723.jpg"; // Import the image
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
 
-  // Handle email/password login
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
-      const response = await axiosInstance.post('/auth/login', {
+      const response = await axiosInstance.post("/auth/login", {
         email,
         password,
       });
-
-      console.log('Login successful:', response.data);
-
-       // Store the JWT token in localStorage
-       localStorage.setItem('access_token', response.data.access_token);
-
-      navigate('/home'); // Redirect to home after successful login
+      localStorage.setItem("access_token", response.data.access_token);
+      navigate("/home");
     } catch (error) {
-      console.error('Login failed!', error.response ? error.response.data : error);
-      setLoginError('Login failed. Please check your email and password.');
+      setLoginError("Login failed. Please check your email and password.");
     }
   };
 
-  // Handle Google Login success
   const handleGoogleLoginSuccess = async (response) => {
     const token = response.credential;
-
     try {
-      const backendResponse = await axiosInstance.post('/auth/google', { token });
-      console.log('Google login successful:', backendResponse.data);
-
-
-       // Store the JWT token in localStorage
-       localStorage.setItem('access_token', backendResponse.data.access_token);
-
-      navigate('/home'); // Redirect to home after successful login
+      const backendResponse = await axiosInstance.post("/auth/google", {
+        token,
+      });
+      localStorage.setItem("access_token", backendResponse.data.access_token);
+      navigate("/home");
     } catch (error) {
-      console.error('Google Login Failed!', error);
-      setLoginError('Google login failed. Please try again.');
+      setLoginError("Google login failed. Please try again.");
     }
   };
 
-  // Handle Google Login failure
   const handleGoogleLoginFailure = (error) => {
-    console.error('Google Login Failed!', error);
-    setLoginError('Google login failed. Please try again.');
+    setLoginError("Google login failed. Please try again.");
   };
 
-  // Redirect to sign-up page
   const handleCreateAccount = () => {
-    navigate('/signup');
+    navigate("/signup");
   };
 
   return (
-    <div>
-      <h1>Login</h1>
-      {loginError && <p style={{ color: 'red' }}>{loginError}</p>}
-      
-      {/* Email/Password Login */}
-      <div style={{ marginBottom: '30px' }}>
-        <h2>Login with Email</h2>
-        <form onSubmit={handleLogin}>
-          <div>
-            <label htmlFor="email">Email:</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="password">Password:</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit">Login</button>
-        </form>
+    <Box
+      sx={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" }, // Stack vertically on mobile, side-by-side on larger screens
+        backgroundColor: "#ffffff", // Background color for the page
+      }}
+    >
+      {/* Background image section */}
+      <Box
+        sx={{
+          flex: 1,
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
 
-        {/* Google SSO Login */}
-      <div>
-        <h2>Login with Google</h2>
-        <GoogleLogin
-          onSuccess={handleGoogleLoginSuccess}
-          onError={handleGoogleLoginFailure}
-        />
-      </div>
-      
-        <button
-          style={{
-            marginTop: '20px',
-            padding: '10px 20px',
-            backgroundColor: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer',
-            borderRadius: '5px',
-          }}
+      {/* Form section */}
+      <Box
+        sx={{
+          width: { xs: "100%", md: "30%" }, // 100% width on mobile, 30% on desktop
+          padding: 4,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.8)", // Semi-transparent background for form area
+        }}
+      >
+        <Typography variant="h4" align="center" color="primary" gutterBottom>
+          SAHANA
+        </Typography>
+        {loginError && (
+          <Typography color="error" align="center" gutterBottom>
+            {loginError}
+          </Typography>
+        )}
+        <Box component="form" onSubmit={handleLogin}>
+          <TextField
+            fullWidth
+            label="Email"
+            variant="outlined"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            margin="normal"
+            required
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            type="password"
+            variant="outlined"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            margin="normal"
+            required
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="primary"
+            sx={{
+              color: "#ffffff", // White text color for buttonsß
+              "&:hover": {
+                backgroundColor: "#FFA500", // Slightly darker golden yellow on hover
+              },
+              marginTop: 2,
+            }}
+          >
+            Login
+          </Button>
+        </Box>
+        <Box textAlign="center" mt={2}>
+          <Typography variant="subtitle1" color="primary" gutterBottom>
+            Lazy? 
+          </Typography>
+          <GoogleLogin
+            onSuccess={handleGoogleLoginSuccess}
+            onError={handleGoogleLoginFailure}
+          />
+        </Box>
+        <Button
+          fullWidth
+          variant="text"
+          color="secondary"
+          sx={{ marginTop: 2 }}
           onClick={handleCreateAccount}
         >
           Create New Account
-        </button>
-      </div>
-
-      
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { Box, TextField, Button, Typography} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
+import signupBackground from '../assets/signup-background.jpg';
 
 const SignUpComponent = () => {
   const navigate = useNavigate();
@@ -45,57 +46,96 @@ const SignUpComponent = () => {
   };
 
   return (
-    <div>
-      <h1>Sign Up</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSignUp}>
-        <div>
-          <label htmlFor="email">Email:</label>  {/* Changed from username to email */}
-          <input
-            type="email"
-            id="email"
-            name="email"
+    <Box sx={{ display: 'flex', height: '100vh' }}>
+      {/* Left side (60% - Image) */}
+      <Box
+        sx={{
+          width: '70%',
+          backgroundImage: `url(${signupBackground})`, // Replace with your image path
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+      {/* Right side (40% - Form) */}
+      <Box
+        sx={{
+          width: '30%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'white',
+          padding: 4,
+        }}
+      >
+        <Typography variant="h4" align="center" color="primary" gutterBottom>
+          New Account?
+        </Typography>
+        {error && (
+          <Typography color="error" align="center" gutterBottom>
+            {error}
+          </Typography>
+        )}
+        <form onSubmit={handleSignUp}>
+          <TextField
+            fullWidth
+            label="Email"
+            variant="outlined"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            margin="normal"
             required
           />
-        </div>
-        <div>
-          <label htmlFor="name">Name:</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
+          <TextField
+            fullWidth
+            label="Name"
+            variant="outlined"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            margin="normal"
             required
           />
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input
+          <TextField
+            fullWidth
+            label="Password"
             type="password"
-            id="password"
-            name="password"
+            variant="outlined"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            margin="normal"
             required
           />
-        </div>
-        <div>
-          <label htmlFor="confirmPassword">Confirm Password:</label>
-          <input
+          <TextField
+            fullWidth
+            label="Confirm Password"
             type="password"
-            id="confirmPassword"
-            name="confirmPassword"
+            variant="outlined"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            margin="normal"
             required
           />
-        </div>
-        <button type="submit">Sign Up</button>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{
+              backgroundColor: '#FFBF49', // Golden Yellow button color
+              color: '#ffffff', // White text on button
+              '&:hover': {
+                backgroundColor: '#FFA500', // Slightly darker golden yellow on hover
+              },
+              marginTop: 2,
+            }}
+          >
+            Sign Up
+          </Button>
+        </form>
+      </Box>
+    </Box>
   );
 };
 

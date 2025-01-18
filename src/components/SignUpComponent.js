@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
-import signupBackground from '../assets/signup-background.jpg';
+import signupBackground from '../assets/SignUp.svg';
 
 const SignUpComponent = () => {
   const navigate = useNavigate();
@@ -52,8 +52,10 @@ const SignUpComponent = () => {
         sx={{
           width: '70%',
           backgroundImage: `url(${signupBackground})`, // Replace with your image path
-          backgroundSize: 'cover',
+          backgroundColor: 'white',
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
+          backgroundRepeat: "no-repeat",
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',

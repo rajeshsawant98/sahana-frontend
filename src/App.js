@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import HomePage from './pages/HomePage';  // Import HomePage component
+import LandingPage from './pages/LandingPage';  // Import LandingPage component
 import LoginPage from './pages/LoginPage';  // Import the combined LoginPage component
 import SignUpComponent from './components/SignUpComponent';  // Import your SignUp component
 import ProtectedRoute from './components/ProtectedRoute';
@@ -19,7 +19,7 @@ const App = () => {
           {/* Protected Route */}
           <Route 
             path="/home" 
-            element={<ProtectedRoute element={<HomePage />} />} 
+            element={<ProtectedRoute element={<LandingPage />} />} 
           />
            <Route 
             path="/profile" 

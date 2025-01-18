@@ -3,7 +3,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import { Box, TextField, Button, Typography } from "@mui/material";
-import backgroundImage from "../assets/26723.jpg"; // Import the image
+import backgroundImage from "../assets/Login.svg"; // Import the image
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -60,7 +60,7 @@ const LoginPage = () => {
         sx={{
           flex: 1,
           backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: "cover",
+          backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
         }}
@@ -112,9 +112,6 @@ const LoginPage = () => {
             color="primary"
             sx={{
               color: "#ffffff", // White text color for buttonsß
-              "&:hover": {
-                backgroundColor: "#FFA500", // Slightly darker golden yellow on hover
-              },
               marginTop: 2,
             }}
           >

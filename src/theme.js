@@ -10,7 +10,7 @@ const theme = createTheme({
       main: '#49A3FF', // Cool Blue
     },
     background: {
-      default: '#9E9E9E', // Neutral Gray for the body background
+      default: '#f5f5f5', // Neutral Gray for the body background
       paper: '#ffffff', // White paper background for cards, dialogs, etc.
     },
     text: {
@@ -29,6 +29,9 @@ const theme = createTheme({
           borderRadius: 8, // Rounded buttons for a modern look
           height: 45, // Match the height of the text fields
           padding: '12px 16px', // Adjust padding to ensure proper height
+          "&:hover": {
+                backgroundColor: "#FFA500", // Slightly darker golden yellow on hover
+              },
    //       color: '#ffffff', // White text color for buttons
         },
       },

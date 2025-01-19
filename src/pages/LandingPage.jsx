@@ -28,7 +28,7 @@ const LandingPage = () => {
             position: 'absolute',
             top: 0,
             right: 0,
-            width: '65%',
+            width: '75%',
             height: '100%',
             objectFit: 'cover',
             zIndex: 0,

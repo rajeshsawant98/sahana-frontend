@@ -13,9 +13,12 @@ import {
   ListItemText,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { useNavigate } from 'react-router-dom'; // React Router for navigation
+import LogoutButton from '../components/buttons/LogoutButton';
 
 const NavBar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate(); // For programmatic navigation
 
   const toggleDrawer = (open) => (event) => {
     if (
@@ -31,7 +34,7 @@ const NavBar = () => {
     <Box
       sx={{
         width: 250,
-        backgroundColor: '#FFFFFF', // Solid white for a modern look
+        backgroundColor: '#FFFFFF',
         height: '100%',
       }}
       role="presentation"
@@ -39,13 +42,18 @@ const NavBar = () => {
       onKeyDown={toggleDrawer(false)}
     >
       <List>
-        {['Features', 'Pricing', 'About', 'Login'].map((text) => (
+        {[
+          { text: 'Features', route: '/features' },
+          { text: 'Preferences', route: '/preferences' }, // New Preferences page
+          { text: 'About', route: '/about' },
+          { text: 'Login', route: '/login' },
+        ].map(({ text, route }) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton>
+            <ListItemButton onClick={() => navigate(route)}>
               <ListItemText
                 primary={text}
                 sx={{
-                  color: '#333333', // Darker color for text
+                  color: '#333333',
                   fontWeight: '500',
                   textAlign: 'center',
                 }}
@@ -61,23 +69,22 @@ const NavBar = () => {
     <AppBar
       position="static"
       sx={{
-        backgroundColor: 'transparent', // Solid white background
-        boxShadow: 'none', // No shadow for a cleaner look
-        borderBottom: 'none', // Light border for separation
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+        borderBottom: 'none',
       }}
     >
-      <Toolbar sx={{ height: '60px' }}> {/* Thinner navbar */}
-        {/* Logo or App Name */}
+      <Toolbar sx={{ height: '60px' }}>
         <Typography
           variant="h6"
           component="div"
           sx={{
             flexGrow: 1,
-           // fontFamily: 'Inter, sans-serif', // Use the selected modern font
             fontWeight: '600',
-            color: '#333333', // Dark gray text color for a sleek appearance
+            color: '#333333',
             cursor: 'pointer',
           }}
+          onClick={() => navigate('/home')} // Logo navigates to home
         >
           Sahana
         </Typography>
@@ -88,13 +95,14 @@ const NavBar = () => {
             color="inherit"
             sx={{
               color: '#333333',
-              fontFamily: 'Inter, sans-serif', // Use modern font here too
               fontWeight: '500',
               transition: 'color 0.3s',
               '&:hover': {
-                color: '#FFBF49', // Golden Yellow on hover
+                color: '#FFBF49',
+                backgroundColor: 'transparent',
               },
             }}
+            onClick={() => navigate('/features')}
           >
             Features
           </Button>
@@ -102,46 +110,33 @@ const NavBar = () => {
             color="inherit"
             sx={{
               color: '#333333',
-              fontFamily: 'Inter, sans-serif',
               fontWeight: '500',
               transition: 'color 0.3s',
               '&:hover': {
                 color: '#FFBF49',
+                backgroundColor: 'transparent',
               },
             }}
+            onClick={() => navigate('/preferences')} // Navigate to Preferences
           >
-            Pricing
+            Preferences
           </Button>
           <Button
             color="inherit"
             sx={{
               color: '#333333',
-              fontFamily: 'Inter, sans-serif',
               fontWeight: '500',
               transition: 'color 0.3s',
               '&:hover': {
                 color: '#FFBF49',
+                backgroundColor: 'transparent',
               },
             }}
+            onClick={() => navigate('/about')}
           >
             About
           </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            sx={{
-              borderRadius: 20,
-              padding: '6px 20px',
-              textTransform: 'none',
-              fontWeight: '500',
-              background: '#49A3FF',
-              '&:hover': {
-                background: '#5AB5FF',
-              },
-            }}
-          >
-            Login
-          </Button>
+          <LogoutButton />
         </Box>
 
         {/* Mobile Hamburger Menu */}

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import NavBar from '../components/NavBar';
+import axiosInstance from '../utils/axiosInstance';
 
 const categories = {
   'Hobbies & Interests': [
@@ -23,8 +24,28 @@ const categories = {
   ],
 };
 
-const UserPreferences = () => {
+const UserInterests = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [loading, setLoading] = useState(false); // Added loading state
+  const email = localStorage.getItem('email');
+
+  // Fetch the user's saved interests on component mount
+  useEffect(() => {
+    const fetchUserInterests = async () => {
+      try {
+        const response = await axiosInstance.get('/auth/me', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          },
+        });
+        const userInterests = response.data.interests;
+        setSelectedCategories(userInterests); // Set the interests into the state
+      } catch (error) {
+        console.error('Error fetching user interests:', error);
+      }
+    };
+    fetchUserInterests();
+  }, []); // Empty dependency array to run only once when the component mounts
 
   const handleCategoryClick = (subcategory) => {
     if (selectedCategories.includes(subcategory)) {
@@ -36,13 +57,35 @@ const UserPreferences = () => {
     }
   };
 
-  const handleSavePreferences = () => {
+  const updateUserInterests = async (interests, email) => {
+    try {
+      const response = await axiosInstance.put('/auth/me/interests', { interests }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`, // Assuming you're using a token stored in localStorage
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to update interests: ' + error.message);
+    }
+  };
+
+  const handleSavePreferences = async () => {
     if (selectedCategories.length < 3) {
       alert('Please select at least 3 subcategories.');
       return;
     }
-    // TODO: Implement API call to save preferences
-    console.log('Saved Preferences:', selectedCategories);
+
+    setLoading(true); // Start loading
+
+    try {
+      await updateUserInterests(selectedCategories, email); // Send API request to save preferences
+      alert('Preferences saved successfully!');
+    } catch (error) {
+      alert('Error saving preferences');
+    } finally {
+      setLoading(false); // Stop loading
+    }
   };
 
   return (
@@ -61,9 +104,6 @@ const UserPreferences = () => {
         <Typography variant="h5" fontWeight="bold">
           Pick Your Interests!
         </Typography>
-        {/* <Typography variant="body1" color="textSecondary">
-          Choose between 3 to 5 subcategories that interest you.
-        </Typography> */}
 
         {/* Render Main Categories with Subcategories */}
         {Object.entries(categories).map(([mainCategory, subcategories]) => (
@@ -76,7 +116,6 @@ const UserPreferences = () => {
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: 2,
-                //justifyContent: 'center', 
                 marginBottom: 3,
               }}
             >
@@ -130,12 +169,7 @@ const UserPreferences = () => {
           </Box>
         ))}
 
-        {/* Display Selected Categories
-        <Typography variant="body2" color="textSecondary">
-          Selected Subcategories: {selectedCategories.join(', ')}
-        </Typography> */}
-
-        {/* Save Button */}
+        {/* Save Button with loading indicator */}
         <Button
           variant="contained"
           color="primary"
@@ -143,12 +177,13 @@ const UserPreferences = () => {
           sx={{
             marginTop: 2,
           }}
+          disabled={loading} // Disable button while loading
         >
-          Save Preferences
+          {loading ? <CircularProgress size={24} color="inherit" /> : 'Save Interests'}
         </Button>
       </Box>
     </>
   );
 };
 
-export default UserPreferences;
+export default UserInterests;

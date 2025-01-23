@@ -34,6 +34,7 @@ const SignUpComponent = () => {
       // Extract and store the access token
       const { access_token } = response.data;
       localStorage.setItem('access_token', access_token);
+      
     
       console.log('Sign-up successful:', response.data.message);
     

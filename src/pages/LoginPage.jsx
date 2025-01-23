@@ -19,6 +19,7 @@ const LoginPage = () => {
         password,
       });
       localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("email", response.data.email);
       navigate("/home");
     } catch (error) {
       setLoginError("Login failed. Please check your email and password.");
@@ -32,6 +33,7 @@ const LoginPage = () => {
         token,
       });
       localStorage.setItem("access_token", backendResponse.data.access_token);
+      localStorage.setItem("email", backendResponse.data.email);
       navigate("/home");
     } catch (error) {
       setLoginError("Google login failed. Please try again.");

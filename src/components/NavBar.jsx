@@ -44,7 +44,7 @@ const NavBar = () => {
       <List>
         {[
           { text: 'Features', route: '/features' },
-          { text: 'Preferences', route: '/preferences' }, // New Preferences page
+          { text: 'Interests', route: '/interests' }, // New Preferences page
           { text: 'About', route: '/about' },
           { text: 'Login', route: '/login' },
         ].map(({ text, route }) => (
@@ -117,9 +117,9 @@ const NavBar = () => {
                 backgroundColor: 'transparent',
               },
             }}
-            onClick={() => navigate('/preferences')} // Navigate to Preferences
+            onClick={() => navigate('/interests')} // Navigate to Preferences
           >
-            Preferences
+            Interests
           </Button>
           <Button
             color="inherit"

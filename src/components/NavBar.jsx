@@ -43,9 +43,9 @@ const NavBar = () => {
     >
       <List>
         {[
-          { text: 'Features', route: '/features' },
+          { text: 'Events', route: '/events' },
           { text: 'Interests', route: '/interests' }, // New Preferences page
-          { text: 'About', route: '/about' },
+          { text: 'Profile', route: '/profile' },
           { text: 'Login', route: '/login' },
         ].map(({ text, route }) => (
           <ListItem key={text} disablePadding>
@@ -102,9 +102,9 @@ const NavBar = () => {
                 backgroundColor: 'transparent',
               },
             }}
-            onClick={() => navigate('/features')}
+            onClick={() => navigate('/events')}
           >
-            Features
+            Events
           </Button>
           <Button
             color="inherit"
@@ -132,9 +132,9 @@ const NavBar = () => {
                 backgroundColor: 'transparent',
               },
             }}
-            onClick={() => navigate('/about')}
+            onClick={() => navigate('/profile')}
           >
-            About
+            Profile
           </Button>
           <LogoutButton />
         </Box>

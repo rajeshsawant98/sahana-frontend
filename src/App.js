@@ -7,6 +7,7 @@ import SignUpComponent from './components/SignUpComponent';  // Import your Sign
 import ProtectedRoute from './components/ProtectedRoute';
 import ProfilePage from './pages/ProfilePage';
 import UserInterests from './pages/UserInterests';
+import Events from './pages/Events';
 
 const App = () => {
   return (
@@ -29,6 +30,10 @@ const App = () => {
            <Route 
             path="/interests" 
             element={<ProtectedRoute element={<UserInterests />} />} 
+          />
+          <Route 
+            path="/events" 
+            element={<ProtectedRoute element={<Events />} />} 
           />
         </Routes>
       </Router>

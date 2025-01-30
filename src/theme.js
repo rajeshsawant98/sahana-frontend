@@ -39,10 +39,11 @@ const theme = createTheme({
     MuiLink: {
       styleOverrides: {
         root: {
-          color: '#49A3FF', // Use Cool Blue for links
+          color: '#333333', // Use Cool Blue for links
           textDecoration: 'none', // Remove underline from links
           '&:hover': {
-            textDecoration: 'underline', // Add underline on hover for links
+            color: '#FFBF49', // Muted Green on hover
+            textDecoration: 'none', // Keep the underline removed on hover
           },
         },
       },

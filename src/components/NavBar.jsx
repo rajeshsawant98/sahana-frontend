@@ -15,6 +15,8 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom'; // React Router for navigation
 import LogoutButton from '../components/buttons/LogoutButton';
+import LocationNavbar from './LocationNavbar';
+
 
 const NavBar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -91,6 +93,7 @@ const NavBar = () => {
 
         {/* Desktop Navigation */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3 }}>
+        <LocationNavbar />
           <Button
             color="inherit"
             sx={{

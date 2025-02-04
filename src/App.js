@@ -8,11 +8,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ProfilePage from './pages/ProfilePage';
 import UserInterests from './pages/UserInterests';
 import Events from './pages/Events';
+import { LoadScript } from "@react-google-maps/api";
 
 const App = () => {
   return (
     <GoogleOAuthProvider clientId="505025857168-olhtcsvr2pmpu84k0gb25rkh61qksbm8.apps.googleusercontent.com">
       <Router>
+        <LoadScript googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY} libraries={["places"]}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LoginPage />} />
@@ -36,6 +38,7 @@ const App = () => {
             element={<ProtectedRoute element={<Events />} />} 
           />
         </Routes>
+        </LoadScript>
       </Router>
     </GoogleOAuthProvider>
   );

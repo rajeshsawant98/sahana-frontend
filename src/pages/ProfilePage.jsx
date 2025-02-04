@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axiosInstance from "../utils/axiosInstance";
 import LogoutButton from "../components/buttons/LogoutButton";
 import {
@@ -8,181 +8,200 @@ import {
   Card,
   CardContent,
   Container,
-  Grid,
+  Grid2,
   Snackbar,
   TextField,
   Typography,
 } from "@mui/material";
 import NavBar from "../components/NavBar";
+import { Autocomplete } from "@react-google-maps/api";
 
 const ProfilePage = () => {
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    profilePicture: "",
-  });
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [profile, setProfile] = useState({});
+  const [formData, setFormData] = useState({});
+  const [location, setLocation] = useState({});
+  const [locationInput, setLocationInput] = useState(""); // Store manual location input
+  const [message, setMessage] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const autocompleteRef = useRef(null);
 
   useEffect(() => {
-    // Fetch profile data on component mount
     const fetchProfile = async () => {
       try {
-        const response = await axiosInstance.get("/auth/me");
-        const { name, email, profile_picture } = response.data;
-        setProfile({ name, email, profilePicture: profile_picture });
-        setName(name); // Pre-fill name for editing
+        const { data } = await axiosInstance.get("/auth/me");
+        console.log(data);
+        setProfile(data);
+        setFormData(data);
+        setLocation(data.location || {});
+        setLocationInput(data.location ? `${data.location.city}, ${data.location.country}` : "");
       } catch (err) {
         console.error("Failed to fetch profile:", err);
       }
     };
-
     fetchProfile();
   }, []);
 
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleLocationInputChange = (e) => {
+    setLocationInput(e.target.value); // Allow manual input of the location
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-
     try {
-      await axiosInstance.put("/auth/me", { name });
-      setProfile((prev) => ({ ...prev, name }));
-      setSuccess("Profile updated successfully");
-      setOpenSnackbar(true);
+      await axiosInstance.put("/auth/me", { ...formData, location });
+      console.log(formData);
+      console.log(location);
+      setProfile(formData);
+      setMessage("Profile updated successfully");
     } catch (err) {
       console.error("Failed to update profile:", err);
-      setError("Failed to update profile");
+      setMessage("Failed to update profile");
+    } finally {
       setOpenSnackbar(true);
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-    setError("");
-    setSuccess("");
+  const handlePlaceChanged = () => {
+    if (autocompleteRef.current) {
+      const place = autocompleteRef.current.getPlace();
+      if (place.geometry) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const city = place.address_components.find((comp) =>
+          comp.types.includes("locality")
+        )?.long_name;
+        const country = place.address_components.find((comp) =>
+          comp.types.includes("country")
+        )?.long_name;
+
+        setLocation({
+          latitude: lat,
+          longitude: lng,
+          city: city || "",
+          country: country || "",
+        });
+        setLocationInput(`${city || ""}, ${country || ""}`); // Update input field with selected location
+      }
+    }
   };
 
   return (
     <>
-    <NavBar />
-    <Box
-      sx={{
-        backgroundColor: "#f3f2ef",
-        minHeight: "100vh",
-        padding: 3,
-      }}
-    >
-      {/* Profile Header */}
-      <Box
-        sx={{
-          background: "linear-gradient(90deg, #0073b1, #004182)",
-          height: "180px",
-          borderRadius: "8px",
-          position: "relative",
-        }}
-      >
-        {/* Profile Avatar and Details on the Left */}
-        <Container
-          sx={{
-            position: "absolute",
-            top: 50,
-            left: 30,
-            display: "flex",
-            alignItems: "center",  // Align items vertically
-            color: "white",
-          }}
-        >
-          <Avatar
-            src={
-              profile.profilePicture ||
-              "https://dummyimage.com/150x150/cccccc/ffffff&text=Profile"
-            }
-            alt="Profile"
-            sx={{
-              width: 120,
-              height: 120,
-              border: "4px solid white",
-              marginRight: "20px",  // Space between the picture and text
-            }}
-          />
-          <Box>
-            <Typography variant="h5" fontWeight="bold">
-              {profile.name || "Your Name"}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {profile.email}
-            </Typography>
-          </Box>
-        </Container>
-      </Box>
-
-      {/* Main Content */}
-      <Container sx={{ marginTop: "5rem" }}>
-        <Grid container spacing={3}>
-          {/* Left Section: Profile Information */}
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  About
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Add a short description about yourself here, like your role,
-                  interests, or goals.
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* Right Section: Edit Profile Form */}
-          <Grid item xs={12} md={9}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" gutterBottom>
-                  Edit Profile
-                </Typography>
-                <form onSubmit={handleUpdateProfile} style={{ marginTop: "1rem" }}>
-                  <TextField
-                    label="Update Name"
-                    variant="outlined"
-                    fullWidth
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    style={{ marginBottom: "1rem" }}
+      <NavBar />
+      <Box sx={{ backgroundColor: "#f3f2ef", minHeight: "100vh", padding: 3 }}>
+        <Container>
+          <Grid2 container spacing={3}>
+            <Grid2 item size={3} md={3}>
+              <Card>
+                <CardContent>
+                  <Avatar
+                    src={profile.profile_picture || "https://dummyimage.com/150x150/cccccc/ffffff&text=Profile"}
+                    sx={{ width: 100, height: 100 }}
                   />
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    type="submit"
-                    fullWidth
-                  >
-                    Save Changes
-                  </Button>
-                </form>
-                <Box mt={3}>
-                  <LogoutButton />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Container>
+                  <Typography variant="h5">{profile.name || "Your Name"}</Typography>
+                  <Typography variant="body2" color="text.secondary">{profile.email}</Typography>
+                </CardContent>
+              </Card>
+            </Grid2>
+            <Grid2 item size={9} md={9}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6">Edit Profile</Typography>
+                  <form onSubmit={handleUpdateProfile}>
+                    <TextField
+                      label="Name"
+                      name="name"
+                      fullWidth
+                      value={formData.name || ""}
+                      onChange={handleInputChange}
+                      required
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      label="Bio"
+                      name="bio"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      value={formData.bio || ""}
+                      onChange={handleInputChange}
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      label="Interests"
+                      name="interests"
+                      fullWidth
+                      value={formData.interests || ""}
+                      onChange={handleInputChange}
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      label="Profession"
+                      name="profession"
+                      fullWidth
+                      value={formData.profession || ""}
+                      onChange={handleInputChange}
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      label="Birthday"
+                      name="birthdate"
+                      fullWidth
+                      type="date"
+                      InputLabelProps={{ shrink: true }}
+                      value={formData.birthdate || ""}
+                      onChange={handleInputChange}
+                      sx={{ mb: 2 }}
+                    />
+                    <TextField
+                      label="Phone Number"
+                      name="phoneNumber"
+                      fullWidth
+                      value={formData.phoneNumber || ""}
+                      onChange={handleInputChange}
+                      sx={{ mb: 2 }}
+                    />
 
-      {/* Snackbar */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        message={success || error}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        ContentProps={{
-          style: { backgroundColor: success ? "green" : "red" },
-        }}
-      />
-    </Box>
-    </>
+                    {/* Location Input with Autocomplete */}
+                    <Autocomplete
+                      onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                      onPlaceChanged={handlePlaceChanged}
+                    >
+                      <TextField
+                        label="Location"
+                        fullWidth
+                        placeholder="Enter your location"
+                        value={locationInput}  // Use locationInput for manual typing
+                        onChange={handleLocationInputChange}  // Allow manual input change
+                        sx={{ mb: 2 }}
+                      />
+                    </Autocomplete>
+
+                    <Button variant="contained" color="primary" type="submit" fullWidth>
+                      Save Changes
+                    </Button>
+                  </form>
+                  <Box mt={2}>
+                    <LogoutButton />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid2>
+          </Grid2>
+        </Container>
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          message={message}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        />
+      </Box>
+</>
   );
 };
 

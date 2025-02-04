@@ -33,7 +33,9 @@ const ProfilePage = () => {
         setProfile(data);
         setFormData(data);
         setLocation(data.location || {});
-        setLocationInput(data.location ? `${data.location.city}, ${data.location.country}` : "");
+        setLocationInput(
+          data.location ? `${data.location.city}, ${data.location.country}` : ""
+        );
       } catch (err) {
         console.error("Failed to fetch profile:", err);
       }
@@ -99,11 +101,18 @@ const ProfilePage = () => {
               <Card>
                 <CardContent>
                   <Avatar
-                    src={profile.profile_picture || "https://dummyimage.com/150x150/cccccc/ffffff&text=Profile"}
+                    src={
+                      profile.profile_picture ||
+                      "https://dummyimage.com/150x150/cccccc/ffffff&text=Profile"
+                    }
                     sx={{ width: 100, height: 100 }}
                   />
-                  <Typography variant="h5">{profile.name || "Your Name"}</Typography>
-                  <Typography variant="body2" color="text.secondary">{profile.email}</Typography>
+                  <Typography variant="h5">
+                    {profile.name || "Your Name"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {profile.email}
+                  </Typography>
                 </CardContent>
               </Card>
             </Grid2>
@@ -168,20 +177,27 @@ const ProfilePage = () => {
 
                     {/* Location Input with Autocomplete */}
                     <Autocomplete
-                      onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
+                      onLoad={(autocomplete) =>
+                        (autocompleteRef.current = autocomplete)
+                      }
                       onPlaceChanged={handlePlaceChanged}
                     >
                       <TextField
                         label="Location"
                         fullWidth
                         placeholder="Enter your location"
-                        value={locationInput}  // Use locationInput for manual typing
-                        onChange={handleLocationInputChange}  // Allow manual input change
+                        value={locationInput} // Use locationInput for manual typing
+                        onChange={handleLocationInputChange} // Allow manual input change
                         sx={{ mb: 2 }}
                       />
                     </Autocomplete>
 
-                    <Button variant="contained" color="primary" type="submit" fullWidth>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      type="submit"
+                      fullWidth
+                    >
                       Save Changes
                     </Button>
                   </form>
@@ -201,7 +217,7 @@ const ProfilePage = () => {
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         />
       </Box>
-</>
+    </>
   );
 };
 

@@ -96,16 +96,23 @@ const ProfilePage = () => {
       <NavBar />
       <Box sx={{ backgroundColor: "#f3f2ef", minHeight: "100vh", padding: 3 }}>
         <Container>
-          <Grid2 container spacing={3}>
-            <Grid2 item size={3} md={3}>
+          <Grid2 container spacing={3} direction={{ xs: "column", md: "row" }}>
+            {/* Profile Picture Card */}
+            <Grid2 item size= {{xs:12, md:3}}>
               <Card>
-                <CardContent>
+                <CardContent
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
                   <Avatar
                     src={
                       profile.profile_picture ||
                       "https://dummyimage.com/150x150/cccccc/ffffff&text=Profile"
                     }
-                    sx={{ width: 100, height: 100 }}
+                    sx={{ width: 100, height: 100, mb: 2 }}
                   />
                   <Typography variant="h5">
                     {profile.name || "Your Name"}
@@ -116,7 +123,9 @@ const ProfilePage = () => {
                 </CardContent>
               </Card>
             </Grid2>
-            <Grid2 item size={9} md={9}>
+
+            {/* Profile Details Card */}
+            <Grid2 item size= {{ xs:12 , md:8}}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">Edit Profile</Typography>
@@ -186,8 +195,8 @@ const ProfilePage = () => {
                         label="Location"
                         fullWidth
                         placeholder="Enter your location"
-                        value={locationInput} // Use locationInput for manual typing
-                        onChange={handleLocationInputChange} // Allow manual input change
+                        value={locationInput}
+                        onChange={handleLocationInputChange}
                         sx={{ mb: 2 }}
                       />
                     </Autocomplete>

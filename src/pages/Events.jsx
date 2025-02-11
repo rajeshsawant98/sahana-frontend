@@ -3,10 +3,12 @@ import { Box, CircularProgress, Grid2, Button, Typography  } from '@mui/material
 import axiosInstance from '../utils/axiosInstance';
 import NavBar from '../components/NavBar';
 import EventCard from '../components/cards/EventCard'; // Import the EventCard component
+import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch events from backend on component mount
   useEffect(() => {
@@ -62,7 +64,7 @@ const Events = () => {
           sx={{ marginTop: 3 }}
           onClick={() => {
             // Navigate to event creation page (Add routing logic later)
-            console.log('Create new event');
+            navigate('/events/new');
           }}
         >
           Create New Event

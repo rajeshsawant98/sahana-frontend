@@ -2,10 +2,13 @@ import * as React from 'react';
 import { Card, CardContent, CardActions, Button, Typography, Avatar, AvatarGroup, Link } from '@mui/material';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import LocationOnRoundedIcon from '@mui/icons-material/LocationOnRounded';
+import { useNavigate } from 'react-router-dom';
 
 export default function EventCard({ event }) {
+  const navigate = useNavigate(); // Initialize navigate hook
   const handleCardClick = () => {
     // Handle card click (e.g., navigate to event details)
+    navigate(`/events/${event.eventId}`);
     console.log('Card clicked:', event.eventName);
   };
 
@@ -19,6 +22,9 @@ export default function EventCard({ event }) {
     minute: 'numeric',
     hour12: true,
   });
+
+  // Destructure location to use its properties
+  const { city, country } = event.location || {}; // Check if location exists
 
   return (
     <Card
@@ -57,7 +63,8 @@ export default function EventCard({ event }) {
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <LocationOnRoundedIcon sx={{ fontSize: 18 }} />
-          {event.location}
+          {/* Render city and country if available */}
+          {city && country ? `${city}, ${country}` : event.location}
         </Typography>
         {/* Display event start time with calendar icon */}
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -73,7 +80,7 @@ export default function EventCard({ event }) {
         gap: 2,
         padding: '16px', // Ensure proper padding around buttons
       }}>
-        <Link href="#" underline="hover" sx={{ textAlign: 'right' }}>
+        <Link href="#" underline="hover" sx={{ textAlign: 'right' }} onClick={() => navigate(`/events/${event.eventId}`)}>
             View Details
         </Link>
         <Button variant="contained" color="primary" size="small">

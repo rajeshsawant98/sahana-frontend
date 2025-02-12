@@ -69,6 +69,17 @@ const Events = () => {
         >
           Create New Event
         </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ marginTop: 3 }}
+          onClick={() => {
+            // Navigate to event creation page (Add routing logic later)
+            navigate('/events/my');
+          }}
+        >
+          My Events
+        </Button>
       </Box>
     </>
   );

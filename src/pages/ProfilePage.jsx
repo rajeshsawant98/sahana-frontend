@@ -73,20 +73,27 @@ const ProfilePage = () => {
       if (place.geometry) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
-        const city = place.address_components.find((comp) =>
+        const formattedAddress = place.formatted_address; // Get full formatted address
+        const name = place.name;
+  
+        const city = place.address_components?.find((comp) =>
           comp.types.includes("locality")
         )?.long_name;
-        const country = place.address_components.find((comp) =>
+  
+        const country = place.address_components?.find((comp) =>
           comp.types.includes("country")
         )?.long_name;
-
+  
         setLocation({
           latitude: lat,
           longitude: lng,
           city: city || "",
           country: country || "",
+          formattedAddress: formattedAddress || "", // Store formatted address
+          name: name || "",
         });
-        setLocationInput(`${city || ""}, ${country || ""}`); // Update input field with selected location
+  
+        setLocationInput(name || ""); // Update input field with formatted address
       }
     }
   };
@@ -143,8 +150,8 @@ const ProfilePage = () => {
                       label="Bio"
                       name="bio"
                       fullWidth
-                      multiline
-                      rows={3}
+                      // multiline
+                      // rows={3}
                       value={formData.bio || ""}
                       onChange={handleInputChange}
                       sx={{ mb: 2 }}

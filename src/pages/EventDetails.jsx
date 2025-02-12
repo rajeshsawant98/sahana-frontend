@@ -22,7 +22,7 @@ const EventDetails = () => {
   if (!event) return <div>Loading...</div>;
 
   const { eventName, description, location, startTime, categories, isOnline, joinLink, imageURL } = event;
-  const { latitude, longitude, city, country } = location;  // Destructure latitude and longitude
+  const { latitude, longitude, formattedAddress,  name} = location;  // Destructure latitude and longitude
 
   return (
     <>
@@ -33,7 +33,7 @@ const EventDetails = () => {
         
         <h1>{eventName}</h1>
         <p>{description}</p>
-        <p><strong>Location:</strong> {city}, {country}</p> {/* Render city and country */}
+        <p><strong>Location:</strong> {name}, {formattedAddress}</p> {/* Render city and country */}
         <p><strong>Start Time:</strong> {new Date(startTime).toLocaleString()}</p>
         <p><strong>Categories:</strong> {categories.join(", ")}</p>
 

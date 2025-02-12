@@ -51,6 +51,8 @@ const CreateEvent = () => {
       if (place.geometry) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
+        const formattedAddress = place.formatted_address;
+        const name = place.name;
         const city = place.address_components.find((comp) =>
           comp.types.includes("locality")
         )?.long_name;
@@ -63,9 +65,11 @@ const CreateEvent = () => {
           longitude: lng,
           city: city || "",
           country: country || "",
+          name: name || "",
+          formattedAddress: formattedAddress || "",
         });
 
-        setLocationInput(`${city || ""}, ${country || ""}`);
+        setLocationInput(`${name || ""}, ${formattedAddress || ""}`);
       }
     }
   };
@@ -115,8 +119,8 @@ const CreateEvent = () => {
             fullWidth
             label="Event Description"
             variant="outlined"
-            multiline
-            rows={4}
+            // multiline
+            // rows={4}
             {...register("description", {
               required: "Description is required",
             })}
@@ -127,9 +131,10 @@ const CreateEvent = () => {
 
           <TextField
             fullWidth
-            label="Start Time"
+            //label="Start Time"
             variant="outlined"
             type="datetime-local"
+            // placeholder="Start time"
             {...register("startTime", { required: "Start Time is required" })}
             error={!!errors.startTime}
             helperText={errors.startTime?.message}

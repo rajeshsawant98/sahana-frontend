@@ -11,6 +11,7 @@ import Events from "./pages/Events";
 import { LoadScript } from "@react-google-maps/api";
 import EventDetails from "./pages/EventDetails";
 import CreateEvent from "./pages/CreateEvent";
+import MyEvents from "./pages/MyEvents";
 
 const App = () => {
   return (
@@ -49,6 +50,10 @@ const App = () => {
             <Route
               path="/events/new"
               element={<ProtectedRoute element={<CreateEvent />} />}
+            />
+            <Route
+              path="/events/my"
+              element={<ProtectedRoute element={<MyEvents />} />}
             />
           </Routes>
         </LoadScript>

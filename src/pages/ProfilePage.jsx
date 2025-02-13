@@ -105,7 +105,7 @@ const ProfilePage = () => {
         <Container>
           <Grid2 container spacing={3} direction={{ xs: "column", md: "row" }}>
             {/* Profile Picture Card */}
-            <Grid2 item size= {{xs:12, md:3}}>
+            <Grid2  size= {{xs:12, md:3}}>
               <Card>
                 <CardContent
                   sx={{
@@ -132,7 +132,7 @@ const ProfilePage = () => {
             </Grid2>
 
             {/* Profile Details Card */}
-            <Grid2 item size= {{ xs:12 , md:8}}>
+            <Grid2 size= {{ xs:12 , md:8}}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">Edit Profile</Typography>

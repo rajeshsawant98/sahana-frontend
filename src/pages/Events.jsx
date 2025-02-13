@@ -50,7 +50,7 @@ const Events = () => {
         ) : (
           <Grid2 container spacing={3} sx={{ width: '100%', maxWidth: '850px' }}>
             {events.map((event) => (
-              <Grid2 item xs={12} sm={6} md={4} key={event.eventId}>
+              <Grid2 xs={12} sm={6} md={4} key={event.eventId}>
                 <EventCard event={event} /> {/* Render each event in the EventCard component */}
               </Grid2>
             ))}

@@ -12,6 +12,7 @@ import {
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../utils/axiosInstance";
 
 export default function EventCard({ event }) {
   const navigate = useNavigate(); // Initialize navigate hook
@@ -19,6 +20,20 @@ export default function EventCard({ event }) {
     // Handle card click (e.g., navigate to event details)
     navigate(`/events/${event.eventId}`);
     console.log("Card clicked:", event.eventName);
+  };
+
+  const RSVP = async () => {
+    try {
+      console.log(localStorage.getItem("access_token"));
+      const { data } = await axiosInstance.post(`/events/${event.eventId}/rsvp`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      });
+      console.log(data);
+   
+    } catch (err) {
+    }
   };
 
   // Format the start time (using the JavaScript Date object)
@@ -115,7 +130,9 @@ export default function EventCard({ event }) {
         >
           View Details
         </Link>
-        <Button variant="contained" color="primary" size="small">
+        <Button variant="contained" color="primary" size="small" 
+          onClick={RSVP}
+        >
           Join
         </Button>
       </CardActions>

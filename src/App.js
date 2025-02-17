@@ -15,7 +15,7 @@ import MyEvents from "./pages/MyEvents";
 
 const App = () => {
   return (
-    <GoogleOAuthProvider clientId="505025857168-olhtcsvr2pmpu84k0gb25rkh61qksbm8.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="856426602401-1745mq5b7mhp9norpftmi77sv515jfbh.apps.googleusercontent.com">
       <Router>
         <LoadScript
           googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}

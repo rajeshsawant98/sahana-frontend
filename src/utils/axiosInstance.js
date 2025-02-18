@@ -2,20 +2,68 @@ import axios from "axios";
 
 // Set base URL and headers
 const axiosInstance = axios.create({
-    //baseURL: "http://localhost:8000/api", 
-    baseURL: "https://sahana-backend-856426602401.us-west1.run.app/api",
+   // baseURL: "http://localhost:8000/api", 
+    baseURL: "https://sahana-drab.vercel.app/api", // Use this for production
     headers: {
         "Content-Type": "application/json",
     },
+    withCredentials: true, // Ensures cookies (refresh token) are sent if used
 });
 
-// Add Authorization header if token exists
-axiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+// Attach access token to every request
+axiosInstance.interceptors.request.use(
+    async (config) => {
+        const accessToken = localStorage.getItem("access_token");
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
+        }
+        console.log("🔵 Request:", config.method.toUpperCase(), config.url, config.headers.Authorization);
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// Handle expired tokens
+axiosInstance.interceptors.response.use(
+    (response) => {
+        console.log("🟢 Response:", response.status, response.data);
+        return response;
+    },
+    async (error) => {
+        console.error("🔴 Error:", error.response?.status, error.response?.data);
+        
+        const originalRequest = error.config;
+
+        if (error.response && error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true; // Prevent infinite loops
+
+            try {
+                const refreshToken = localStorage.getItem("refreshToken");
+                if (!refreshToken) throw new Error("No refresh token found");
+
+                // Request a new access token
+                const res = await axios.post(
+                    "https://sahana-drab.vercel.app/api/auth/refresh",
+                   // "http://localhost:8000/api/auth/refresh",
+                    { refresh_token: refreshToken }
+                );
+
+                const newAccessToken = res.data.access_token;
+                localStorage.setItem("access_token", newAccessToken);
+
+                // Retry original request with new token
+                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+                return axiosInstance(originalRequest);
+            } catch (err) {
+                console.error("Session expired. Redirecting to login.");
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refreshToken");
+                window.location.href = "/"; // Redirect user
+            }
+        }
+
+        return Promise.reject(error);
     }
-    return config;
-});
+);
 
 export default axiosInstance;

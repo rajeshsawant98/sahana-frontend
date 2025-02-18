@@ -19,6 +19,7 @@ const LoginPage = () => {
         password,
       });
       localStorage.setItem("access_token", response.data.access_token);
+      localStorage.setItem("refreshToken", response.data.refresh_token);
       localStorage.setItem("email", response.data.email);
       navigate("/home");
     } catch (error) {
@@ -33,6 +34,7 @@ const LoginPage = () => {
         token,
       });
       localStorage.setItem("access_token", backendResponse.data.access_token);
+      localStorage.setItem("refreshToken", backendResponse.data.refresh_token);
       localStorage.setItem("email", backendResponse.data.email);
       navigate("/home");
     } catch (error) {

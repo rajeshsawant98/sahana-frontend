@@ -3,7 +3,7 @@ import axios from "axios";
 // Set base URL and headers
 const axiosInstance = axios.create({
    // baseURL: "http://localhost:8000/api", 
-    baseURL: "https://sahana-drab.vercel.app/api", // Use this for production
+    baseURL: "https://sahana-backend-856426602401.us-west1.run.app/api", // Use this for production
     headers: {
         "Content-Type": "application/json",
     },
@@ -43,7 +43,7 @@ axiosInstance.interceptors.response.use(
 
                 // Request a new access token
                 const res = await axios.post(
-                    "https://sahana-drab.vercel.app/api/auth/refresh",
+                    "https://sahana-backend-856426602401.us-west1.run.app/api/auth/refresh",
                    // "http://localhost:8000/api/auth/refresh",
                     { refresh_token: refreshToken }
                 );

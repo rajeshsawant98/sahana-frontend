@@ -3,16 +3,15 @@ import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const ProtectedRoute = ({ element }) => {
-  const { isAuthenticated, accessToken } = useSelector((state) => state.auth);
+  const { isAuthenticated, accessToken, initialized } = useSelector((state) => state.auth);
 
-  // Optional: block route if accessToken is missing entirely
-  if (!accessToken && !isAuthenticated) {
-    return <Navigate to="/" />;
+  // ⏳ Wait for AuthBootstrap to finish checking refresh token
+  if (!initialized) {
+    return <div>Loading...</div>;
   }
 
-  // Optional: render loading UI if you still plan to verify via /auth/me
-  // (skip this if your `AuthBootstrap` and refresh token already cover it)
-  if (isAuthenticated === false) {
+  // ❌ If not authenticated even after checking
+  if (!accessToken || !isAuthenticated) {
     return <Navigate to="/" />;
   }
 

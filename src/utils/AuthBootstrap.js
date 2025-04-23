@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { login } from "../redux/slices/authSlice";
+import { login, initialize } from "../redux/slices/authSlice";
 import axiosInstance from "../utils/axiosInstance";
 
 const AuthBootstrap = () => {
@@ -9,7 +9,10 @@ const AuthBootstrap = () => {
   useEffect(() => {
     const refresh = async () => {
       const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) return;
+      if (!refreshToken) {
+        dispatch(initialize());
+        return;
+      }
 
       try {
         const res = await axiosInstance.post("/auth/refresh", {
@@ -24,6 +27,7 @@ const AuthBootstrap = () => {
         );
       } catch (err) {
         localStorage.removeItem("refreshToken");
+        dispatch(initialize());
         console.warn("Auto-login failed.");
       }
     };

@@ -4,8 +4,8 @@ import store from "../redux/store";
 
 // Set base URL and headers
 const axiosInstance = axios.create({
-   // baseURL: "http://localhost:8000/api", 
-    baseURL: "https://sahana-backend-856426602401.us-west1.run.app/api", // Use this for production
+    baseURL: "http://localhost:8000/api", 
+   // baseURL: "https://sahana-backend-856426602401.us-west1.run.app/api", // Use this for production
     headers: {
         "Content-Type": "application/json",
     },

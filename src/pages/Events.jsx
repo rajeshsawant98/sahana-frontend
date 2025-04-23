@@ -1,35 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress, Grid2, Button, Typography  } from '@mui/material';
-import axiosInstance from '../utils/axiosInstance';
+import React, { useEffect } from 'react';
+import { Box, CircularProgress, Typography, Button, Grid2 } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchEvents } from '../redux/slices/eventsSlice';
 import NavBar from '../components/NavBar';
-import EventCard from '../components/cards/EventCard'; // Import the EventCard component
+import EventCard from '../components/cards/EventCard';
 import { useNavigate } from 'react-router-dom';
 
 const Events = () => {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Fetch events from backend on component mount
-  useEffect(() => {
-    const fetchEvents = async () => {
-      setLoading(true);
-      try {
-        const response = await axiosInstance.get('/events'); // Adjust based on your API endpoint
-        setEvents(response.data.events); // Assuming response.data contains the events array
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { events = [], loading, error } = useSelector((state) => state.events);
 
-    fetchEvents();
-  }, []);
+  useEffect(() => {
+    dispatch(fetchEvents());
+  }, [dispatch]);
 
   return (
     <>
-    <NavBar />
+      <NavBar />
       <Box
         sx={{
           display: 'flex',
@@ -44,28 +33,26 @@ const Events = () => {
           Upcoming Events
         </Typography>
 
-        {/* Loading Indicator */}
         {loading ? (
           <CircularProgress color="primary" />
+        ) : error ? (
+          <Typography color="error">{error}</Typography>
         ) : (
           <Grid2 container spacing={3} sx={{ width: '100%', maxWidth: '850px' }}>
             {events.map((event) => (
               <Grid2 xs={12} sm={6} md={4} key={event.eventId}>
-                <EventCard event={event} /> {/* Render each event in the EventCard component */}
+                <EventCard event={event} />
               </Grid2>
             ))}
           </Grid2>
         )}
 
-        {/* Create New Event Button */}
+        {/* Buttons */}
         <Button
           variant="contained"
           color="primary"
           sx={{ marginTop: 3 }}
-          onClick={() => {
-            // Navigate to event creation page (Add routing logic later)
-            navigate('/events/new');
-          }}
+          onClick={() => navigate('/events/new')}
         >
           Create New Event
         </Button>
@@ -73,10 +60,7 @@ const Events = () => {
           variant="contained"
           color="primary"
           sx={{ marginTop: 3 }}
-          onClick={() => {
-            // Navigate to event creation page (Add routing logic later)
-            navigate('/events/my');
-          }}
+          onClick={() => navigate('/events/my')}
         >
           My Events
         </Button>

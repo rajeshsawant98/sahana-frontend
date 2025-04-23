@@ -1,46 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Navigate } from "react-router-dom";
-import axiosInstance from "../utils/axiosInstance";
+import { useSelector } from "react-redux";
 
 const ProtectedRoute = ({ element }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const { isAuthenticated, accessToken } = useSelector((state) => state.auth);
 
-    useEffect(() => {
-        const verifyToken = async () => {
-            const accessToken = localStorage.getItem("access_token");
+  // Optional: block route if accessToken is missing entirely
+  if (!accessToken && !isAuthenticated) {
+    return <Navigate to="/" />;
+  }
 
-            if (!accessToken) {
-                setIsAuthenticated(false);
-                return;
-            }
+  // Optional: render loading UI if you still plan to verify via /auth/me
+  // (skip this if your `AuthBootstrap` and refresh token already cover it)
+  if (isAuthenticated === false) {
+    return <Navigate to="/" />;
+  }
 
-            try {
-                // Call any protected route to verify the token
-                await axiosInstance.get("/auth/me");
-                setIsAuthenticated(true);
-            } catch (error) {
-                if (error.response && error.response.status === 401) {
-                    try {
-                        // Attempt token refresh
-                        const refreshResponse = await axiosInstance.post("/auth/refresh");
-                        localStorage.setItem("access_token", refreshResponse.data.access_token);
-                        setIsAuthenticated(true);
-                    } catch (refreshError) {
-                        console.error("Session expired. Redirecting to login.");
-                        localStorage.removeItem("access_token");
-                        setIsAuthenticated(false);
-                    }
-                } else {
-                    setIsAuthenticated(false);
-                }
-            }
-        };
-
-        verifyToken();
-    }, []);
-
-    if (isAuthenticated === null) return <div>Loading...</div>; // Show loading while checking
-    return isAuthenticated ? element : <Navigate to="/" />;
+  return element;
 };
 
 export default ProtectedRoute;

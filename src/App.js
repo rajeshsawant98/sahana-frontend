@@ -12,8 +12,11 @@ import { LoadScript } from "@react-google-maps/api";
 import EventDetails from "./pages/EventDetails";
 import CreateEvent from "./pages/CreateEvent";
 import MyEvents from "./pages/MyEvents";
+import InitRedux from "./utils/InitRedux";
+import AuthBootstrap from "./utils/AuthBootstrap";
 
 const App = () => {
+
   return (
     <GoogleOAuthProvider clientId="856426602401-1745mq5b7mhp9norpftmi77sv515jfbh.apps.googleusercontent.com">
       <Router>
@@ -21,6 +24,8 @@ const App = () => {
           googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
           libraries={["places"]}
         >
+          <InitRedux />
+          <AuthBootstrap />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LoginPage />} />

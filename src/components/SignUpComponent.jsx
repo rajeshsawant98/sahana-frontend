@@ -3,9 +3,14 @@ import { Box, TextField, Button, Typography} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosInstance';
 import signupBackground from '../assets/SignUp.svg';
+import { useDispatch } from "react-redux";
+import { login } from "../redux/slices/authSlice";
 
 const SignUpComponent = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,36 +20,39 @@ const SignUpComponent = () => {
   const handleSignUp = async (e) => {
     e.preventDefault();
 
-    // Check if passwords match
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
+  if (password !== confirmPassword) {
+    setError('Passwords do not match');
+    return;
+  }
+
+  try {
+    const response = await axiosInstance.post('/auth/register', {
+      email,
+      password,
+      name,
+    });
+
+    console.log('Backend response:', response.data);
+
+    const { access_token, refresh_token } = response.data;
+
+    // ✅ Store access token in Redux
+    dispatch(login({
+      user: { email }, // or include name if available
+      accessToken: access_token,
+    }));
+
+    // ✅ Store refresh token in localStorage
+    if (refresh_token) {
+      localStorage.setItem('refreshToken', refresh_token);
     }
 
-    try {
-      const response = await axiosInstance.post('/auth/register', {
-        email,
-        password,
-        name,
-      });
-    
-      // Logging the entire response for debugging
-      console.log('Backend response:', response.data);
-    
-      // Extract and store the access token
-      const { access_token } = response.data;
-      localStorage.setItem('access_token', access_token);
-      
-    
-      console.log('Sign-up successful:', response.data.message);
-    
-      // Navigate to the home page
-      navigate('/home');
-    } catch (error) {
-      console.error('Sign-up failed!', error.response ? error.response.data : error);
-      setError('Sign-up failed. Please try again.');
-    }
-  };
+    navigate('/home');
+  } catch (error) {
+    console.error('Sign-up failed!', error.response ? error.response.data : error);
+    setError('Sign-up failed. Please try again.');
+  }
+};
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>

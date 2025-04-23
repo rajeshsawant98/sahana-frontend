@@ -1,4 +1,6 @@
 import axios from "axios";
+import { updateAccessToken, getAccessToken } from "../redux/tokenManager";
+import store from "../redux/store";
 
 // Set base URL and headers
 const axiosInstance = axios.create({
@@ -13,7 +15,7 @@ const axiosInstance = axios.create({
 // Attach access token to every request
 axiosInstance.interceptors.request.use(
     async (config) => {
-        const accessToken = localStorage.getItem("access_token");
+        const accessToken = getAccessToken();
         if (accessToken) {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
@@ -43,22 +45,23 @@ axiosInstance.interceptors.response.use(
 
                 // Request a new access token
                 const res = await axios.post(
-                    "https://sahana-backend-856426602401.us-west1.run.app/api/auth/refresh",
-                   // "http://localhost:8000/api/auth/refresh",
+                    //"https://sahana-backend-856426602401.us-west1.run.app/api/auth/refresh",
+                    "http://localhost:8000/api/auth/refresh",
                     { refresh_token: refreshToken }
                 );
 
                 const newAccessToken = res.data.access_token;
                 localStorage.setItem("access_token", newAccessToken);
+                updateAccessToken(newAccessToken); // Update Redux store or context
 
                 // Retry original request with new token
                 originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                 return axiosInstance(originalRequest);
             } catch (err) {
                 console.error("Session expired. Redirecting to login.");
-                localStorage.removeItem("access_token");
                 localStorage.removeItem("refreshToken");
                 window.location.href = "/"; // Redirect user
+                store.dispatch({ type: "auth/logout" }); // Clear Redux state
             }
         }
 

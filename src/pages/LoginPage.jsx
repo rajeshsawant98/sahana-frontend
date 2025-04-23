@@ -2,10 +2,14 @@ import React, { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
+import { useDispatch } from "react-redux";
+import { login } from "../redux/slices/authSlice";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import backgroundImage from "../assets/Login.svg"; // Import the image
 
+
 const LoginPage = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,9 +22,11 @@ const LoginPage = () => {
         email,
         password,
       });
-      localStorage.setItem("access_token", response.data.access_token);
+      dispatch(login({
+        user: { email: response.data.email },
+        accessToken: response.data.access_token,
+      }));
       localStorage.setItem("refreshToken", response.data.refresh_token);
-      localStorage.setItem("email", response.data.email);
       navigate("/home");
     } catch (error) {
       setLoginError("Login failed. Please check your email and password.");
@@ -33,9 +39,11 @@ const LoginPage = () => {
       const backendResponse = await axiosInstance.post("/auth/google", {
         token,
       });
-      localStorage.setItem("access_token", backendResponse.data.access_token);
+      dispatch(login({
+        user: { email: backendResponse.data.email },
+        accessToken: backendResponse.data.access_token,
+      }));
       localStorage.setItem("refreshToken", backendResponse.data.refresh_token);
-      localStorage.setItem("email", backendResponse.data.email);
       navigate("/home");
     } catch (error) {
       setLoginError("Google login failed. Please try again.");

@@ -2,14 +2,16 @@ import React from 'react';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import { Button } from '@mui/material';
 import { logout } from '../../redux/slices/authSlice';
+import { resetUserEvents } from '../../redux/slices/userEventsSlice';
 import { useDispatch } from "react-redux";
 
 const LogoutButton = () => {
   const dispatch = useDispatch();
 
-  
+
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(resetUserEvents());
     localStorage.removeItem("refreshToken");
     window.location.href = '/';
   };

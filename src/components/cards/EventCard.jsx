@@ -59,7 +59,6 @@ export default function EventCard({ event }) {
         overflow: "hidden",
         cursor: "pointer", // Makes the whole card clickable
       }}
-      onClick={handleCardClick} // Handle the entire card click
     >
       {/* Avatar and Avatar Group */}
       <CardContent
@@ -126,7 +125,7 @@ export default function EventCard({ event }) {
           href="#"
           underline="hover"
           sx={{ textAlign: "right" }}
-          onClick={() => navigate(`/events/${event.eventId}`)}
+          onClick={handleCardClick}
         >
           View Details
         </Link>

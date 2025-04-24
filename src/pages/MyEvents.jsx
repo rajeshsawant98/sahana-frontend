@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import NavBar from "../components/NavBar";
 import EventCard from "../components/cards/EventCard";
 import { fetchCreatedEvents } from "../redux/slices/userEventsSlice";
+import { fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
 
 const MyEvents = () => {
   const dispatch = useDispatch();
@@ -22,11 +23,22 @@ const MyEvents = () => {
     loadingCreated,
     errorCreated,
     lastFetchedCreated,
+    rsvpedEvents,
+    loadingRSVPed,
+    errorRSVPed,
+    lastFetchedRSVPed,
+    hasFetchedRSVPed, // New state to track if RSVP'd events have been fetched
   } = useSelector((state) => state.userEvents);
 
   useEffect(() => {
     dispatch(fetchCreatedEvents());
   }, [dispatch]);
+  
+  useEffect(() => {
+    if (activeTab === 1 && !hasFetchedRSVPed) {
+      dispatch(fetchRSVPedEvents());
+    }
+  }, [activeTab, hasFetchedRSVPed, dispatch]);
 
   const formatLastUpdated = (timestamp) => {
     if (!timestamp) return null;
@@ -46,7 +58,10 @@ const MyEvents = () => {
 
         {lastFetchedCreated && (
           <Typography variant="caption" color="text.secondary">
-            Last updated: {formatLastUpdated(lastFetchedCreated)}
+            Last updated:{" "}
+            {activeTab === 0
+              ? formatLastUpdated(lastFetchedCreated)
+              : formatLastUpdated(lastFetchedRSVPed)}
           </Typography>
         )}
 
@@ -67,16 +82,51 @@ const MyEvents = () => {
           </Box>
         ) : (
           <>
-            {activeTab === 0 && createdEvents.length > 0 ? (
-              <Grid2 container spacing={3}>
-                {createdEvents.map((event) => (
-                  <Grid2 item xs={12} sm={6} md={4} key={event.eventId}>
-                    <EventCard event={event} />
+            {activeTab === 0 && (
+              <>
+                {errorCreated && <Alert severity="error">{errorCreated}</Alert>}
+                {loadingCreated ? (
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 3 }}
+                  >
+                    <CircularProgress />
+                  </Box>
+                ) : createdEvents.length > 0 ? (
+                  <Grid2 container spacing={3}>
+                    {createdEvents.map((event) => (
+                      <Grid2 item xs={12} sm={6} md={4} key={event.eventId}>
+                        <EventCard event={event} />
+                      </Grid2>
+                    ))}
                   </Grid2>
-                ))}
-              </Grid2>
-            ) : (
-              <Typography>No created events found.</Typography>
+                ) : (
+                  <Typography>No created events found.</Typography>
+                )}
+              </>
+            )}
+
+            {activeTab === 1 && (
+              <>
+                {errorRSVPed && <Alert severity="error">{errorRSVPed}</Alert>}
+                {loadingRSVPed ? (
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 3 }}
+                  >
+                    <CircularProgress />
+                  </Box>
+                ) : rsvpedEvents.length > 0 ? (
+                  <Grid2 container spacing={3}>
+                    {rsvpedEvents.map((event) => (
+                      <Grid2 item xs={12} sm={6} md={4} key={event.eventId || event.id}
+                      >
+                        <EventCard event={event} />
+                      </Grid2>
+                    ))}
+                  </Grid2>
+                ) : (
+                  <Typography>No RSVP’d events found.</Typography>
+                )}
+              </>
             )}
           </>
         )}

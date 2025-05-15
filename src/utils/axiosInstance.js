@@ -1,6 +1,6 @@
 import axios from "axios";
 import { updateAccessToken, getAccessToken } from "../redux/tokenManager";
-import store from "../redux/store";
+//import store from "../redux/store";
 
 // Set base URL and headers
 const axiosInstance = axios.create({
@@ -51,7 +51,6 @@ axiosInstance.interceptors.response.use(
                 );
 
                 const newAccessToken = res.data.access_token;
-                localStorage.setItem("access_token", newAccessToken);
                 updateAccessToken(newAccessToken); // Update Redux store or context
 
                 // Retry original request with new token
@@ -61,7 +60,7 @@ axiosInstance.interceptors.response.use(
                 console.error("Session expired. Redirecting to login.");
                 localStorage.removeItem("refreshToken");
                 window.location.href = "/"; // Redirect user
-                store.dispatch({ type: "auth/logout" }); // Clear Redux state
+                require("../redux/store").default.dispatch({ type: "auth/logout" });
             }
         }
 

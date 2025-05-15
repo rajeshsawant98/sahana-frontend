@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   Card,
   CardContent,
@@ -24,15 +23,15 @@ export default function EventCard({ event }) {
 
   const RSVP = async () => {
     try {
-      console.log(localStorage.getItem("access_token"));
-      const { data } = await axiosInstance.post(`/events/${event.eventId}/rsvp`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-      });
+      const { data } = await axiosInstance.post(
+        `/events/${event.eventId}/rsvp`,
+        {
+          status: "joined",
+        }
+      );
       console.log(data);
-   
     } catch (err) {
+      console.error("RSVP failed:", err);
     }
   };
 
@@ -129,9 +128,7 @@ export default function EventCard({ event }) {
         >
           View Details
         </Link>
-        <Button variant="contained" color="primary" size="small" 
-          onClick={RSVP}
-        >
+        <Button variant="contained" color="primary" size="small" onClick={RSVP}>
           Join
         </Button>
       </CardActions>

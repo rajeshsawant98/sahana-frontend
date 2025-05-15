@@ -124,7 +124,7 @@ const MyEvents = () => {
                     ))}
                   </Grid2>
                 ) : (
-                  <Typography>No RSVP’d events found.</Typography>
+                  <Typography>No RSVP'd events found.</Typography>
                 )}
               </>
             )}

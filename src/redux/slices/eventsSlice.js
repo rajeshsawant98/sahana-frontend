@@ -12,15 +12,27 @@ export const fetchEvents = createAsyncThunk(
 
     // ✅ Use cache if fetched recently
     if (lastFetched && now - lastFetched < CACHE_DURATION) {
-        console.log("⏱️ Using cached events");
-        return; // Or: return dispatch(eventsCacheHit()); if you define one
-      }
+      console.log("⏱️ Using cached events");
+      return; // Or: return dispatch(eventsCacheHit()); if you define one
+    }
 
     try {
       const response = await axiosInstance.get("/events");
       return response.data.events;
     } catch (error) {
       return rejectWithValue("Failed to fetch events");
+    }
+  }
+);
+
+export const cancelRSVP = createAsyncThunk(
+  "userEvents/cancelRSVP",
+  async (eventId, { rejectWithValue }) => {
+    try {
+      await axiosInstance.delete(`/events/${eventId}/rsvp`);
+      return eventId;
+    } catch (err) {
+      return rejectWithValue("Failed to cancel RSVP");
     }
   }
 );
@@ -38,7 +50,7 @@ const eventsSlice = createSlice({
       state.events.push(action.payload);
     },
     removeEvent: (state, action) => {
-      state.events = state.events.filter(e => e.eventId !== action.payload);
+      state.events = state.events.filter((e) => e.eventId !== action.payload);
     },
   },
   extraReducers: (builder) => {
@@ -57,6 +69,15 @@ const eventsSlice = createSlice({
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(cancelRSVP.fulfilled, (state, action) => {
+        state.rsvpedEvents = state.rsvpedEvents.filter(
+          (event) =>
+            event.eventId !== action.payload && event.id !== action.payload
+        );
+      })
+      .addCase(cancelRSVP.rejected, (state, action) => {
+        state.errorRSVPed = action.payload;
       });
   },
 });

@@ -12,6 +12,7 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
+import { useSelector } from "react-redux";
 
 export default function EventCard({ event }) {
   const navigate = useNavigate(); // Initialize navigate hook
@@ -20,6 +21,10 @@ export default function EventCard({ event }) {
     navigate(`/events/${event.eventId}`);
     console.log("Card clicked:", event.eventName);
   };
+  const rsvpedEvents = useSelector((state) => state.userEvents.rsvpedEvents);
+  const isRSVPed = rsvpedEvents.some(
+    (r) => r.eventId === event.eventId || r.id === event.eventId
+  );
 
   const RSVP = async () => {
     try {
@@ -115,9 +120,9 @@ export default function EventCard({ event }) {
       <CardActions
         sx={{
           display: "flex",
-          justifyContent: "flex-end", // Align buttons to the right
+          justifyContent: "flex-end",
           gap: 2,
-          padding: "16px", // Ensure proper padding around buttons
+          padding: "16px",
         }}
       >
         <Link
@@ -128,9 +133,21 @@ export default function EventCard({ event }) {
         >
           View Details
         </Link>
-        <Button variant="contained" color="primary" size="small" onClick={RSVP}>
-          Join
-        </Button>
+
+        {isRSVPed ? (
+          <Button variant="outlined" color="success" size="small" disabled>
+            Joined
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={RSVP}
+          >
+            Join
+          </Button>
+        )}
       </CardActions>
     </Card>
   );

@@ -69,32 +69,98 @@ const EventDetails = () => {
   return (
     <>
       <NavBar />
-      <Box sx={{ px: 4, py: 4 }}>
-        {imageURL && (
-          <img
-            src={imageURL}
-            alt={eventName}
-            style={{
-              width: "100%",
-              height: "auto",
-              borderRadius: 8,
-              marginBottom: "20px",
-            }}
-          />
-        )}
 
-        <Grid2
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ mb: 3 }}
+      {/* Hero Section */}
+      <Box
+        sx={{
+          position: "relative",
+          height: { xs: 300, md: 400 },
+          width: "100%",
+          borderRadius: 2,
+          mb: 2,
+          overflow: "hidden",
+          display: "flex",
+          alignItems: "flex-end",
+          px: 4,
+          py: 3,
+          backgroundColor: imageURL ? "transparent" : "grey",
+        }}
+      >
+        {imageURL && (
+          <>
+            {/* Blurred background image */}
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                backgroundImage: `url(${imageURL})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "blur(5px)",
+                transform: "scale(1.1)",
+                zIndex: 1,
+              }}
+            />
+            {/* Dark overlay */}
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                background: "rgba(0, 0, 0, 0.5)",
+                zIndex: 2,
+              }}
+            />
+            
+            
+          </>
+        )}
+        {/* Gradient Overlay */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0.1))",
+            zIndex: 2,
+          }}
+        />
+
+        {/* Foreground content */}
+        <Box
+          sx={{
+            position: "relative",
+            zIndex: 3,
+            color: "white",
+            background: imageURL ? "transparent" : "primary.main",
+            borderRadius: 2,
+            p: 2,
+          }}
         >
-          <Grid2>
-            <Typography variant="h4">{eventName}</Typography>
-          </Grid2>
+          <Typography variant="h4" sx={{ fontWeight: 600 }}>
+            {eventName}
+          </Typography>
+
+          <Typography
+            sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
+          >
+            <CalendarTodayIcon fontSize="small" />
+            {new Date(startTime).toLocaleString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              hour: "numeric",
+              minute: "numeric",
+              hour12: true,
+            })}
+          </Typography>
+
+          <Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <LocationOnIcon fontSize="small" />
+            {name || "Online"}
+          </Typography>
 
           {!isOnline && (
-            <Grid2>
+            <Box sx={{ mt: 2 }}>
               {isRSVPed ? (
                 <Button
                   variant="outlined"
@@ -113,26 +179,27 @@ const EventDetails = () => {
                   Join Event
                 </Button>
               )}
-            </Grid2>
-          )}
-        </Grid2>
-
-        {/* Display Categories as Chips */}
-        <Box sx={{ mb: 3 }}>
-          {categories && categories.length > 0 && (
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              {categories.map((category, index) => (
-                <Chip
-                  key={index}
-                  label={category}
-                  color="primary"
-                  variant="filled"
-                  sx={{ borderRadius: "20px" }}
-                />
-              ))}
             </Box>
           )}
         </Box>
+      </Box>
+
+      {/* Content */}
+      <Box sx={{ px: 4, py: 2 }}>
+        {/* Categories */}
+        {categories && categories.length > 0 && (
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
+            {categories.map((category, index) => (
+              <Chip
+                key={index}
+                label={category}
+                color="primary"
+                variant="filled"
+                sx={{ borderRadius: "20px" }}
+              />
+            ))}
+          </Box>
+        )}
 
         <Grid2 container spacing={4}>
           {/* Left Column */}
@@ -168,11 +235,13 @@ const EventDetails = () => {
               </Box>
             </Box>
 
-            <Typography variant="h6" sx={{ mb: 2 , mt: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2, mt: 4 }}>
               About this event
             </Typography>
             <Box>
-              <Typography color="text.secondary" sx={{ mb: 4 }}>{description}</Typography>
+              <Typography color="text.secondary" sx={{ mb: 4 }}>
+                {description}
+              </Typography>
             </Box>
           </Grid2>
 

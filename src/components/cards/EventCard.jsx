@@ -59,9 +59,12 @@ export default function EventCard({ event }) {
       variant="outlined"
       sx={{
         width: 380,
-        height: "auto", // Let the card height adjust based on the content
+        height: "100%", // Ensures it stretches to match others
+        display: "flex",
+        flexDirection: "column", // So CardContent + Actions stack vertically
+        justifyContent: "space-between", // Pushes actions to bottom
         overflow: "hidden",
-        cursor: "pointer", // Makes the whole card clickable
+        cursor: "pointer",
       }}
     >
       {/* Avatar and Avatar Group */}
@@ -93,13 +96,10 @@ export default function EventCard({ event }) {
         <Typography variant="h6" component="div">
           {event.eventName}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          {event.description}
-        </Typography>
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+          sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}
         >
           <LocationOnRoundedIcon sx={{ fontSize: 18 }} />
           {/* Render city and country if available */}

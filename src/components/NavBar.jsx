@@ -46,9 +46,11 @@ const NavBar = () => {
       <List>
         {[
           { text: 'Events', route: '/events' },
+          { text: 'Nearby Events', route: '/nearby-events' },
           { text: 'Interests', route: '/interests' }, // New Preferences page
           { text: 'Profile', route: '/profile' },
           { text: 'Login', route: '/login' },
+
         ].map(({ text, route }) => (
           <ListItem key={text} disablePadding>
             <ListItemButton onClick={() => navigate(route)}>

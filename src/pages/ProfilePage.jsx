@@ -73,26 +73,30 @@ const ProfilePage = () => {
       if (place.geometry) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
+        const state = place.address_components?.find((comp) =>
+          comp.types.includes("administrative_area_level_1")
+        )?.short_name;
         const formattedAddress = place.formatted_address; // Get full formatted address
         const name = place.name;
-  
+
         const city = place.address_components?.find((comp) =>
           comp.types.includes("locality")
         )?.long_name;
-  
+
         const country = place.address_components?.find((comp) =>
           comp.types.includes("country")
         )?.long_name;
-  
+
         setLocation({
           latitude: lat,
           longitude: lng,
           city: city || "",
           country: country || "",
+          state: state || "",
           formattedAddress: formattedAddress || "", // Store formatted address
           name: name || "",
         });
-  
+
         setLocationInput(name || ""); // Update input field with formatted address
       }
     }
@@ -105,7 +109,7 @@ const ProfilePage = () => {
         <Container>
           <Grid2 container spacing={3} direction={{ xs: "column", md: "row" }}>
             {/* Profile Picture Card */}
-            <Grid2  size= {{xs:12, md:3}}>
+            <Grid2 size={{ xs: 12, md: 3 }}>
               <Card>
                 <CardContent
                   sx={{
@@ -132,7 +136,7 @@ const ProfilePage = () => {
             </Grid2>
 
             {/* Profile Details Card */}
-            <Grid2 size= {{ xs:12 , md:8}}>
+            <Grid2 size={{ xs: 12, md: 8 }}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">Edit Profile</Typography>

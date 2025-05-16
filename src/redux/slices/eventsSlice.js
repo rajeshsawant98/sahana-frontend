@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../../utils/axiosInstance";
+import { fetchAllPublicEvents as fetchPublicEventsAPI } from "../../apis/eventsAPI";
 
-// ⏱ Time in milliseconds before refetch (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
 
 export const fetchEvents = createAsyncThunk(
@@ -9,30 +8,11 @@ export const fetchEvents = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     const { lastFetched } = getState().events;
     const now = Date.now();
-
-    // ✅ Use cache if fetched recently
-    if (lastFetched && now - lastFetched < CACHE_DURATION) {
-      console.log("⏱️ Using cached events");
-      return; // Or: return dispatch(eventsCacheHit()); if you define one
-    }
-
+    if (lastFetched && now - lastFetched < CACHE_DURATION) return;
     try {
-      const response = await axiosInstance.get("/events");
-      return response.data.events;
-    } catch (error) {
+      return await fetchPublicEventsAPI();
+    } catch {
       return rejectWithValue("Failed to fetch events");
-    }
-  }
-);
-
-export const cancelRSVP = createAsyncThunk(
-  "userEvents/cancelRSVP",
-  async (eventId, { rejectWithValue }) => {
-    try {
-      await axiosInstance.delete(`/events/${eventId}/rsvp`);
-      return eventId;
-    } catch (err) {
-      return rejectWithValue("Failed to cancel RSVP");
     }
   }
 );
@@ -50,7 +30,9 @@ const eventsSlice = createSlice({
       state.events.push(action.payload);
     },
     removeEvent: (state, action) => {
-      state.events = state.events.filter((e) => e.eventId !== action.payload);
+      state.events = state.events.filter(
+        (event) => event.eventId !== action.payload
+      );
     },
   },
   extraReducers: (builder) => {
@@ -69,15 +51,6 @@ const eventsSlice = createSlice({
       .addCase(fetchEvents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })
-      .addCase(cancelRSVP.fulfilled, (state, action) => {
-        state.rsvpedEvents = state.rsvpedEvents.filter(
-          (event) =>
-            event.eventId !== action.payload && event.id !== action.payload
-        );
-      })
-      .addCase(cancelRSVP.rejected, (state, action) => {
-        state.errorRSVPed = action.payload;
       });
   },
 });

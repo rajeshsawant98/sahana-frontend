@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../../utils/axiosInstance";
+import {
+  fetchCreatedEvents as fetchCreatedEventsAPI,
+  fetchRSVPedEvents as fetchRSVPedEventsAPI,
+  cancelRSVP as cancelRSVPAPI,
+} from "../../apis/eventsAPI";
 
 const CACHE_DURATION = 5 * 60 * 1000;
 
@@ -8,40 +12,39 @@ export const fetchCreatedEvents = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     const { lastFetchedCreated } = getState().userEvents;
     const now = Date.now();
-
-    if (lastFetchedCreated && now - lastFetchedCreated < CACHE_DURATION) {
-      return; // use cache
-    }
-
+    if (lastFetchedCreated && now - lastFetchedCreated < CACHE_DURATION) return;
     try {
-      const res = await axiosInstance.get("/events/me/created");
-      return res.data.events;
-    } catch (err) {
+      return await fetchCreatedEventsAPI();
+    } catch {
       return rejectWithValue("Failed to fetch created events");
     }
   }
 );
 
 export const fetchRSVPedEvents = createAsyncThunk(
-    "userEvents/fetchRSVPed",
-    async (_, { getState, rejectWithValue }) => {
-      const { lastFetchedRSVPed } = getState().userEvents;
-      const now = Date.now();
-  
-      if (lastFetchedRSVPed && now - lastFetchedRSVPed < CACHE_DURATION) {
-        return; // use cache
-      }
-  
-      try {
-        const res = await axiosInstance.get("/events/me/rsvped");
-        return res.data.events;
-      } catch (err) {
-        return rejectWithValue("Failed to fetch RSVP’d events");
-      }
+  "userEvents/fetchRSVPed",
+  async (_, { getState, rejectWithValue }) => {
+    const { lastFetchedRSVPed } = getState().userEvents;
+    const now = Date.now();
+    if (lastFetchedRSVPed && now - lastFetchedRSVPed < CACHE_DURATION) return;
+    try {
+      return await fetchRSVPedEventsAPI();
+    } catch {
+      return rejectWithValue("Failed to fetch RSVP’d events");
     }
-  );
+  }
+);
 
-
+export const cancelRSVP = createAsyncThunk(
+  "userEvents/cancelRSVP",
+  async (eventId, { rejectWithValue }) => {
+    try {
+      return await cancelRSVPAPI(eventId);
+    } catch {
+      return rejectWithValue("Failed to cancel RSVP");
+    }
+  }
+);
 
 const userEventsSlice = createSlice({
   name: "userEvents",
@@ -54,22 +57,22 @@ const userEventsSlice = createSlice({
     errorRSVPed: null,
     lastFetchedCreated: null,
     lastFetchedRSVPed: null,
-    hasFetchedRSVPed: false, 
+    hasFetchedRSVPed: false,
   },
   reducers: {
     resetUserEvents: (state) => {
-        Object.assign(state, {
-          createdEvents: [],
-          rsvpedEvents: [],
-          loadingCreated: false,
-          loadingRSVPed: false,
-          errorCreated: null,
-          errorRSVPed: null,
-          lastFetchedCreated: null,
-          lastFetchedRSVPed: null,
-          hasFetchedRSVPed: false,
-        });
-      },
+      Object.assign(state, {
+        createdEvents: [],
+        rsvpedEvents: [],
+        loadingCreated: false,
+        loadingRSVPed: false,
+        errorCreated: null,
+        errorRSVPed: null,
+        lastFetchedCreated: null,
+        lastFetchedRSVPed: null,
+        hasFetchedRSVPed: false,
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -88,25 +91,32 @@ const userEventsSlice = createSlice({
         state.loadingCreated = false;
         state.errorCreated = action.payload;
       })
-       // RSVP’d Events
-    .addCase(fetchRSVPedEvents.pending, (state) => {
+      .addCase(fetchRSVPedEvents.pending, (state) => {
         state.loadingRSVPed = true;
         state.errorRSVPed = null;
-    })
-    .addCase(fetchRSVPedEvents.fulfilled, (state, action) => {
+      })
+      .addCase(fetchRSVPedEvents.fulfilled, (state, action) => {
         if (action.payload) {
-        state.rsvpedEvents = action.payload;
-        state.lastFetchedRSVPed = Date.now();
+          state.rsvpedEvents = action.payload;
+          state.lastFetchedRSVPed = Date.now();
         }
         state.loadingRSVPed = false;
-        state.hasFetchedRSVPed = true; // Mark as fetched
-    })
-    .addCase(fetchRSVPedEvents.rejected, (state, action) => {
+        state.hasFetchedRSVPed = true;
+      })
+      .addCase(fetchRSVPedEvents.rejected, (state, action) => {
         state.loadingRSVPed = false;
         state.errorRSVPed = action.payload;
-    });
+      })
+      .addCase(cancelRSVP.fulfilled, (state, action) => {
+        state.rsvpedEvents = state.rsvpedEvents.filter(
+          (e) => e.eventId !== action.payload && e.id !== action.payload
+        );
+      })
+      .addCase(cancelRSVP.rejected, (state, action) => {
+        state.errorRSVPed = action.payload;
+      });
   },
 });
 
-export default userEventsSlice.reducer;
 export const { resetUserEvents } = userEventsSlice.actions;
+export default userEventsSlice.reducer;

@@ -14,6 +14,8 @@ import CreateEvent from "./pages/CreateEvent";
 import MyEvents from "./pages/MyEvents";
 import InitRedux from "./utils/InitRedux";
 import AuthBootstrap from "./utils/AuthBootstrap";
+import NearbyEventsPage from "./pages/NearbyEventsPage";
+
 
 const App = () => {
 
@@ -43,6 +45,10 @@ const App = () => {
             <Route
               path="/interests"
               element={<ProtectedRoute element={<UserInterests />} />}
+            />
+            <Route
+              path="/nearby-events"
+              element={<ProtectedRoute element={<NearbyEventsPage />} />}
             />
             <Route
               path="/events"

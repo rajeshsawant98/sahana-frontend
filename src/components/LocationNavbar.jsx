@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import FmdGoodOutlinedIcon from '@mui/icons-material/FmdGoodOutlined';
-import { Button, CircularProgress} from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-
 const LocationNavbar = () => {
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState({ city: '', state: '' });
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true); // State to manage loading status
-  const navigate = useNavigate(); // For programmatic navigation
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -22,38 +21,40 @@ const LocationNavbar = () => {
             .then((response) => response.json())
             .then((data) => {
               if (data.results && data.results.length > 0) {
-                const city = data.results[0].address_components.find((component) =>
-                  component.types.includes('locality')
-                )?.long_name || 'Unknown location';
-                setLocation(city);
+                const components = data.results[0].address_components;
+
+                const city = components.find((c) => c.types.includes("locality"))?.long_name || "Unknown city";
+                const state = components.find((c) => c.types.includes("administrative_area_level_1"))?.short_name || "Unknown";
+
+                setLocation({ city, state });
               } else {
                 setError('Unable to retrieve location name.');
               }
-              setLoading(false); // Set loading to false once the location is fetched
+              setLoading(false);
             })
             .catch(() => {
               setError('Error fetching location data.');
-              setLoading(false); // Set loading to false if there's an error
+              setLoading(false);
             });
         },
         () => {
           setError('Unable to retrieve your location. Please allow location access.');
-          setLoading(false); // Set loading to false in case of an error
+          setLoading(false);
         }
       );
     } else {
       setError('Geolocation is not supported by this browser.');
-      setLoading(false); // Set loading to false if geolocation is not supported
+      setLoading(false);
     }
   }, []);
 
   return (
     <div className="navbar-location">
       {loading ? (
-         <CircularProgress color="primary" />
+        <CircularProgress color="primary" />
       ) : error ? (
         <span>{error}</span>
-      ) : location ? (
+      ) : location.city && location.state ? (
         <span>
           <Button
             color="inherit"
@@ -67,9 +68,9 @@ const LocationNavbar = () => {
                 backgroundColor: 'transparent',
               },
             }}
-            onClick={() => navigate('/events')}
+            onClick={() => navigate('/nearby-events', { state: { city: location.city, state: location.state } })}
           >
-            {location}
+            {location.city}
           </Button>
         </span>
       ) : null}

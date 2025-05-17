@@ -3,33 +3,26 @@ import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import NavBar from '../components/NavBar';
 import axiosInstance from '../utils/axiosInstance';
 
+// ⬇️ Dynamically load all SVGs from /assets/categories
+const categoryIcons = {};
+const images = require.context('../assets/categories', false, /\.svg$/);
+images.keys().forEach((filename) => {
+  const key = filename.replace('./', '').replace('.svg', '');
+  categoryIcons[key] = images(filename);
+});
+
+// ⬇️ Categories defined by name only (SVGs matched by name)
 const categories = {
-  'Hobbies & Interests': [
-    { name: 'Shopping', img: '../assets/categories/Shopping.svg' },
-    { name: 'Food', img: '../assets/categories/Food.svg' },
-    { name: 'Travel', img: '../assets/categories/Travel.svg' },
-    { name: 'Technology', img: '../assets/categories/Technology.svg' },
-  ],
-  'Art & Culture': [
-    { name: 'Music', img: '../assets/categories/Music.svg' },
-    { name: 'Art', img: '../assets/categories/Art.svg' },
-    { name: 'Literature', img: '../assets/categories/Literature.svg' },
-    { name: 'History', img: '../assets/categories/History.svg' },
-  ],
-  'Sports & Recreation': [
-    { name: 'Sports', img: '../assets/categories/Sports.svg' },
-    { name: 'Fitness', img: '../assets/categories/Fitness.svg' },
-    { name: 'Outdoors', img: '../assets/categories/Outdoors.svg' },
-    { name: 'Gaming', img: '../assets/categories/Gaming.svg' },
-  ],
+  'Hobbies & Interests': ['Shopping', 'Food', 'Travel', 'Technology'],
+  'Art & Culture': ['Music', 'Art', 'Literature', 'History'],
+  'Sports & Recreation': ['Sports', 'Fitness', 'Outdoors', 'Gaming'],
 };
 
 const UserInterests = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false);
   const email = localStorage.getItem('email');
 
-  // Fetch the user's saved interests on component mount
   useEffect(() => {
     const fetchUserInterests = async () => {
       try {
@@ -39,13 +32,13 @@ const UserInterests = () => {
           },
         });
         const userInterests = response.data.interests;
-        setSelectedCategories(userInterests); // Set the interests into the state
+        setSelectedCategories(userInterests);
       } catch (error) {
         console.error('Error fetching user interests:', error);
       }
     };
     fetchUserInterests();
-  }, []); // Empty dependency array to run only once when the component mounts
+  }, []);
 
   const handleCategoryClick = (subcategory) => {
     if (selectedCategories.includes(subcategory)) {
@@ -61,7 +54,7 @@ const UserInterests = () => {
     try {
       const response = await axiosInstance.put('/auth/me/interests', { interests }, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Assuming you're using a token stored in localStorage
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       return response.data;
@@ -76,15 +69,14 @@ const UserInterests = () => {
       return;
     }
 
-    setLoading(true); // Start loading
-
+    setLoading(true);
     try {
-      await updateUserInterests(selectedCategories, email); // Send API request to save preferences
+      await updateUserInterests(selectedCategories, email);
       alert('Preferences saved successfully!');
     } catch (error) {
       alert('Error saving preferences');
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -106,7 +98,7 @@ const UserInterests = () => {
         </Typography>
 
         {/* Render Main Categories with Subcategories */}
-        {Object.entries(categories).map(([mainCategory, subcategories]) => (
+        {Object.entries(categories).map(([mainCategory, subcategoryList]) => (
           <Box key={mainCategory} sx={{ width: '100%', maxWidth: '850px' }}>
             <Typography variant="h6" fontWeight="bold" sx={{ marginBottom: 1 }}>
               {mainCategory}
@@ -119,10 +111,10 @@ const UserInterests = () => {
                 marginBottom: 3,
               }}
             >
-              {subcategories.map((subcategory) => (
+              {subcategoryList.map((subcategoryName) => (
                 <Box
-                  key={subcategory.name}
-                  onClick={() => handleCategoryClick(subcategory.name)}
+                  key={subcategoryName}
+                  onClick={() => handleCategoryClick(subcategoryName)}
                   sx={{
                     position: 'relative',
                     cursor: 'pointer',
@@ -130,17 +122,17 @@ const UserInterests = () => {
                     height: '200px',
                     borderRadius: '8px',
                     overflow: 'hidden',
-                    border: selectedCategories.includes(subcategory.name)
-                      ? '4px solid #FFBF49' // Highlight selected categories
+                    border: selectedCategories.includes(subcategoryName)
+                      ? '4px solid #FFBF49'
                       : '2px solid #E0E0E0',
                     '&:hover': {
-                      border: '4px solid #FFBF49', // Hover effect
+                      border: '4px solid #FFBF49',
                     },
                   }}
                 >
                   <img
-                    src={subcategory.img}
-                    alt={subcategory.name}
+                    src={categoryIcons[subcategoryName]}
+                    alt={subcategoryName}
                     style={{
                       width: '100%',
                       height: '100%',
@@ -161,7 +153,7 @@ const UserInterests = () => {
                       padding: '4px 0',
                     }}
                   >
-                    {subcategory.name}
+                    {subcategoryName}
                   </Typography>
                 </Box>
               ))}
@@ -169,15 +161,12 @@ const UserInterests = () => {
           </Box>
         ))}
 
-        {/* Save Button with loading indicator */}
         <Button
           variant="contained"
           color="primary"
           onClick={handleSavePreferences}
-          sx={{
-            marginTop: 2,
-          }}
-          disabled={loading} // Disable button while loading
+          sx={{ marginTop: 2 }}
+          disabled={loading}
         >
           {loading ? <CircularProgress size={24} color="inherit" /> : 'Save Interests'}
         </Button>

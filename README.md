@@ -15,24 +15,15 @@
 
 ---
 
-<!-- ## 📸 Screenshots
-
-> _Add screenshots below once available._
-
-| Login Page | Event Card |
-|------------|------------|
-| ![login](./assets/screenshots/login.png) | ![event](./assets/screenshots/event-card.png) |
-
---- -->
-
 ## 🧰 Tech Stack
 
-- **React.js + Material UI**
+- **React.js + Vite**
+- **Material UI**
 - **Redux Toolkit**
 - **React Router**
 - **Axios**
 - **Vercel** for frontend hosting
-- **FastAPI** backend (deployed on Google Cloud)
+- **FastAPI** backend (Google Cloud Run)
 
 ---
 
@@ -42,25 +33,28 @@
 git clone https://github.com/rajeshsawant98/sahana-frontend.git
 cd sahana-frontend
 npm install
+npm run dev
 ```
 
-### Environment Setup
+### 🌱 Environment Setup
 
 Create a `.env` file in the root directory:
 
 ```env
-REACT_APP_BACKEND_URL=https://sahana-backend-856426602401.us-west1.run.app/api
+VITE_BACKEND_URL=https://sahana-backend-856426602401.us-west1.run.app/api
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
 ```
+
+> ⚠️ Note: `REACT_APP_*` is no longer supported — use `VITE_*` prefix with Vite.
 
 ---
 
 ## 🧪 Available Scripts
 
 ```bash
-npm start     # Runs dev server
-npm test      # Launches test runner
-npm run build # Builds app for production
-npm run eject # Ejects from CRA
+npm run dev     # Start local dev server (http://localhost:5173)
+npm run build   # Build for production (outputs to /build)
+npm run preview # Preview production build locally
 ```
 
 ---
@@ -78,18 +72,28 @@ npm run eject # Ejects from CRA
 
 ## 🛫 Deployment Notes
 
-- Make sure `REACT_APP_BACKEND_URL` is set correctly in your deployment environment (Vercel, Netlify, etc.)
-- CORS should be enabled in the backend to allow frontend requests
+- Deployed on **Vercel** using Vite
+- Ensure these are set in Vercel → Environment Variables:
+  - `VITE_BACKEND_URL`
+  - `VITE_GOOGLE_MAPS_API_KEY`
+- CORS must be enabled on the backend for both `localhost:5173` and your Vercel domain
+- Add `vercel.json` for React Router fallback:
+  ```json
+  {
+    "rewrites": [
+      { "source": "/(.*)", "destination": "/" }
+    ]
+  }
+  ```
 
 ---
 
 ## 📖 Learn More
 
-- [React Documentation](https://reactjs.org/)
+- [Vite Documentation](https://vitejs.dev/)
 - [Material UI](https://mui.com/)
-- [Create React App Docs](https://create-react-app.dev/)
 - [Redux Toolkit](https://redux-toolkit.js.org/)
-- [FastAPI Backend](https://sahana-backend-856426602401.us-west1.run.app/docs)
+- [FastAPI Docs](https://sahana-backend-856426602401.us-west1.run.app/docs)
 
 ---
 

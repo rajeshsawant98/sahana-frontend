@@ -3,15 +3,18 @@ import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import NavBar from '../components/NavBar';
 import axiosInstance from '../utils/axiosInstance';
 
-// ⬇️ Dynamically load all SVGs from /assets/categories
-const categoryIcons = {};
-const images = require.context('../assets/categories', false, /\.svg$/);
-images.keys().forEach((filename) => {
-  const key = filename.replace('./', '').replace('.svg', '');
-  categoryIcons[key] = images(filename);
+// ⬇️ Vite-compatible dynamic import of all category SVGs
+const imageModules = import.meta.glob('../assets/categories/*.svg', {
+  eager: true,
+  import: 'default',
 });
+const categoryIcons = {};
+for (const path in imageModules) {
+  const key = path.split('/').pop().replace('.svg', '');
+  categoryIcons[key] = imageModules[path];
+}
 
-// ⬇️ Categories defined by name only (SVGs matched by name)
+// ⬇️ Categories defined by name only
 const categories = {
   'Hobbies & Interests': ['Shopping', 'Food', 'Travel', 'Technology'],
   'Art & Culture': ['Music', 'Art', 'Literature', 'History'],

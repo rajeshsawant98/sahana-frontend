@@ -14,7 +14,7 @@ const LocationNavbar = () => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+          const googleMapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
           const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleMapsApiKey}`;
 
           fetch(geocodeUrl)

@@ -23,7 +23,7 @@ const App = () => {
     <GoogleOAuthProvider clientId="856426602401-1745mq5b7mhp9norpftmi77sv515jfbh.apps.googleusercontent.com">
       <Router>
         <LoadScript
-          googleMapsApiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}
+          googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
           libraries={["places"]}
         >
           <InitRedux />

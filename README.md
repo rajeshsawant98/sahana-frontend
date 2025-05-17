@@ -1,74 +1,98 @@
-# Getting Started with Create React App
+# 🌟 Sahana Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()  
+[![Hosted on Vercel](https://img.shields.io/badge/hosted%20on-Vercel-black?logo=vercel)](https://sahana-drab.vercel.app)  
+[![Backend API](https://img.shields.io/badge/backend-FastAPI-blue?logo=fastapi)](https://sahana-backend-856426602401.us-west1.run.app/docs)
 
-## Available Scripts
+> Sahana is a community-driven meetup and event discovery platform where users can connect, host, and attend events based on their interests and location.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Live App
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+🌐 **Frontend**: [https://sahana-drab.vercel.app](https://sahana-drab.vercel.app)  
+🔗 **Backend API**: [https://sahana-backend-856426602401.us-west1.run.app/docs](https://sahana-backend-856426602401.us-west1.run.app/docs)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+<!-- ## 📸 Screenshots
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+> _Add screenshots below once available._
 
-### `npm run build`
+| Login Page | Event Card |
+|------------|------------|
+| ![login](./assets/screenshots/login.png) | ![event](./assets/screenshots/event-card.png) |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+--- -->
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🧰 Tech Stack
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- **React.js + Material UI**
+- **Redux Toolkit**
+- **React Router**
+- **Axios**
+- **Vercel** for frontend hosting
+- **FastAPI** backend (deployed on Google Cloud)
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🛠️ Getting Started
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+git clone https://github.com/rajeshsawant98/sahana-frontend.git
+cd sahana-frontend
+npm install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Environment Setup
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Create a `.env` file in the root directory:
 
-## Learn More
+```env
+REACT_APP_BACKEND_URL=https://sahana-backend-856426602401.us-west1.run.app/api
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🧪 Available Scripts
 
-### Code Splitting
+```bash
+npm start     # Runs dev server
+npm test      # Launches test runner
+npm run build # Builds app for production
+npm run eject # Ejects from CRA
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## 🎯 Features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- ✅ Google SSO & email-password login
+- ✅ Interest-based event recommendations
+- ✅ Location-aware event discovery
+- ✅ Create, update, join, and review events
+- ✅ Friend system to connect with users
+- ✅ Calendar integration (upcoming)
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## 🛫 Deployment Notes
 
-### Advanced Configuration
+- Make sure `REACT_APP_BACKEND_URL` is set correctly in your deployment environment (Vercel, Netlify, etc.)
+- CORS should be enabled in the backend to allow frontend requests
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## 📖 Learn More
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- [React Documentation](https://reactjs.org/)
+- [Material UI](https://mui.com/)
+- [Create React App Docs](https://create-react-app.dev/)
+- [Redux Toolkit](https://redux-toolkit.js.org/)
+- [FastAPI Backend](https://sahana-backend-856426602401.us-west1.run.app/docs)
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 📬 Contact
 
-
-"https://sahana-backend-856426602401.us-west1.run.app/api",
-    
+Created by [Rajesh Sawant](https://github.com/rajeshsawant98) — feel free to reach out!

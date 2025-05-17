@@ -5,22 +5,22 @@ import axiosInstance from '../utils/axiosInstance';
 
 const categories = {
   'Hobbies & Interests': [
-    { name: 'Shopping', img: '/assets/categories/Shopping.svg' },
-    { name: 'Food', img: '/assets/categories/Food.svg' },
-    { name: 'Travel', img: '/assets/categories/Travel.svg' },
-    { name: 'Technology', img: '/assets/categories/Technology.svg' },
+    { name: 'Shopping', img: '../assets/categories/Shopping.svg' },
+    { name: 'Food', img: '../assets/categories/Food.svg' },
+    { name: 'Travel', img: '../assets/categories/Travel.svg' },
+    { name: 'Technology', img: '../assets/categories/Technology.svg' },
   ],
   'Art & Culture': [
-    { name: 'Music', img: '/assets/categories/Music.svg' },
-    { name: 'Art', img: '/assets/categories/Art.svg' },
-    { name: 'Literature', img: '/assets/categories/Literature.svg' },
-    { name: 'History', img: '/assets/categories/History.svg' },
+    { name: 'Music', img: '../assets/categories/Music.svg' },
+    { name: 'Art', img: '../assets/categories/Art.svg' },
+    { name: 'Literature', img: '../assets/categories/Literature.svg' },
+    { name: 'History', img: '../assets/categories/History.svg' },
   ],
   'Sports & Recreation': [
-    { name: 'Sports', img: '/assets/categories/Sports.svg' },
-    { name: 'Fitness', img: '/assets/categories/Fitness.svg' },
-    { name: 'Outdoors', img: '/assets/categories/Outdoors.svg' },
-    { name: 'Gaming', img: '/assets/categories/Gaming.svg' },
+    { name: 'Sports', img: '../assets/categories/Sports.svg' },
+    { name: 'Fitness', img: '../assets/categories/Fitness.svg' },
+    { name: 'Outdoors', img: '../assets/categories/Outdoors.svg' },
+    { name: 'Gaming', img: '../assets/categories/Gaming.svg' },
   ],
 };
 

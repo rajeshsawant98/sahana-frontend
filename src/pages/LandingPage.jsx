@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Container, Typography, Box } from '@mui/material';
 import NavBar from '../components/NavBar';
-import backgroundImage from '../assets/GD.svg'; // Import the SVG
+import AnimatedSVG from '../components/AnimatedSVG';
 
 const LandingPage = () => {
   return (
@@ -19,21 +19,8 @@ const LandingPage = () => {
           backgroundColor: '#f5f5f5',
         }}
       >
-        {/* Background Image */}
-        <Box
-          component="img"
-          src={backgroundImage} // Use the imported image
-          alt="Background Illustration"
-          sx={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '75%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-          }}
-        />
+        {/* Animated Background Illustration */}
+        <AnimatedSVG />
 
         {/* Hero Section */}
         <Container
@@ -42,8 +29,8 @@ const LandingPage = () => {
             position: 'absolute',
             top: 0,
             left: 0,
-            zIndex: 1, // Ensure it stays above the background image
-            paddingTop: 7, // Adjust padding if needed
+            zIndex: 1,
+            paddingTop: 7,
           }}
         >
           <Typography

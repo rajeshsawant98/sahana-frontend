@@ -13,6 +13,7 @@ import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { useSelector } from "react-redux";
+import musicImage from "../../assets/categories/Music.svg"; // Import the image
 
 export default function EventCard({ event }) {
   const navigate = useNavigate(); // Initialize navigate hook
@@ -77,7 +78,7 @@ export default function EventCard({ event }) {
         }}
       >
         <Avatar
-          src="assets/categories/Music.svg"
+          src={musicImage} // Use the imported image
           sx={{ width: 56, height: 56 }}
         />
         <AvatarGroup

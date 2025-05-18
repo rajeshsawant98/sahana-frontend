@@ -5,8 +5,9 @@ import axiosInstance from "../utils/axiosInstance";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/slices/authSlice";
 import { Box, TextField, Button, Typography } from "@mui/material";
-import backgroundImage from "../assets/Login.svg"; // Import the image
-
+import AnimateSVG from "../components/AnimateSVG";
+import fingerprintSVG from "../assets/fingerprint.svg?raw";
+import "../styles/vendor/fingerprint-styles.css";
 
 const LoginPage = () => {
   const dispatch = useDispatch();
@@ -22,10 +23,12 @@ const LoginPage = () => {
         email,
         password,
       });
-      dispatch(login({
-        user: { email: response.data.email },
-        accessToken: response.data.access_token,
-      }));
+      dispatch(
+        login({
+          user: { email: response.data.email },
+          accessToken: response.data.access_token,
+        })
+      );
       localStorage.setItem("refreshToken", response.data.refresh_token);
       navigate("/home");
     } catch (error) {
@@ -39,10 +42,12 @@ const LoginPage = () => {
       const backendResponse = await axiosInstance.post("/auth/google", {
         token,
       });
-      dispatch(login({
-        user: { email: backendResponse.data.email },
-        accessToken: backendResponse.data.access_token,
-      }));
+      dispatch(
+        login({
+          user: { email: backendResponse.data.email },
+          accessToken: backendResponse.data.access_token,
+        })
+      );
       localStorage.setItem("refreshToken", backendResponse.data.refresh_token);
       navigate("/home");
     } catch (error) {
@@ -63,30 +68,43 @@ const LoginPage = () => {
       sx={{
         height: "100vh",
         display: "flex",
-        flexDirection: { xs: "column", md: "row" }, // Stack vertically on mobile, side-by-side on larger screens
-        backgroundColor: "#ffffff", // Background color for the page
+        flexDirection: { xs: "column", md: "row" },
+        backgroundColor: "#ffffff",
       }}
     >
-      {/* Background image section */}
       <Box
         sx={{
           flex: 1,
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: "contain",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+          backgroundColor: "#fff",
+          position: "relative",
         }}
-      />
+      >
+        <AnimateSVG
+          svgMarkup={fingerprintSVG}
+          style={{
+            width: "100%",
+            maxWidth: "70%",
+            height: "auto",
+          }}
+        />
+      </Box>
 
       {/* Form section */}
       <Box
         sx={{
-          width: { xs: "100%", md: "30%" }, // 100% width on mobile, 30% on desktop
+          width: { xs: "100%", md: "30%" },
           padding: 4,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          backgroundColor: "rgba(255, 255, 255, 0.8)", // Semi-transparent background for form area
+          position: "relative",
+          zIndex: 1,
+          backgroundColor: "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(6px)",
         }}
       >
         <Typography variant="h4" align="center" color="primary" gutterBottom>
@@ -123,7 +141,7 @@ const LoginPage = () => {
             variant="contained"
             color="primary"
             sx={{
-              color: "#ffffff", // White text color for buttonsß
+              color: "#ffffff",
               marginTop: 2,
             }}
           >
@@ -132,7 +150,7 @@ const LoginPage = () => {
         </Box>
         <Box textAlign="center" mt={2}>
           <Typography variant="subtitle1" color="primary" gutterBottom>
-            Lazy? 
+            Lazy?
           </Typography>
           <GoogleLogin
             onSuccess={handleGoogleLoginSuccess}

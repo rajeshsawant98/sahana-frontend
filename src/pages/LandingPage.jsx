@@ -1,7 +1,10 @@
-import React from 'react';
-import { Button, Container, Typography, Box } from '@mui/material';
-import NavBar from '../components/NavBar';
-import AnimatedSVG from '../components/AnimatedSVG';
+import React from "react";
+import { Button, Container, Typography, Box } from "@mui/material";
+import NavBar from "../components/NavBar";
+import groupDiscussionSVG from "../assets/group-discussion.svg?raw";
+import "../styles/vendor/group-discussion-styles.css";
+
+import AnimateSVG from "../components/AnimateSVG";
 
 const LandingPage = () => {
   return (
@@ -12,21 +15,32 @@ const LandingPage = () => {
       {/* Landing Page Content */}
       <Box
         sx={{
-          position: 'relative',
-          height: '100vh',
-          width: '100%',
-          overflow: 'hidden',
-          backgroundColor: '#f5f5f5',
+          position: "relative",
+          height: "100vh",
+          width: "100%",
+          overflow: "hidden",
+          backgroundColor: "#f5f5f5",
         }}
       >
         {/* Animated Background Illustration */}
-        <AnimatedSVG />
+        <AnimateSVG
+          svgMarkup={groupDiscussionSVG}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: "75%",
+            height: "100%",
+            overflow: "hidden",
+            zIndex: 0,
+          }}
+        />
 
         {/* Hero Section */}
         <Container
           maxWidth="md"
           sx={{
-            position: 'absolute',
+            position: "absolute",
             top: 0,
             left: 0,
             zIndex: 1,
@@ -38,7 +52,7 @@ const LandingPage = () => {
             fontWeight="bold"
             gutterBottom
             sx={{
-              color: 'primary.main',
+              color: "primary.main",
               lineHeight: 1.2,
             }}
           >
@@ -48,7 +62,7 @@ const LandingPage = () => {
             variant="h5"
             gutterBottom
             sx={{
-              color: '#424242',
+              color: "#424242",
               mb: 4,
             }}
           >
@@ -58,12 +72,12 @@ const LandingPage = () => {
             variant="contained"
             size="large"
             sx={{
-              color: '#fff',
+              color: "#fff",
               px: 6,
               py: 1.5,
               borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 'bold',
+              textTransform: "none",
+              fontWeight: "bold",
             }}
           >
             Get Started

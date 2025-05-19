@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchExternalEventsByLocation } from "../redux/slices/externalEventsSlice";
+import { fetchNearbyEventsByLocation } from "../redux/slices/nearbyEventsSlice";
 import {
   Box,
   Typography,
@@ -15,7 +15,7 @@ import { useLocation } from "react-router-dom";
 const NearbyEventsPage = () => {
   const dispatch = useDispatch();
   const { events, loading, error } = useSelector(
-    (state) => state.externalEvents
+    (state) => state.nearbyEvents
   );
   const location = useLocation();
   const city = location.state?.city;
@@ -25,7 +25,7 @@ const NearbyEventsPage = () => {
     console.log("📍 From Google API city:", city);
     if (city && state) {
       dispatch(
-        fetchExternalEventsByLocation({
+        fetchNearbyEventsByLocation({
           city,
           state,
         })

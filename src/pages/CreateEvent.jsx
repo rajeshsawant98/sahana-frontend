@@ -1,4 +1,4 @@
-import React, { useState, useRef , useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   TextField,
@@ -33,7 +33,6 @@ const CreateEvent = () => {
         const { data } = await axiosInstance.get("/auth/me");
         console.log(data);
         setProfile(data);
-
       } catch (err) {
         console.error("Failed to fetch profile:", err);
       }
@@ -59,11 +58,15 @@ const CreateEvent = () => {
         const country = place.address_components.find((comp) =>
           comp.types.includes("country")
         )?.long_name;
+        const state = place.address_components.find((comp) =>
+          comp.types.includes("administrative_area_level_1")
+        )?.short_name;
 
         setValue("location", {
           latitude: lat,
           longitude: lng,
           city: city || "",
+          state: state || "",
           country: country || "",
           name: name || "",
           formattedAddress: formattedAddress || "",

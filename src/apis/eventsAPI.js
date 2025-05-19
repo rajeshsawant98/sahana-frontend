@@ -8,6 +8,13 @@ export const fetchExternalEventsByLocation = async (city, state) => {
   return res.data.events;
 };
 
+export const fetchNearbyEventsByLocation = async (city, state) => {
+  const res = await axiosInstance.get(
+    `/events/location/nearby?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`
+  );
+  return res.data.events;
+};
+
 // 🟢 Created events (by user)
 export const fetchCreatedEvents = async () => {
   const res = await axiosInstance.get("/events/me/created");

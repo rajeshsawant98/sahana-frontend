@@ -23,6 +23,7 @@ const AuthBootstrap = () => {
           login({
             user: { email: res.data.email },
             accessToken: res.data.access_token,
+            role: res.data.role,
           })
         );
       } catch (err) {

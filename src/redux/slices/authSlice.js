@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   isAuthenticated: false,
   user: null,
+  role: "anonymous", // 'admin', 'user', etc.
   accessToken: null,
   initialized: false,
 };
@@ -14,6 +15,7 @@ const authSlice = createSlice({
     login: (state, action) => {
       state.isAuthenticated = true;
       state.user = action.payload.user;
+      state.role = action.payload.role || "user";
       state.accessToken = action.payload.accessToken;
       state.initialized = true;
     },
@@ -22,6 +24,7 @@ const authSlice = createSlice({
       state.user = null;
       state.accessToken = null;
       state.initialized = true;
+      state.role = "anonymous"; 
     },
     setAccessToken: (state, action) => {
       state.accessToken = action.payload;

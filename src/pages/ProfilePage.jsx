@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import axiosInstance from "../utils/axiosInstance";
 import LogoutButton from "../components/buttons/LogoutButton";
 import {
@@ -8,56 +9,50 @@ import {
   Card,
   CardContent,
   Container,
-  Grid2,
   Snackbar,
   TextField,
   Typography,
+  Grid2
 } from "@mui/material";
 import NavBar from "../components/NavBar";
 import { Autocomplete } from "@react-google-maps/api";
+import { login } from "../redux/slices/authSlice";
 
 const ProfilePage = () => {
+  const dispatch = useDispatch();
+  const cachedProfile = useSelector((state) => state.auth.user);
   const [profile, setProfile] = useState({});
   const [formData, setFormData] = useState({});
   const [location, setLocation] = useState({});
-  const [locationInput, setLocationInput] = useState(""); // Store manual location input
+  const [locationInput, setLocationInput] = useState("");
   const [message, setMessage] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const autocompleteRef = useRef(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const { data } = await axiosInstance.get("/auth/me");
-        console.log(data);
-        setProfile(data);
-        setFormData(data);
-        setLocation(data.location || {});
-        setLocationInput(
-          data.location ? `${data.location.city}, ${data.location.country}` : ""
-        );
-      } catch (err) {
-        console.error("Failed to fetch profile:", err);
-      }
-    };
-    fetchProfile();
-  }, []);
+    if (cachedProfile) {
+      setProfile(cachedProfile);
+      setFormData(cachedProfile);
+      setLocation(cachedProfile.location || {});
+      setLocationInput(
+        cachedProfile.location
+          ? `${cachedProfile.location.city}, ${cachedProfile.location.country}`
+          : ""
+      );
+    }
+  }, [cachedProfile]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleLocationInputChange = (e) => {
-    setLocationInput(e.target.value); // Allow manual input of the location
-  };
-
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     try {
-      await axiosInstance.put("/auth/me", { ...formData, location });
-      console.log(formData);
-      console.log(location);
-      setProfile(formData);
+      const updatedProfile = { ...formData, location };
+      await axiosInstance.put("/auth/me", updatedProfile);
+      setProfile(updatedProfile);
+      dispatch(login({ user: updatedProfile, role: updatedProfile.role }));
       setMessage("Profile updated successfully");
     } catch (err) {
       console.error("Failed to update profile:", err);
@@ -76,28 +71,27 @@ const ProfilePage = () => {
         const state = place.address_components?.find((comp) =>
           comp.types.includes("administrative_area_level_1")
         )?.short_name;
-        const formattedAddress = place.formatted_address; // Get full formatted address
+        const formattedAddress = place.formatted_address;
         const name = place.name;
-
         const city = place.address_components?.find((comp) =>
           comp.types.includes("locality")
         )?.long_name;
-
         const country = place.address_components?.find((comp) =>
           comp.types.includes("country")
         )?.long_name;
 
-        setLocation({
+        const newLocation = {
           latitude: lat,
           longitude: lng,
           city: city || "",
           country: country || "",
           state: state || "",
-          formattedAddress: formattedAddress || "", // Store formatted address
+          formattedAddress: formattedAddress || "",
           name: name || "",
-        });
+        };
 
-        setLocationInput(name || ""); // Update input field with formatted address
+        setLocation(newLocation);
+        setLocationInput(name || "");
       }
     }
   };
@@ -107,9 +101,8 @@ const ProfilePage = () => {
       <NavBar />
       <Box sx={{ backgroundColor: "#f3f2ef", minHeight: "100vh", padding: 3 }}>
         <Container>
-          <Grid2 container spacing={3} direction={{ xs: "column", md: "row" }}>
-            {/* Profile Picture Card */}
-            <Grid2 size={{ xs: 12, md: 3 }}>
+          <Grid2 container spacing={3}>
+            <Grid2 xs={12} md={3}>
               <Card>
                 <CardContent
                   sx={{
@@ -119,6 +112,7 @@ const ProfilePage = () => {
                   }}
                 >
                   <Avatar
+                    key={profile.profile_picture}
                     src={
                       profile.profile_picture ||
                       "https://dummyimage.com/150x150/cccccc/ffffff&text=Profile"
@@ -135,8 +129,7 @@ const ProfilePage = () => {
               </Card>
             </Grid2>
 
-            {/* Profile Details Card */}
-            <Grid2 size={{ xs: 12, md: 8 }}>
+            <Grid2 xs={12} md={9}>
               <Card>
                 <CardContent>
                   <Typography variant="h6">Edit Profile</Typography>
@@ -154,8 +147,6 @@ const ProfilePage = () => {
                       label="Bio"
                       name="bio"
                       fullWidth
-                      // multiline
-                      // rows={3}
                       value={formData.bio || ""}
                       onChange={handleInputChange}
                       sx={{ mb: 2 }}
@@ -195,7 +186,6 @@ const ProfilePage = () => {
                       sx={{ mb: 2 }}
                     />
 
-                    {/* Location Input with Autocomplete */}
                     <Autocomplete
                       onLoad={(autocomplete) =>
                         (autocompleteRef.current = autocomplete)
@@ -207,7 +197,7 @@ const ProfilePage = () => {
                         fullWidth
                         placeholder="Enter your location"
                         value={locationInput}
-                        onChange={handleLocationInputChange}
+                        onChange={(e) => setLocationInput(e.target.value)}
                         sx={{ mb: 2 }}
                       />
                     </Autocomplete>

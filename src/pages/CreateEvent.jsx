@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+// CreateEvent.jsx (revised)
+
+import React, { useState, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   TextField,
@@ -11,9 +13,21 @@ import {
   FormControlLabel,
   Box,
   Typography,
+  Grid,
+  Divider,
+  Paper,
+  Snackbar,
+  Collapse,
+  Autocomplete as MuiAutocomplete,
+  Chip,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import CloseIcon from "@mui/icons-material/Close";
 import { Autocomplete } from "@react-google-maps/api";
+import { useSelector, useDispatch } from "react-redux";
+import { addCreatedEventLocal } from "../redux/slices/userEventsSlice";
 import axiosInstance from "../utils/axiosInstance";
+import { v4 as uuidv4 } from "uuid";
 import NavBar from "../components/NavBar";
 
 const CreateEvent = () => {
@@ -22,26 +36,20 @@ const CreateEvent = () => {
     handleSubmit,
     control,
     setValue,
+    reset,
     formState: { errors },
   } = useForm();
 
-  const [profile, setProfile] = useState({});
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const { data } = await axiosInstance.get("/auth/me");
-        console.log(data);
-        setProfile(data);
-      } catch (err) {
-        console.error("Failed to fetch profile:", err);
-      }
-    };
-    fetchProfile();
-  }, []);
+  const profile = useSelector((state) => state.auth.user);
+  const initialized = useSelector((state) => state.auth.initialized);
+  const dispatch = useDispatch();
 
   const [isOnline, setIsOnline] = useState(false);
   const [locationInput, setLocationInput] = useState("");
+  const [organizers, setOrganizers] = useState([]);
+  const [moderators, setModerators] = useState([]);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [descOpen, setDescOpen] = useState(false);
   const autocompleteRef = useRef(null);
 
   const handlePlaceChanged = () => {
@@ -77,165 +85,257 @@ const CreateEvent = () => {
     }
   };
 
-  const onSubmit = (data) => {
-    // Ensure duration is an integer before sending the request
-    data.duration = parseInt(data.duration, 10);
-    data.createdBy = profile.name;
-    data.createdByEmail = profile.email;
-    console.log("Submitting event:", data);
-    axiosInstance
-      .post("/events/new", data)
-      .then((response) => {
-        console.log("Event Created: ", response.data);
-      })
-      .catch((error) => {
-        if (error.response) {
-          console.error("Response Error:", error.response.data);
-          // Check the response data for validation errors or missing fields
-        } else if (error.request) {
-          console.error("Request Error:", error.request);
-        } else {
-          console.error("Error Message:", error.message);
-        }
+  const onSubmit = async (data) => {
+    try {
+      if (!profile?.email || !profile?.name) {
+        console.warn("Missing profile info for event creation");
+        return;
+      }
+
+      data.duration = parseInt(data.duration, 10);
+      data.createdBy = profile.name;
+      data.createdByEmail = profile.email;
+
+      const eventRes = await axiosInstance.post("/events/new", data);
+      const eventId = eventRes.data.eventId;
+
+      await axiosInstance.patch(`/events/${eventId}/organizers`, {
+        organizerEmails: organizers,
       });
+
+      await axiosInstance.patch(`/events/${eventId}/moderators`, {
+        moderatorEmails: moderators,
+      });
+
+      dispatch(addCreatedEventLocal({ ...data, eventId }));
+      setSuccessOpen(true);
+      reset();
+      setLocationInput("");
+      setOrganizers([]);
+      setModerators([]);
+    } catch (error) {
+      console.error("Error creating event:", error);
+    }
   };
+
+  if (!initialized) return <Typography>Loading profile...</Typography>;
+  if (!profile?.email || !profile?.name)
+    return <Typography>Profile incomplete.</Typography>;
 
   return (
     <>
       <NavBar />
-      <Box sx={{ width: "100%", maxWidth: 600, margin: "auto", padding: 3 }}>
-        <Typography variant="h5" sx={{ marginBottom: 2 }} align="center">
-          Create New Event
-        </Typography>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <TextField
-            fullWidth
-            label="Event Name"
-            variant="outlined"
-            {...register("eventName", { required: "Event Name is required" })}
-            error={!!errors.eventName}
-            helperText={errors.eventName?.message}
-            sx={{ marginBottom: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Event Description"
-            variant="outlined"
-            // multiline
-            // rows={4}
-            {...register("description", {
-              required: "Description is required",
-            })}
-            error={!!errors.description}
-            helperText={errors.description?.message}
-            sx={{ marginBottom: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            //label="Start Time"
-            variant="outlined"
-            type="datetime-local"
-            // placeholder="Start time"
-            {...register("startTime", { required: "Start Time is required" })}
-            error={!!errors.startTime}
-            helperText={errors.startTime?.message}
-            sx={{ marginBottom: 2 }}
-          />
-
-          <TextField
-            fullWidth
-            label="Duration (in minutes)"
-            variant="outlined"
-            type="number"
-            {...register("duration", {
-              required: "Duration is required",
-              valueAsNumber: true,
-              min: { value: 1, message: "Duration must be at least 1 minute" },
-            })}
-            onChange={(e) => setValue("duration", parseInt(e.target.value, 10))}
-            error={!!errors.duration}
-            helperText={errors.duration?.message}
-            sx={{ marginBottom: 2 }}
-          />
-
-          <FormControl fullWidth sx={{ marginBottom: 2 }}>
-            <InputLabel>Categories</InputLabel>
-            <Controller
-              name="categories"
-              control={control}
-              defaultValue={[]}
-              rules={{ required: "At least one category is required" }}
-              render={({ field }) => (
-                <Select
-                  multiple
-                  value={field.value}
-                  onChange={(event) =>
-                    setValue("categories", event.target.value)
-                  }
-                  label="Categories"
-                  error={!!errors.categories}
-                >
-                  <MenuItem value="Fitness">Fitness</MenuItem>
-                  <MenuItem value="Sports">Sports</MenuItem>
-                  <MenuItem value="Art">Art</MenuItem>
-                  <MenuItem value="Technology">Technology</MenuItem>
-                  <MenuItem value="Music">Music</MenuItem>
-                </Select>
-              )}
-            />
-            {errors.categories && (
-              <Typography variant="body2" color="error">
-                {errors.categories.message}
-              </Typography>
-            )}
-          </FormControl>
-
-          <Autocomplete
-            onLoad={(autocomplete) => (autocompleteRef.current = autocomplete)}
-            onPlaceChanged={handlePlaceChanged}
-          >
-            <TextField
-              fullWidth
-              label="Location"
-              variant="outlined"
-              value={locationInput}
-              onChange={(e) => setLocationInput(e.target.value)}
-              sx={{ marginBottom: 2 }}
-            />
-          </Autocomplete>
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isOnline}
-                onChange={(event) => {
-                  setIsOnline(event.target.checked);
-                  setValue("isOnline", event.target.checked);
-                }}
-              />
-            }
-            label="Online Event"
-          />
-
-          {isOnline && (
-            <TextField
-              fullWidth
-              label="Join Link"
-              variant="outlined"
-              {...register("joinLink", { required: "Join Link is required" })}
-              error={!!errors.joinLink}
-              helperText={errors.joinLink?.message}
-              sx={{ marginBottom: 2 }}
-            />
-          )}
-
-          <Button fullWidth variant="contained" color="primary" type="submit">
+      <Box sx={{ width: "100%", maxWidth: 800, mx: "auto", px: 2, py: 4 }}>
+        <Paper elevation={3} sx={{ padding: 4, borderRadius: 4 }}>
+          <Typography variant="h5" fontWeight={600} mb={2}>
             Create Event
-          </Button>
-        </form>
+          </Typography>
+
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Event Name"
+                  {...register("eventName", {
+                    required: "Event Name is required",
+                  })}
+                  error={!!errors.eventName}
+                  helperText={errors.eventName?.message}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button
+                  endIcon={<ExpandMoreIcon />}
+                  onClick={() => setDescOpen((prev) => !prev)}
+                >
+                  {descOpen ? "Hide description" : "Add description"}
+                </Button>
+                <Collapse in={descOpen}>
+                  <TextField
+                    fullWidth
+                    label="Event Description"
+                    multiline
+                    rows={4}
+                    sx={{ mt: 2 }}
+                    {...register("description", {
+                      required: "Description is required",
+                    })}
+                    error={!!errors.description}
+                    helperText={errors.description?.message}
+                  />
+                </Collapse>
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  type="datetime-local"
+                  label="Start Time"
+                  InputLabelProps={{ shrink: true }}
+                  {...register("startTime", {
+                    required: "Start Time is required",
+                  })}
+                  error={!!errors.startTime}
+                  helperText={errors.startTime?.message}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Duration (min)"
+                  {...register("duration", {
+                    required: "Duration is required",
+                    min: { value: 1, message: "Minimum 1 minute" },
+                  })}
+                  error={!!errors.duration}
+                  helperText={errors.duration?.message}
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Categories</InputLabel>
+                  <Controller
+                    name="categories"
+                    control={control}
+                    defaultValue={[]}
+                    rules={{ required: "Select at least one category" }}
+                    render={({ field }) => (
+                      <Select multiple {...field} label="Categories">
+                        {[
+                          "Fitness",
+                          "Sports",
+                          "Art",
+                          "Technology",
+                          "Music",
+                        ].map((cat) => (
+                          <MenuItem key={cat} value={cat}>
+                            {cat}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Autocomplete
+                  onLoad={(a) => (autocompleteRef.current = a)}
+                  onPlaceChanged={handlePlaceChanged}
+                >
+                  <TextField
+                    fullWidth
+                    label="Location"
+                    value={locationInput}
+                    onChange={(e) => setLocationInput(e.target.value)}
+                  />
+                </Autocomplete>
+              </Grid>
+
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={isOnline}
+                      onChange={(e) => {
+                        setIsOnline(e.target.checked);
+                        setValue("isOnline", e.target.checked);
+                      }}
+                    />
+                  }
+                  label="Online Event"
+                />
+                {isOnline && (
+                  <TextField
+                    fullWidth
+                    label="Join Link"
+                    {...register("joinLink", {
+                      required: "Join Link is required",
+                    })}
+                    error={!!errors.joinLink}
+                    helperText={errors.joinLink?.message}
+                    sx={{ mt: 2 }}
+                  />
+                )}
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <MuiAutocomplete
+                  multiple
+                  freeSolo
+                  options={[]}
+                  value={organizers}
+                  onChange={(_, newValue) => setOrganizers(newValue)}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        variant="outlined"
+                        label={option}
+                        {...getTagProps({ index })}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Organizers" />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <MuiAutocomplete
+                  multiple
+                  freeSolo
+                  options={[]}
+                  value={moderators}
+                  onChange={(_, newValue) => setModerators(newValue)}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        variant="outlined"
+                        label={option}
+                        {...getTagProps({ index })}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} label="Moderators" />
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <Button
+                    color="inherit"
+                    onClick={reset}
+                    startIcon={<CloseIcon />}
+                  >
+                    Cancel
+                  </Button>
+                  <Button variant="contained" type="submit">
+                    Create Event
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </form>
+        </Paper>
       </Box>
+
+      <Snackbar
+        open={successOpen}
+        autoHideDuration={3000}
+        onClose={() => setSuccessOpen(false)}
+        message="Event created successfully"
+      />
     </>
   );
 };

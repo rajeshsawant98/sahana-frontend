@@ -30,7 +30,7 @@ const LoginPage = () => {
         })
       );
       localStorage.setItem("refreshToken", response.data.refresh_token);
-      navigate("/home");
+      window.location.href = "/home";
     } catch (error) {
       setLoginError("Login failed. Please check your email and password.");
     }
@@ -49,7 +49,7 @@ const LoginPage = () => {
         })
       );
       localStorage.setItem("refreshToken", backendResponse.data.refresh_token);
-      navigate("/home");
+      window.location.href = "/home";
     } catch (error) {
       setLoginError("Google login failed. Please try again.");
     }

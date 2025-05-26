@@ -1,83 +1,90 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, CircularProgress } from '@mui/material';
-import NavBar from '../components/NavBar';
-import axiosInstance from '../utils/axiosInstance';
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Button,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+import NavBar from "../components/NavBar";
+import axiosInstance from "../utils/axiosInstance";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "../redux/slices/authSlice";
 
-// ⬇️ Vite-compatible dynamic import of all category SVGs
-const imageModules = import.meta.glob('../assets/categories/*.svg', {
+// ⬇️ Load icons
+const imageModules = import.meta.glob("../assets/categories/*.svg", {
   eager: true,
-  import: 'default',
+  import: "default",
 });
 const categoryIcons = {};
 for (const path in imageModules) {
-  const key = path.split('/').pop().replace('.svg', '');
+  const key = path.split("/").pop().replace(".svg", "");
   categoryIcons[key] = imageModules[path];
 }
 
-// ⬇️ Categories defined by name only
+// ⬇️ Category list
 const categories = {
-  'Hobbies & Interests': ['Shopping', 'Food', 'Travel', 'Technology'],
-  'Art & Culture': ['Music', 'Art', 'Literature', 'History'],
-  'Sports & Recreation': ['Sports', 'Fitness', 'Outdoors', 'Gaming'],
+  "Hobbies & Interests": ["Shopping", "Food", "Travel", "Technology"],
+  "Art & Culture": ["Music", "Art", "Literature", "History"],
+  "Sports & Recreation": ["Sports", "Fitness", "Outdoors", "Gaming"],
 };
 
 const UserInterests = () => {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const accessToken = useSelector((state) => state.auth.accessToken);
+
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [loading, setLoading] = useState(false);
-  const email = localStorage.getItem('email');
 
+  // Load existing interests on mount
   useEffect(() => {
-    const fetchUserInterests = async () => {
-      try {
-        const response = await axiosInstance.get('/auth/me', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        });
-        const userInterests = response.data.interests;
-        setSelectedCategories(userInterests);
-      } catch (error) {
-        console.error('Error fetching user interests:', error);
-      }
-    };
-    fetchUserInterests();
-  }, []);
+    if (user?.interests) {
+      setSelectedCategories(user.interests);
+    }
+  }, [user]);
 
   const handleCategoryClick = (subcategory) => {
     if (selectedCategories.includes(subcategory)) {
-      setSelectedCategories((prev) =>
-        prev.filter((cat) => cat !== subcategory)
-      );
+      setSelectedCategories((prev) => prev.filter((cat) => cat !== subcategory));
     } else if (selectedCategories.length < 5) {
       setSelectedCategories((prev) => [...prev, subcategory]);
     }
   };
 
-  const updateUserInterests = async (interests, email) => {
-    try {
-      const response = await axiosInstance.put('/auth/me/interests', { interests }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error('Failed to update interests: ' + error.message);
-    }
-  };
-
   const handleSavePreferences = async () => {
     if (selectedCategories.length < 3) {
-      alert('Please select at least 3 subcategories.');
+      alert("Please select at least 3 subcategories.");
       return;
     }
 
     setLoading(true);
     try {
-      await updateUserInterests(selectedCategories, email);
-      alert('Preferences saved successfully!');
+      await axiosInstance.put(
+        "/auth/me/interests",
+        { interests: selectedCategories },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      // Update Redux store with new interests
+      dispatch(
+        login({
+          user: {
+            ...user,
+            interests: selectedCategories,
+          },
+          accessToken,
+          role: user.role,
+        })
+      );
+
+      alert("Preferences saved successfully!");
     } catch (error) {
-      alert('Error saving preferences');
+      alert("Error saving preferences");
+      console.error(error);
     } finally {
       setLoading(false);
     }
@@ -88,9 +95,9 @@ const UserInterests = () => {
       <NavBar />
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           gap: 3,
           marginTop: 4,
           paddingX: 2,
@@ -100,16 +107,15 @@ const UserInterests = () => {
           Pick Your Interests!
         </Typography>
 
-        {/* Render Main Categories with Subcategories */}
         {Object.entries(categories).map(([mainCategory, subcategoryList]) => (
-          <Box key={mainCategory} sx={{ width: '100%', maxWidth: '850px' }}>
+          <Box key={mainCategory} sx={{ width: "100%", maxWidth: "850px" }}>
             <Typography variant="h6" fontWeight="bold" sx={{ marginBottom: 1 }}>
               {mainCategory}
             </Typography>
             <Box
               sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
+                display: "flex",
+                flexWrap: "wrap",
                 gap: 2,
                 marginBottom: 3,
               }}
@@ -119,17 +125,17 @@ const UserInterests = () => {
                   key={subcategoryName}
                   onClick={() => handleCategoryClick(subcategoryName)}
                   sx={{
-                    position: 'relative',
-                    cursor: 'pointer',
-                    width: '200px',
-                    height: '200px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
+                    position: "relative",
+                    cursor: "pointer",
+                    width: "200px",
+                    height: "200px",
+                    borderRadius: "8px",
+                    overflow: "hidden",
                     border: selectedCategories.includes(subcategoryName)
-                      ? '4px solid #FFBF49'
-                      : '2px solid #E0E0E0',
-                    '&:hover': {
-                      border: '4px solid #FFBF49',
+                      ? "4px solid #FFBF49"
+                      : "2px solid #E0E0E0",
+                    "&:hover": {
+                      border: "4px solid #FFBF49",
                     },
                   }}
                 >
@@ -137,23 +143,23 @@ const UserInterests = () => {
                     src={categoryIcons[subcategoryName]}
                     alt={subcategoryName}
                     style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
                     }}
                   />
                   <Typography
                     variant="body2"
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       bottom: 0,
                       left: 0,
-                      width: '100%',
-                      background: 'rgba(0, 0, 0, 0.5)',
-                      color: '#FFFFFF',
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                      padding: '4px 0',
+                      width: "100%",
+                      background: "rgba(0, 0, 0, 0.5)",
+                      color: "#FFFFFF",
+                      textAlign: "center",
+                      fontWeight: "bold",
+                      padding: "4px 0",
                     }}
                   >
                     {subcategoryName}
@@ -171,7 +177,7 @@ const UserInterests = () => {
           sx={{ marginTop: 2 }}
           disabled={loading}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : 'Save Interests'}
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Save Interests"}
         </Button>
       </Box>
     </>

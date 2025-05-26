@@ -73,6 +73,14 @@ const userEventsSlice = createSlice({
         hasFetchedRSVPed: false,
       });
     },
+    addCreatedEventLocal: (state, action) => {
+      
+      const event = action.payload;
+      const exists = state.createdEvents.some((e) => e.eventId === event.eventId);
+      if (!exists) {
+        state.createdEvents.unshift(event);
+      }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -118,5 +126,5 @@ const userEventsSlice = createSlice({
   },
 });
 
-export const { resetUserEvents } = userEventsSlice.actions;
+export const { resetUserEvents, addCreatedEventLocal } = userEventsSlice.actions;
 export default userEventsSlice.reducer;

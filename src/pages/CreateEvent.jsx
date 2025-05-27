@@ -29,6 +29,8 @@ import { addCreatedEventLocal } from "../redux/slices/userEventsSlice";
 import axiosInstance from "../utils/axiosInstance";
 import { v4 as uuidv4 } from "uuid";
 import NavBar from "../components/NavBar";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../utils/firebase_init";
 
 const CreateEvent = () => {
   const {
@@ -51,6 +53,7 @@ const CreateEvent = () => {
   const [successOpen, setSuccessOpen] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
   const autocompleteRef = useRef(null);
+  const [imageFile, setImageFile] = useState(null);
 
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
@@ -96,6 +99,14 @@ const CreateEvent = () => {
       data.createdBy = profile.name;
       data.createdByEmail = profile.email;
 
+      if (imageFile) {
+        const imageUrl = await uploadImage(imageFile);
+        console.log("Image uploaded to:", imageUrl);
+        data.imageUrl = imageUrl;
+      }
+
+      console.log("Creating event with data:", data);
+
       const eventRes = await axiosInstance.post("/events/new", data);
       const eventId = eventRes.data.eventId;
 
@@ -116,6 +127,13 @@ const CreateEvent = () => {
     } catch (error) {
       console.error("Error creating event:", error);
     }
+  };
+
+  const uploadImage = async (file) => {
+    const fileName = `events/${uuidv4()}_${file.name}`;
+    const imageRef = ref(storage, fileName);
+    await uploadBytes(imageRef, file);
+    return await getDownloadURL(imageRef);
   };
 
   if (!initialized) return <Typography>Loading profile...</Typography>;
@@ -166,6 +184,23 @@ const CreateEvent = () => {
                     helperText={errors.description?.message}
                   />
                 </Collapse>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Button variant="outlined" component="label">
+                  Upload Banner
+                  <input
+                    hidden
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files[0])}
+                  />
+                </Button>
+                {imageFile && (
+                  <Typography variant="body2" sx={{ mt: 1 }}>
+                    Selected: {imageFile.name}
+                  </Typography>
+                )}
               </Grid>
 
               <Grid item xs={12} sm={4}>

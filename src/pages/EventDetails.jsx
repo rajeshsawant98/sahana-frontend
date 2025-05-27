@@ -61,10 +61,11 @@ const EventDetails = () => {
     categories,
     isOnline,
     joinLink,
-    imageURL,
+    imageUrl,
   } = event;
 
   const { latitude, longitude, formattedAddress, name } = location || {};
+  console.log("Event Details:", event);
 
   return (
     <>
@@ -83,17 +84,17 @@ const EventDetails = () => {
           alignItems: "flex-end",
           px: 4,
           py: 3,
-          backgroundColor: imageURL ? "transparent" : "grey",
+          backgroundColor: imageUrl ? "transparent" : "grey",
         }}
       >
-        {imageURL && (
+        {imageUrl && (
           <>
             {/* Blurred background image */}
             <Box
               sx={{
                 position: "absolute",
                 inset: 0,
-                backgroundImage: `url(${imageURL})`,
+                backgroundImage: `url(${imageUrl})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
                 filter: "blur(5px)",
@@ -131,7 +132,7 @@ const EventDetails = () => {
             position: "relative",
             zIndex: 3,
             color: "white",
-            background: imageURL ? "transparent" : "primary.main",
+            background: imageUrl ? "transparent" : "primary.main",
             borderRadius: 2,
             p: 2,
           }}

@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ProfilePage from "./pages/ProfilePage";
 import UserInterests from "./pages/UserInterests";
 import Events from "./pages/Events";
+import EditEvent from "./pages/EditEvent"; // Import EditEvent component
 import { LoadScript } from "@react-google-maps/api";
 import EventDetails from "./pages/EventDetails";
 import CreateEvent from "./pages/CreateEvent";
@@ -16,9 +17,7 @@ import InitRedux from "./utils/InitRedux";
 import AuthBootstrap from "./utils/AuthBootstrap";
 import NearbyEventsPage from "./pages/NearbyEventsPage";
 
-
 const App = () => {
-
   return (
     <GoogleOAuthProvider clientId="856426602401-1745mq5b7mhp9norpftmi77sv515jfbh.apps.googleusercontent.com">
       <Router>
@@ -57,6 +56,10 @@ const App = () => {
             <Route
               path="/events/:id"
               element={<ProtectedRoute element={<EventDetails />} />}
+            />
+            <Route
+              path="/events/:id/edit"
+              element={<ProtectedRoute element={<EditEvent />} />}
             />
             <Route
               path="/events/new"

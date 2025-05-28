@@ -48,7 +48,7 @@ const EditEvent = () => {
     ) {
       try {
         await axiosInstance.delete(`/events/${id}`);
-        navigate("/");
+        navigate("/events");
       } catch (err) {
         console.error("Failed to delete event:", err);
         alert("Something went wrong while deleting the event.");

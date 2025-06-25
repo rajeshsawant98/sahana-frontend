@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useTheme } from '@mui/material/styles';
 import { Box, TextField, Button, Typography, CircularProgress, Backdrop } from "@mui/material";
-import { loginUser, loginWithGoogle } from "../apis/authAPI";
+import { loginUser, loginWithGoogle, getCurrentUser } from "../apis/authAPI";
 import { login } from "../redux/slices/authSlice";
 import { AppDispatch } from "../redux/store";
 import AnimateSVG from "../components/AnimateSVG";
@@ -37,13 +37,30 @@ const LoginPage: React.FC = () => {
         email,
         password,
       });
-      dispatch(
-        login({
-          user: { email: response.email, name: "", role: "user" },
-          accessToken: response.access_token,
-        })
-      );
+      
+      // Store the refresh token immediately
       localStorage.setItem("refreshToken", response.refresh_token);
+      
+      try {
+        // Try to fetch complete user profile data
+        const userProfile = await getCurrentUser();
+        
+        dispatch(
+          login({
+            user: userProfile,
+            accessToken: response.access_token,
+          })
+        );
+      } catch (profileError) {
+        console.warn("Failed to fetch user profile, using minimal data:", profileError);
+        // Fallback to minimal user data if profile fetch fails
+        dispatch(
+          login({
+            user: { email: response.email, name: "", role: "user" },
+            accessToken: response.access_token,
+          })
+        );
+      }
       
       // Use navigate instead of window.location.href for smoother transition
       navigate("/home");
@@ -66,13 +83,30 @@ const LoginPage: React.FC = () => {
 
     try {
       const backendResponse = await loginWithGoogle({ token });
-      dispatch(
-        login({
-          user: { email: backendResponse.email, name: "", role: "user" },
-          accessToken: backendResponse.access_token,
-        })
-      );
+      
+      // Store the refresh token immediately
       localStorage.setItem("refreshToken", backendResponse.refresh_token);
+      
+      try {
+        // Try to fetch complete user profile data
+        const userProfile = await getCurrentUser();
+        
+        dispatch(
+          login({
+            user: userProfile,
+            accessToken: backendResponse.access_token,
+          })
+        );
+      } catch (profileError) {
+        console.warn("Failed to fetch user profile, using minimal data:", profileError);
+        // Fallback to minimal user data if profile fetch fails
+        dispatch(
+          login({
+            user: { email: backendResponse.email, name: "", role: "user" },
+            accessToken: backendResponse.access_token,
+          })
+        );
+      }
       
       // Use navigate instead of window.location.href for smoother transition
       navigate("/home");

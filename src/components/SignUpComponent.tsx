@@ -3,7 +3,7 @@ import { Box, TextField, Button, Typography, CircularProgress, Backdrop } from '
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { useTheme } from '@mui/material/styles';
-import { registerUser } from '../apis/authAPI';
+import { registerUser, getCurrentUser } from '../apis/authAPI';
 import { login } from "../redux/slices/authSlice";
 import { AppDispatch } from '../redux/store';
 import signupBackground from '../assets/SignUp.svg';
@@ -42,15 +42,27 @@ const SignUpComponent: React.FC = () => {
 
       const { access_token, refresh_token } = response;
 
-      // ✅ Store access token in Redux
-      dispatch(login({
-        user: { email, name, role: "user" },
-        accessToken: access_token,
-      }));
-
       // ✅ Store refresh token in localStorage
       if (refresh_token) {
         localStorage.setItem('refreshToken', refresh_token);
+      }
+
+      try {
+        // Try to fetch complete user profile data
+        const userProfile = await getCurrentUser();
+
+        // ✅ Store complete user profile in Redux
+        dispatch(login({
+          user: userProfile,
+          accessToken: access_token,
+        }));
+      } catch (profileError) {
+        console.warn("Failed to fetch user profile, using minimal data:", profileError);
+        // Fallback to minimal user data if profile fetch fails
+        dispatch(login({
+          user: { email, name, role: "user" },
+          accessToken: access_token,
+        }));
       }
 
       navigate('/home');

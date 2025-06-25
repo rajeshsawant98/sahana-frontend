@@ -3,18 +3,12 @@ import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { Box, TextField, Button, Typography } from "@mui/material";
-import axiosInstance from "../utils/axiosInstance";
+import { loginUser, loginWithGoogle } from "../apis/authAPI";
 import { login } from "../redux/slices/authSlice";
 import { AppDispatch } from "../redux/store";
 import AnimateSVG from "../components/AnimateSVG";
 import fingerprintSVG from "../assets/fingerprint.svg?raw";
 import "../styles/vendor/fingerprint-styles.css";
-
-interface LoginResponse {
-  email: string;
-  access_token: string;
-  refresh_token: string;
-}
 
 const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -26,17 +20,17 @@ const LoginPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     try {
-      const response = await axiosInstance.post<LoginResponse>("/auth/login", {
+      const response = await loginUser({
         email,
         password,
       });
       dispatch(
         login({
-          user: { email: response.data.email, name: "", role: "user" },
-          accessToken: response.data.access_token,
+          user: { email: response.email, name: "", role: "user" },
+          accessToken: response.access_token,
         })
       );
-      localStorage.setItem("refreshToken", response.data.refresh_token);
+      localStorage.setItem("refreshToken", response.refresh_token);
       window.location.href = "/home";
     } catch (error) {
       setLoginError("Login failed. Please check your email and password.");
@@ -51,16 +45,14 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const backendResponse = await axiosInstance.post<LoginResponse>("/auth/google", {
-        token,
-      });
+      const backendResponse = await loginWithGoogle({ token });
       dispatch(
         login({
-          user: { email: backendResponse.data.email, name: "", role: "user" },
-          accessToken: backendResponse.data.access_token,
+          user: { email: backendResponse.email, name: "", role: "user" },
+          accessToken: backendResponse.access_token,
         })
       );
-      localStorage.setItem("refreshToken", backendResponse.data.refresh_token);
+      localStorage.setItem("refreshToken", backendResponse.refresh_token);
       window.location.href = "/home";
     } catch (error) {
       setLoginError("Google login failed. Please try again.");

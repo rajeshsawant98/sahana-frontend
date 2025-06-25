@@ -18,7 +18,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CheckIcon from "@mui/icons-material/Check";
 import { RootState } from "../redux/store";
 import { Event } from "../types/Event";
-import axiosInstance from "../utils/axiosInstance";
+import { fetchEventById, rsvpToEvent } from "../apis/eventsAPI";
 import NavBar from "../components/NavBar";
 
 const EventDetails: React.FC = () => {
@@ -51,9 +51,8 @@ const EventDetails: React.FC = () => {
       return;
     }
 
-    axiosInstance
-      .get<Event>(`/events/${id}`)
-      .then((res) => setEvent(res.data))
+    fetchEventById(id)
+      .then((event) => setEvent(event))
       .catch(() => setError("Failed to load event"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -62,7 +61,7 @@ const EventDetails: React.FC = () => {
     if (!id) return;
     
     try {
-      await axiosInstance.post(`/events/${id}/rsvp`, { status: "joined" });
+      await rsvpToEvent(id, { status: "joined" });
       window.location.reload();
     } catch (err) {
       console.error("RSVP failed", err);

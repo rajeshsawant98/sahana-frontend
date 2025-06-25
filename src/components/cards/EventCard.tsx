@@ -14,7 +14,7 @@ import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
-import axiosInstance from "../../utils/axiosInstance";
+import { rsvpToEvent } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import musicImage from "../../assets/categories/Music.svg";
 
@@ -37,13 +37,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   const RSVP = async (): Promise<void> => {
     try {
-      const { data } = await axiosInstance.post(
-        `/events/${event.eventId}/rsvp`,
-        {
-          status: "joined",
-        }
-      );
-      console.log(data);
+      await rsvpToEvent(event.eventId, { status: "joined" });
+      console.log("RSVP successful");
     } catch (err) {
       console.error("RSVP failed:", err);
     }
@@ -86,7 +81,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         }}
       >
         <Avatar
-          src={musicImage} // Use the imported image
+          src={event.imageUrl || musicImage} // Use the imported image
           sx={{ width: 56, height: 56 }}
         />
         <AvatarGroup

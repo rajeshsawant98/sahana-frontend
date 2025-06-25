@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import axiosInstance from "../utils/axiosInstance";
+import { updateUserProfile } from "../apis/authAPI";
 import LogoutButton from "../components/buttons/LogoutButton";
 import {
   Avatar,
@@ -53,7 +53,7 @@ const ProfilePage: React.FC = () => {
     e.preventDefault();
     try {
       const updatedProfile = { ...formData, location: location as LocationData };
-      await axiosInstance.put("/auth/me", updatedProfile);
+      await updateUserProfile(updatedProfile);
       setProfile(updatedProfile);
       dispatch(login({ 
         user: updatedProfile as User, 

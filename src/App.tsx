@@ -19,6 +19,10 @@ import MyEvents from "./pages/MyEvents";
 import InitRedux from "./utils/InitRedux";
 import AuthBootstrap from "./utils/AuthBootstrap";
 import NearbyEventsPage from "./pages/NearbyEventsPage";
+import AdminRoute from "./components/AdminRoute";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import ManageUsers from "./pages/admin/ManageUsers";
+import ManageEvents from "./pages/admin/ManageEvents";
 
 const App = () => {
   return (
@@ -26,57 +30,72 @@ const App = () => {
       <CssBaseline />
       <GoogleOAuthProvider clientId="856426602401-1745mq5b7mhp9norpftmi77sv515jfbh.apps.googleusercontent.com">
         <Router>
-        <LoadScript
-          googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-          libraries={["places"]}
-        >
-          <InitRedux />
-          <AuthBootstrap />
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/signup" element={<SignUpComponent />} />
+          <LoadScript
+            googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
+            libraries={["places"]}
+          >
+            <InitRedux />
+            <AuthBootstrap />
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<LoginPage />} />
+              <Route path="/signup" element={<SignUpComponent />} />
 
-            {/* Protected Route */}
-            <Route
-              path="/home"
-              element={<ProtectedRoute element={<LandingPage />} />}
-            />
-            <Route
-              path="/profile"
-              element={<ProtectedRoute element={<ProfilePage />} />}
-            />
-            <Route
-              path="/interests"
-              element={<ProtectedRoute element={<UserInterests />} />}
-            />
-            <Route
-              path="/nearby-events"
-              element={<ProtectedRoute element={<NearbyEventsPage />} />}
-            />
-            <Route
-              path="/events"
-              element={<ProtectedRoute element={<Events />} />}
-            />
-            <Route
-              path="/events/:id"
-              element={<ProtectedRoute element={<EventDetails />} />}
-            />
-            <Route
-              path="/events/:id/edit"
-              element={<ProtectedRoute element={<EditEvent />} />}
-            />
-            <Route
-              path="/events/new"
-              element={<ProtectedRoute element={<CreateEvent />} />}
-            />
-            <Route
-              path="/events/my"
-              element={<ProtectedRoute element={<MyEvents />} />}
-            />
-          </Routes>
-        </LoadScript>
-      </Router>
+              {/* Admin Routes */}
+
+              <Route
+                path="/admin"
+                element={<AdminRoute element={<AdminDashboard />} />}
+              />
+              <Route
+                path="/admin/users"
+                element={<AdminRoute element={<ManageUsers />} />}
+              />
+              <Route
+                path="/admin/events"
+                element={<AdminRoute element={<ManageEvents />} />}
+              />
+
+              {/* Protected Route */}
+              <Route
+                path="/home"
+                element={<ProtectedRoute element={<LandingPage />} />}
+              />
+              <Route
+                path="/profile"
+                element={<ProtectedRoute element={<ProfilePage />} />}
+              />
+              <Route
+                path="/interests"
+                element={<ProtectedRoute element={<UserInterests />} />}
+              />
+              <Route
+                path="/nearby-events"
+                element={<ProtectedRoute element={<NearbyEventsPage />} />}
+              />
+              <Route
+                path="/events"
+                element={<ProtectedRoute element={<Events />} />}
+              />
+              <Route
+                path="/events/:id"
+                element={<ProtectedRoute element={<EventDetails />} />}
+              />
+              <Route
+                path="/events/:id/edit"
+                element={<ProtectedRoute element={<EditEvent />} />}
+              />
+              <Route
+                path="/events/new"
+                element={<ProtectedRoute element={<CreateEvent />} />}
+              />
+              <Route
+                path="/events/my"
+                element={<ProtectedRoute element={<MyEvents />} />}
+              />
+            </Routes>
+          </LoadScript>
+        </Router>
       </GoogleOAuthProvider>
     </ThemeProvider>
   );

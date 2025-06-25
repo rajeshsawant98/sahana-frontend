@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, initialize } from "../redux/slices/authSlice";
-import axiosInstance from "./axiosInstance";
+import { refreshToken, getCurrentUser } from "../apis/authAPI";
 import { RootState } from "../redux/store";
 import { AppDispatch } from "../redux/store";
-import { User } from "../types/User";
 
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
@@ -23,17 +22,14 @@ const AuthBootstrap = () => {
     ranOnce.current = true;
 
     const refreshSession = async () => {
-      const refreshToken = localStorage.getItem("refreshToken");
-      if (!refreshToken) {
+      const storedRefreshToken = localStorage.getItem("refreshToken");
+      if (!storedRefreshToken) {
         dispatch(initialize());
         return;
       }
 
       try {
-        const { data: refreshData } = await axiosInstance.post("/auth/refresh", {
-          refresh_token: refreshToken,
-        });
-
+        const refreshData = await refreshToken(storedRefreshToken);
         const accessToken: string = refreshData.access_token;
 
         const isCacheValid =
@@ -52,9 +48,7 @@ const AuthBootstrap = () => {
           return;
         }
 
-        const { data: user } = await axiosInstance.get<User>("/auth/me", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const user = await getCurrentUser();
 
         console.log("🔎 /auth/me response:", user);
 

@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import NavBar from "../components/NavBar";
-import axiosInstance from "../utils/axiosInstance";
+import { updateUserInterests } from "../apis/authAPI";
 import { RootState, AppDispatch } from "../redux/store";
 import { login } from "../redux/slices/authSlice";
 
@@ -66,15 +66,7 @@ const UserInterests: React.FC = () => {
 
     setLoading(true);
     try {
-      await axiosInstance.put(
-        "/auth/me/interests",
-        { interests: selectedCategories },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+      await updateUserInterests({ interests: selectedCategories });
 
       // Update Redux store with new interests
       dispatch(

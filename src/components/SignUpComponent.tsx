@@ -2,17 +2,10 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import axiosInstance from '../utils/axiosInstance';
+import { registerUser } from '../apis/authAPI';
 import { login } from "../redux/slices/authSlice";
 import { AppDispatch } from '../redux/store';
 import signupBackground from '../assets/SignUp.svg';
-
-interface SignUpResponse {
-  access_token: string;
-  refresh_token: string;
-  email: string;
-  name?: string;
-}
 
 const SignUpComponent: React.FC = () => {
   const navigate = useNavigate();
@@ -33,15 +26,15 @@ const SignUpComponent: React.FC = () => {
     }
 
     try {
-      const response = await axiosInstance.post<SignUpResponse>('/auth/register', {
+      const response = await registerUser({
         email,
         password,
         name,
       });
 
-      console.log('Backend response:', response.data);
+      console.log('Backend response:', response);
 
-      const { access_token, refresh_token } = response.data;
+      const { access_token, refresh_token } = response;
 
       // ✅ Store access token in Redux
       dispatch(login({

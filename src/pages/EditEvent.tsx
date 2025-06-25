@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axiosInstance from "../utils/axiosInstance";
+import { fetchEventById, updateEvent, deleteEvent } from "../apis/eventsAPI";
 import EventForm from "../components/EventForm";
 import NavBar from "../components/NavBar";
 import {
@@ -48,9 +48,8 @@ const EditEvent: React.FC = () => {
       return;
     }
 
-    axiosInstance
-      .get<Event>(`/events/${id}`)
-      .then((res) => setEventData(res.data))
+    fetchEventById(id)
+      .then((event) => setEventData(event))
       .catch(() => setError("Failed to load event"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -58,8 +57,7 @@ const EditEvent: React.FC = () => {
   const handleSubmit = (formData: EventFormData): void => {
     if (!id) return;
 
-    axiosInstance
-      .put(`/events/${id}`, formData)
+    updateEvent(id, formData)
       .then(() => navigate(`/events/${id}`))
       .catch(() => setError("Failed to update event"));
   };
@@ -71,7 +69,7 @@ const EditEvent: React.FC = () => {
       )
     ) {
       try {
-        await axiosInstance.delete(`/events/${id}`);
+        await deleteEvent(id!);
         navigate("/events");
       } catch (err) {
         console.error("Failed to delete event:", err);

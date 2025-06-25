@@ -16,7 +16,7 @@ import {
 import { RootState, AppDispatch } from "../redux/store";
 import { addCreatedEventLocal } from "../redux/slices/userEventsSlice";
 import EventForm from "../components/EventForm";
-import axiosInstance from "../utils/axiosInstance";
+import { createEvent, updateEventOrganizers, updateEventModerators } from "../apis/eventsAPI";
 import NavBar from "../components/NavBar";
 
 interface EventFormData {
@@ -33,10 +33,6 @@ interface EventFormData {
   imageUrl?: string;
   createdBy?: string;
   createdByEmail?: string;
-}
-
-interface CreateEventResponse {
-  eventId: string;
 }
 
 const CreateEvent: React.FC = () => {
@@ -61,17 +57,17 @@ const CreateEvent: React.FC = () => {
         createdByEmail: profile.email,
       };
 
-      const eventRes = await axiosInstance.post<CreateEventResponse>("/events/new", eventData);
-      const eventId = eventRes.data.eventId;
+      const eventRes = await createEvent(eventData);
+      const eventId = eventRes.eventId;
 
       if (formData.organizers?.length > 0) {
-        await axiosInstance.patch(`/events/${eventId}/organizers`, {
+        await updateEventOrganizers(eventId, {
           organizerEmails: formData.organizers,
         });
       }
 
       if (formData.moderators?.length > 0) {
-        await axiosInstance.patch(`/events/${eventId}/moderators`, {
+        await updateEventModerators(eventId, {
           moderatorEmails: formData.moderators,
         });
       }

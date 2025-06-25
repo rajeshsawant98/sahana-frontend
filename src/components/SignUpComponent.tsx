@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { useTheme } from '@mui/material/styles';
 import { registerUser, getCurrentUser } from '../apis/authAPI';
 import { login } from "../redux/slices/authSlice";
+import { fetchCreatedEvents, fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
 import { AppDispatch } from '../redux/store';
 import signupBackground from '../assets/SignUp.svg';
 
@@ -56,6 +57,11 @@ const SignUpComponent: React.FC = () => {
           user: userProfile,
           accessToken: access_token,
         }));
+        
+        // Fetch user events data in the background for better UX
+        dispatch(fetchCreatedEvents());
+        dispatch(fetchRSVPedEvents());
+        
       } catch (profileError) {
         console.warn("Failed to fetch user profile, using minimal data:", profileError);
         // Fallback to minimal user data if profile fetch fails

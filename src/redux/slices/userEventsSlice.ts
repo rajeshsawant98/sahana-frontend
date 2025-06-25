@@ -38,9 +38,14 @@ export const fetchCreatedEvents = createAsyncThunk<
   void,
   { state: RootState; rejectValue: string }
 >("userEvents/fetchCreated", async (_, { getState, rejectWithValue }) => {
-  const { lastFetchedCreated } = getState().userEvents;
+  const { lastFetchedCreated, createdEvents } = getState().userEvents;
   const now = Date.now();
-  if (lastFetchedCreated && now - lastFetchedCreated < CACHE_DURATION) return [];
+  
+  // If cache is valid and we have data, return cached data
+  if (lastFetchedCreated && now - lastFetchedCreated < CACHE_DURATION && createdEvents.length > 0) {
+    return createdEvents;
+  }
+  
   try {
     return await fetchCreatedEventsAPI();
   } catch {
@@ -53,9 +58,14 @@ export const fetchRSVPedEvents = createAsyncThunk<
   void,
   { state: RootState; rejectValue: string }
 >("userEvents/fetchRSVPed", async (_, { getState, rejectWithValue }) => {
-  const { lastFetchedRSVPed } = getState().userEvents;
+  const { lastFetchedRSVPed, rsvpedEvents } = getState().userEvents;
   const now = Date.now();
-  if (lastFetchedRSVPed && now - lastFetchedRSVPed < CACHE_DURATION) return [];
+  
+  // If cache is valid and we have data, return cached data
+  if (lastFetchedRSVPed && now - lastFetchedRSVPed < CACHE_DURATION && rsvpedEvents.length >= 0) {
+    return rsvpedEvents;
+  }
+  
   try {
     return await fetchRSVPedEventsAPI();
   } catch {
@@ -97,7 +107,8 @@ const userEventsSlice = createSlice({
         state.errorCreated = null;
       })
       .addCase(fetchCreatedEvents.fulfilled, (state, action) => {
-        if (action.payload && action.payload.length > 0) {
+        // Always update if we have fresh data, or if this is the first load
+        if (action.payload && (action.payload.length > 0 || !state.lastFetchedCreated)) {
           state.createdEvents = action.payload;
           state.lastFetchedCreated = Date.now();
         }
@@ -112,7 +123,8 @@ const userEventsSlice = createSlice({
         state.errorRSVPed = null;
       })
       .addCase(fetchRSVPedEvents.fulfilled, (state, action) => {
-        if (action.payload && action.payload.length > 0) {
+        // Always update if we have fresh data, or if this is the first load
+        if (action.payload !== undefined && (action.payload.length > 0 || !state.lastFetchedRSVPed)) {
           state.rsvpedEvents = action.payload;
           state.lastFetchedRSVPed = Date.now();
         }

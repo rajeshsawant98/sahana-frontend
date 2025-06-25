@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, initialize } from "../redux/slices/authSlice";
+import { fetchCreatedEvents, fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
 import { refreshToken, getCurrentUser } from "../apis/authAPI";
 import { RootState } from "../redux/store";
 import { AppDispatch } from "../redux/store";
@@ -45,6 +46,10 @@ const AuthBootstrap = () => {
               role: cachedUser.role || "user",
             })
           );
+          
+          // Fetch user events data in the background for better UX
+          dispatch(fetchCreatedEvents());
+          dispatch(fetchRSVPedEvents());
           return;
         }
 
@@ -59,6 +64,10 @@ const AuthBootstrap = () => {
             role: user.role,
           })
         );
+        
+        // Fetch user events data in the background for better UX
+        dispatch(fetchCreatedEvents());
+        dispatch(fetchRSVPedEvents());
       } catch (err) {
         localStorage.removeItem("refreshToken");
         dispatch(initialize());

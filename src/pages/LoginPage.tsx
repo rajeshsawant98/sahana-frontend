@@ -6,6 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import { Box, TextField, Button, Typography, CircularProgress, Backdrop } from "@mui/material";
 import { loginUser, loginWithGoogle, getCurrentUser } from "../apis/authAPI";
 import { login } from "../redux/slices/authSlice";
+import { fetchCreatedEvents, fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
 import { AppDispatch } from "../redux/store";
 import AnimateSVG from "../components/AnimateSVG";
 import fingerprintSVG from "../assets/fingerprint.svg?raw";
@@ -51,6 +52,11 @@ const LoginPage: React.FC = () => {
             accessToken: response.access_token,
           })
         );
+        
+        // Fetch user events data in the background for better UX
+        dispatch(fetchCreatedEvents());
+        dispatch(fetchRSVPedEvents());
+        
       } catch (profileError) {
         console.warn("Failed to fetch user profile, using minimal data:", profileError);
         // Fallback to minimal user data if profile fetch fails
@@ -97,6 +103,11 @@ const LoginPage: React.FC = () => {
             accessToken: backendResponse.access_token,
           })
         );
+        
+        // Fetch user events data in the background for better UX
+        dispatch(fetchCreatedEvents());
+        dispatch(fetchRSVPedEvents());
+        
       } catch (profileError) {
         console.warn("Failed to fetch user profile, using minimal data:", profileError);
         // Fallback to minimal user data if profile fetch fails

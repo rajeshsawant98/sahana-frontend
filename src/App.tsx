@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
-import theme from "./styles/theme/theme";
+import { useSelector } from "react-redux";
+import { RootState } from "./redux/store";
+import { createAppTheme } from "./styles/theme/theme";
 import LandingPage from "./pages/LandingPage"; // Import LandingPage component
 import LoginPage from "./pages/LoginPage"; // Import the combined LoginPage component
 import SignUpComponent from "./components/SignUpComponent"; // Import your SignUp component
@@ -25,6 +27,10 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import ManageEvents from "./pages/admin/ManageEvents";
 
 const App = () => {
+  const darkMode = useSelector((state: RootState) => state.theme.darkMode);
+  
+  const theme = useMemo(() => createAppTheme(darkMode), [darkMode]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

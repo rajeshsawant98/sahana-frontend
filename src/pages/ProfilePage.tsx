@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useTheme } from '@mui/material/styles';
 import { updateUserProfile } from "../apis/authAPI";
 import LogoutButton from "../components/buttons/LogoutButton";
 import {
@@ -22,6 +23,7 @@ import { User, LocationData } from "../types/User";
 
 const ProfilePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const theme = useTheme();
   const { user: cachedProfile, accessToken } = useSelector((state: RootState) => state.auth);
   const [profile, setProfile] = useState<Partial<User>>({});
   const [formData, setFormData] = useState<Partial<User>>({});
@@ -116,7 +118,7 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <NavBar />
-      <Box sx={{ backgroundColor: "#f3f2ef", minHeight: "100vh", padding: 3 }}>
+      <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh", padding: 3 }}>
         <Container>
           <Grid2 container spacing={3}>
             <Grid2 size={{ xs: 12, md: 3 }}>

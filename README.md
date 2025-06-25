@@ -196,7 +196,14 @@ Add `vercel.json` for React Router fallback:
 
 ## 📖 Learn More
 
-### Documentation
+### Project Documentation
+
+- **[📚 Documentation Hub](./docs/README.md)** - Complete project documentation
+- **[API Architecture Guide](./docs/API_SEPARATION_GUIDE.md)** - API design patterns
+- **[Dark Mode Implementation](./docs/DARK_MODE_IMPLEMENTATION.md)** - Theme system guide
+- **[Documentation Guidelines](./docs/DOCUMENTATION_GUIDELINES.md)** - Contributing standards
+
+### External Resources
 
 - [Vite Documentation](https://vitejs.dev/) - Build tool and dev server
 - [Material-UI Documentation](https://mui.com/) - React component library

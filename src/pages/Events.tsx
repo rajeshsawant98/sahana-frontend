@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Box, CircularProgress, Typography, Button, Grid, Container } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
 import { fetchEvents } from '../redux/slices/eventsSlice';
 import { RootState, AppDispatch } from '../redux/store';
 import NavBar from '../components/NavBar';
@@ -11,6 +12,7 @@ import { Event } from '../types/Event';
 const Events: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const { events, loading, error } = useSelector((state: RootState) => state.events);
   const typedEvents = events as Event[];
@@ -20,7 +22,7 @@ const Events: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <Box sx={{ backgroundColor: "#f9f9f9", minHeight: "100vh" }}>
+    <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
       <NavBar />
       <Container>
         <Typography variant="h4" gutterBottom sx={{ paddingTop: 3 }}>

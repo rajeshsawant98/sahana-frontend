@@ -14,8 +14,11 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 import LogoutButton from '../components/buttons/LogoutButton';
 import LocationNavbar from './LocationNavbar';
+import DarkModeToggle from './DarkModeToggle';
 
 interface NavItem {
   text: string;
@@ -25,6 +28,7 @@ interface NavItem {
 const NavBar: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const navigate = useNavigate();
+  const darkMode = useSelector((state: RootState) => state.theme.darkMode);
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
     if (
@@ -48,7 +52,7 @@ const NavBar: React.FC = () => {
     <Box
       sx={{
         width: 250,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: darkMode ? '#1e1e1e' : '#FFFFFF',
         height: '100%',
       }}
       role="presentation"
@@ -58,11 +62,37 @@ const NavBar: React.FC = () => {
       <List>
         {navItems.map(({ text, route }) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton onClick={() => navigate(route)}>
+            <ListItemButton 
+              onClick={() => navigate(route)}
+              sx={{
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  border: 'none !important',
+                  outline: 'none !important',
+                  boxShadow: 'none !important',
+                  '& .MuiListItemText-primary': {
+                    color: '#FFBF49',
+                  },
+                },
+                '&:focus': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+                '&:active': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+              }}
+            >
               <ListItemText
                 primary={text}
                 sx={{
-                  color: '#333333',
+                  color: darkMode ? '#ffffff' : '#333333',
                   fontWeight: '500',
                   textAlign: 'center',
                 }}
@@ -90,7 +120,7 @@ const NavBar: React.FC = () => {
           sx={{
             flexGrow: 1,
             fontWeight: '600',
-            color: '#333333',
+            color: darkMode ? '#ffffff' : '#333333',
             cursor: 'pointer',
           }}
           onClick={() => navigate('/home')}
@@ -99,17 +129,33 @@ const NavBar: React.FC = () => {
         </Typography>
 
         {/* Desktop Navigation */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3 }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, alignItems: 'center' }}>
           <LocationNavbar />
           <Button
             color="inherit"
             sx={{
-              color: '#333333',
+              color: darkMode ? '#ffffff' : '#333333',
               fontWeight: '500',
               transition: 'color 0.3s',
+              border: 'none !important',
+              outline: 'none !important',
+              boxShadow: 'none !important',
               '&:hover': {
                 color: '#FFBF49',
                 backgroundColor: 'transparent',
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:focus': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:active': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
               },
             }}
             onClick={() => navigate('/events')}
@@ -119,12 +165,28 @@ const NavBar: React.FC = () => {
           <Button
             color="inherit"
             sx={{
-              color: '#333333',
+              color: darkMode ? '#ffffff' : '#333333',
               fontWeight: '500',
               transition: 'color 0.3s',
+              border: 'none !important',
+              outline: 'none !important',
+              boxShadow: 'none !important',
               '&:hover': {
                 color: '#FFBF49',
                 backgroundColor: 'transparent',
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:focus': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:active': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
               },
             }}
             onClick={() => navigate('/interests')}
@@ -134,23 +196,41 @@ const NavBar: React.FC = () => {
           <Button
             color="inherit"
             sx={{
-              color: '#333333',
+              color: darkMode ? '#ffffff' : '#333333',
               fontWeight: '500',
               transition: 'color 0.3s',
+              border: 'none !important',
+              outline: 'none !important',
+              boxShadow: 'none !important',
               '&:hover': {
                 color: '#FFBF49',
                 backgroundColor: 'transparent',
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:focus': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:active': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
               },
             }}
             onClick={() => navigate('/profile')}
           >
             Profile
           </Button>
+          <DarkModeToggle />
           <LogoutButton />
         </Box>
 
         {/* Mobile Hamburger Menu */}
-        <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 1 }}>
+          <DarkModeToggle />
           <IconButton
             size="large"
             edge="start"
@@ -158,7 +238,26 @@ const NavBar: React.FC = () => {
             aria-label="menu"
             onClick={toggleDrawer(true)}
             sx={{
-              color: '#333333',
+              color: darkMode ? '#ffffff' : '#333333',
+              border: 'none !important',
+              outline: 'none !important',
+              boxShadow: 'none !important',
+              '&:hover': {
+                backgroundColor: 'transparent',
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:focus': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:active': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
+              },
             }}
           >
             <MenuIcon />

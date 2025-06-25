@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
+import { useTheme } from '@mui/material/styles';
 import { fetchNearbyEventsByLocation } from "../redux/slices/nearbyEventsSlice";
 import {
   Box,
@@ -20,6 +21,7 @@ interface LocationState {
 
 const NearbyEventsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const theme = useTheme();
   const { events, loading, error } = useSelector(
     (state: RootState) => state.nearbyEvents
   );
@@ -41,7 +43,7 @@ const NearbyEventsPage: React.FC = () => {
   }, [city, state, dispatch]);
 
   return (
-    <Box sx={{ backgroundColor: "#f9f9f9", minHeight: "100vh" }}>
+    <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
       <NavBar />
       <Container>
         <Typography variant="h4" gutterBottom>

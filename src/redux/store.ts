@@ -5,6 +5,7 @@ import eventsReducer from "./slices/eventsSlice";
 import userEventsReducer from "./slices/userEventsSlice";
 import externalEventsReducer from "./slices/externalEventsSlice";
 import nearbyEventsReducer from "./slices/nearbyEventsSlice";
+import themeReducer from "./slices/themeSlice";
 
 const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ const store = configureStore({
     userEvents: userEventsReducer,
     externalEvents: externalEventsReducer,
     nearbyEvents: nearbyEventsReducer,
+    theme: themeReducer,
   },
 });
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import FmdGoodOutlinedIcon from '@mui/icons-material/FmdGoodOutlined';
 import { Button, CircularProgress } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 
 interface LocationState {
@@ -27,6 +28,7 @@ const LocationNavbar: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
+  const theme = useTheme();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -81,19 +83,35 @@ const LocationNavbar: React.FC = () => {
       {loading ? (
         <CircularProgress color="primary" />
       ) : error ? (
-        <span>{error}</span>
+        <span style={{ color: theme.palette.text.primary }}>{error}</span>
       ) : location.city && location.state ? (
         <span>
           <Button
             color="inherit"
             startIcon={<FmdGoodOutlinedIcon />}
             sx={{
-              color: '#333333',
+              color: theme.palette.text.primary,
               fontWeight: '500',
               transition: 'color 0.3s',
+              border: 'none !important',
+              outline: 'none !important',
+              boxShadow: 'none !important',
               '&:hover': {
-                color: '#FFBF49',
+                color: theme.palette.primary.main,
                 backgroundColor: 'transparent',
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:focus': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
+              },
+              '&:active': {
+                outline: 'none !important',
+                border: 'none !important',
+                boxShadow: 'none !important',
               },
             }}
             onClick={handleLocationClick}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useTheme } from '@mui/material/styles';
 import { Box, TextField, Button, Typography } from "@mui/material";
 import { loginUser, loginWithGoogle } from "../apis/authAPI";
 import { login } from "../redux/slices/authSlice";
@@ -13,6 +14,7 @@ import "../styles/vendor/fingerprint-styles.css";
 const LoginPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const theme = useTheme();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loginError, setLoginError] = useState<string>("");
@@ -81,7 +83,7 @@ const LoginPage: React.FC = () => {
         height: "100vh",
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        backgroundColor: "#ffffff",
+        backgroundColor: theme.palette.background.default,
       }}
     >
       <Box
@@ -91,7 +93,7 @@ const LoginPage: React.FC = () => {
           alignItems: "center",
           justifyContent: "center",
           padding: 0,
-          backgroundColor: "#fff",
+          backgroundColor: theme.palette.background.paper,
           position: "relative",
         }}
       >
@@ -115,7 +117,9 @@ const LoginPage: React.FC = () => {
           justifyContent: "center",
           position: "relative",
           zIndex: 1,
-          backgroundColor: "rgba(255, 255, 255, 0.85)",
+          backgroundColor: theme.palette.mode === 'dark' 
+            ? "rgba(30, 30, 30, 0.85)" 
+            : "rgba(255, 255, 255, 0.85)",
           backdropFilter: "blur(6px)",
         }}
       >

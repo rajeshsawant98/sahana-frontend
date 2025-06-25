@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
+import { useTheme } from '@mui/material/styles';
 import { registerUser } from '../apis/authAPI';
 import { login } from "../redux/slices/authSlice";
 import { AppDispatch } from '../redux/store';
@@ -10,6 +11,7 @@ import signupBackground from '../assets/SignUp.svg';
 const SignUpComponent: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const theme = useTheme();
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -77,7 +79,7 @@ const SignUpComponent: React.FC = () => {
         sx={{
           width: '70%',
           backgroundImage: `url(${signupBackground})`,
-          backgroundColor: 'white',
+          backgroundColor: theme.palette.background.paper,
           backgroundSize: 'contain',
           backgroundPosition: 'center',
           backgroundRepeat: "no-repeat",
@@ -94,7 +96,7 @@ const SignUpComponent: React.FC = () => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          backgroundColor: 'white',
+          backgroundColor: theme.palette.background.default,
           padding: 4,
         }}
       >

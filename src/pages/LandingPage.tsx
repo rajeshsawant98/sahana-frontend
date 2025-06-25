@@ -1,11 +1,14 @@
 import React from "react";
 import { Button, Container, Typography, Box } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 import NavBar from "../components/NavBar";
 import AnimateSVG from "../components/AnimateSVG";
 import groupDiscussionSVG from "../assets/group-discussion.svg?raw";
 import "../styles/vendor/group-discussion-styles.css";
 
 const LandingPage: React.FC = () => {
+  const theme = useTheme();
+  
   return (
     <>
       {/* Transparent NavBar */}
@@ -18,7 +21,7 @@ const LandingPage: React.FC = () => {
           height: "100vh",
           width: "100%",
           overflow: "hidden",
-          backgroundColor: "#f5f5f5",
+          backgroundColor: theme.palette.background.default,
         }}
       >
         {/* Animated Background Illustration */}
@@ -61,7 +64,7 @@ const LandingPage: React.FC = () => {
             variant="h5"
             gutterBottom
             sx={{
-              color: "#424242",
+              color: theme.palette.text.primary,
               mb: 4,
             }}
           >
@@ -71,7 +74,6 @@ const LandingPage: React.FC = () => {
             variant="contained"
             size="large"
             sx={{
-              color: "#fff",
               px: 6,
               py: 1.5,
               borderRadius: 2,

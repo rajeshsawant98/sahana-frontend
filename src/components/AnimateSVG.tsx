@@ -7,18 +7,22 @@ interface AnimateSVGProps {
   id?: string;
 }
 
-const AnimateSVG: React.FC<AnimateSVGProps> = ({ 
+const AnimateSVG: React.FC<AnimateSVGProps> = React.memo(({ 
   svgMarkup, 
   className = '', 
   style = {}, 
   id = 'animate-svg' 
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const hasAnimated = useRef<boolean>(false);
 
   useEffect(() => {
-    const svg = containerRef.current?.querySelector('svg');
-    if (svg && !svg.classList.contains('animated')) {
-      svg.classList.add('animated');
+    if (!hasAnimated.current) {
+      const svg = containerRef.current?.querySelector('svg');
+      if (svg && !svg.classList.contains('animated')) {
+        svg.classList.add('animated');
+        hasAnimated.current = true;
+      }
     }
   }, [svgMarkup]);
 
@@ -31,6 +35,8 @@ const AnimateSVG: React.FC<AnimateSVGProps> = ({
       dangerouslySetInnerHTML={{ __html: svgMarkup }}
     />
   );
-};
+});
+
+AnimateSVG.displayName = 'AnimateSVG';
 
 export default AnimateSVG;

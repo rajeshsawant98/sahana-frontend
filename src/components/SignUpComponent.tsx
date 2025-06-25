@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography } from '@mui/material';
+import { Box, TextField, Button, Typography, CircularProgress, Backdrop } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { useTheme } from '@mui/material/styles';
@@ -18,6 +18,7 @@ const SignUpComponent: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [name, setName] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -26,6 +27,9 @@ const SignUpComponent: React.FC = () => {
       setError('Passwords do not match');
       return;
     }
+
+    setIsLoading(true);
+    setError('');
 
     try {
       const response = await registerUser({
@@ -53,6 +57,8 @@ const SignUpComponent: React.FC = () => {
     } catch (error) {
       console.error('Sign-up failed!', error);
       setError('Sign-up failed. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -117,6 +123,7 @@ const SignUpComponent: React.FC = () => {
             onChange={handleEmailChange}
             margin="normal"
             required
+            disabled={isLoading}
           />
           <TextField
             fullWidth
@@ -126,6 +133,7 @@ const SignUpComponent: React.FC = () => {
             onChange={handleNameChange}
             margin="normal"
             required
+            disabled={isLoading}
           />
           <TextField
             fullWidth
@@ -136,6 +144,7 @@ const SignUpComponent: React.FC = () => {
             onChange={handlePasswordChange}
             margin="normal"
             required
+            disabled={isLoading}
           />
           <TextField
             fullWidth
@@ -146,11 +155,13 @@ const SignUpComponent: React.FC = () => {
             onChange={handleConfirmPasswordChange}
             margin="normal"
             required
+            disabled={isLoading}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
+            disabled={isLoading}
             sx={{
               backgroundColor: '#FFBF49', // Golden Yellow button color
               color: '#ffffff', // White text on button
@@ -160,9 +171,33 @@ const SignUpComponent: React.FC = () => {
               marginTop: 2,
             }}
           >
-            Sign Up
+            {isLoading ? (
+              <>
+                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                Creating Account...
+              </>
+            ) : (
+              "Sign Up"
+            )}
           </Button>
         </form>
+
+        {/* Full-screen loading backdrop */}
+        <Backdrop
+          sx={{ 
+            color: '#fff', 
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+          }}
+          open={isLoading}
+        >
+          <CircularProgress color="primary" size={60} />
+          <Typography variant="h6" color="inherit">
+            Creating your account...
+          </Typography>
+        </Backdrop>
       </Box>
     </Box>
   );

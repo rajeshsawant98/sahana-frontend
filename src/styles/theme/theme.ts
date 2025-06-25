@@ -1,7 +1,7 @@
 import { createTheme, Theme } from "@mui/material/styles";
 
 // Create a function that returns a theme based on dark mode preference
-export const createAppTheme = (darkMode: boolean): Theme => {
+const createAppTheme = (darkMode: boolean): Theme => {
   return createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
@@ -33,9 +33,11 @@ export const createAppTheme = (darkMode: boolean): Theme => {
             padding: "12px 16px", // Adjust padding to ensure proper height
             fontWeight: 600, // Make button text slightly bolder
             textTransform: "none", // Prevent uppercase transformation
+          },
+          contained: {
             "&:hover": {
-              backgroundColor: "#FFA500", // Slightly darker golden yellow on hover
-              boxShadow: "0 4px 8px rgba(255, 191, 73, 0.3)", // Add shadow on hover
+              backgroundColor: "#FFA500", // Slightly darker golden yellow on hover for contained buttons
+              boxShadow: "0 4px 8px rgba(255, 191, 73, 0.3)", // Add shadow on hover for contained buttons
             },
           },
         },
@@ -139,3 +141,4 @@ export const createAppTheme = (darkMode: boolean): Theme => {
 const theme: Theme = createAppTheme(false);
 
 export default theme;
+export { createAppTheme };

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useTheme } from '@mui/material/styles';
-import { Box, TextField, Button, Typography } from "@mui/material";
+import { Box, TextField, Button, Typography, CircularProgress, Backdrop } from "@mui/material";
 import { loginUser, loginWithGoogle } from "../apis/authAPI";
 import { login } from "../redux/slices/authSlice";
 import { AppDispatch } from "../redux/store";
@@ -18,9 +18,20 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loginError, setLoginError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Memoize the style object to prevent unnecessary re-renders
+  const svgStyle = useMemo(() => ({
+    width: "100%",
+    maxWidth: "70%",
+    height: "auto",
+  }), []);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    setIsLoading(true);
+    setLoginError("");
+    
     try {
       const response = await loginUser({
         email,
@@ -33,9 +44,13 @@ const LoginPage: React.FC = () => {
         })
       );
       localStorage.setItem("refreshToken", response.refresh_token);
-      window.location.href = "/home";
+      
+      // Use navigate instead of window.location.href for smoother transition
+      navigate("/home");
     } catch (error) {
       setLoginError("Login failed. Please check your email and password.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -46,6 +61,9 @@ const LoginPage: React.FC = () => {
       return;
     }
 
+    setIsLoading(true);
+    setLoginError("");
+
     try {
       const backendResponse = await loginWithGoogle({ token });
       dispatch(
@@ -55,9 +73,13 @@ const LoginPage: React.FC = () => {
         })
       );
       localStorage.setItem("refreshToken", backendResponse.refresh_token);
-      window.location.href = "/home";
+      
+      // Use navigate instead of window.location.href for smoother transition
+      navigate("/home");
     } catch (error) {
       setLoginError("Google login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,11 +121,7 @@ const LoginPage: React.FC = () => {
       >
         <AnimateSVG
           svgMarkup={fingerprintSVG}
-          style={{
-            width: "100%",
-            maxWidth: "70%",
-            height: "auto",
-          }}
+          style={svgStyle}
         />
       </Box>
 
@@ -140,6 +158,7 @@ const LoginPage: React.FC = () => {
             onChange={handleEmailChange}
             margin="normal"
             required
+            disabled={isLoading}
           />
           <TextField
             fullWidth
@@ -150,28 +169,44 @@ const LoginPage: React.FC = () => {
             onChange={handlePasswordChange}
             margin="normal"
             required
+            disabled={isLoading}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
             color="primary"
+            disabled={isLoading}
             sx={{
               color: "#ffffff",
               marginTop: 2,
             }}
           >
-            Login
+            {isLoading ? (
+              <>
+                <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </Button>
         </Box>
         <Box textAlign="center" mt={2}>
           <Typography variant="subtitle1" color="primary" gutterBottom>
             Lazy?
           </Typography>
-          <GoogleLogin
-            onSuccess={handleGoogleLoginSuccess}
-            onError={handleGoogleLoginFailure}
-          />
+          {!isLoading && (
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginFailure}
+            />
+          )}
+          {isLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
         </Box>
         <Button
           fullWidth
@@ -179,10 +214,28 @@ const LoginPage: React.FC = () => {
           color="secondary"
           sx={{ marginTop: 2 }}
           onClick={handleCreateAccount}
+          disabled={isLoading}
         >
           Create New Account
         </Button>
       </Box>
+
+      {/* Full-screen loading backdrop */}
+      <Backdrop
+        sx={{ 
+          color: '#fff', 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+        }}
+        open={isLoading}
+      >
+        <CircularProgress color="primary" size={60} />
+        <Typography variant="h6" color="inherit">
+          Logging you in...
+        </Typography>
+      </Backdrop>
     </Box>
   );
 };

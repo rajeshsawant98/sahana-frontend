@@ -71,7 +71,7 @@ const SignUpComponent: React.FC = () => {
         }));
       }
 
-      navigate('/home');
+      navigate('/');
     } catch (error) {
       console.error('Sign-up failed!', error);
       setError('Sign-up failed. Please try again.');

@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
       }
       
       // Use navigate instead of window.location.href for smoother transition
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       setLoginError("Login failed. Please check your email and password.");
     } finally {
@@ -120,7 +120,7 @@ const LoginPage: React.FC = () => {
       }
       
       // Use navigate instead of window.location.href for smoother transition
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       setLoginError("Google login failed. Please try again.");
     } finally {

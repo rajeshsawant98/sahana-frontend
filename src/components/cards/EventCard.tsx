@@ -31,11 +31,14 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   };
   
   const rsvpedEvents = useSelector((state: RootState) => state.userEvents.rsvpedEvents);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const isRSVPed = rsvpedEvents.some(
     (r) => r.eventId === event.eventId || r.eventId === event.eventId
   );
 
   const RSVP = async (): Promise<void> => {
+    if (!isAuthenticated) return;
+    
     try {
       await rsvpToEvent(event.eventId, { status: "joined" });
       console.log("RSVP successful");
@@ -138,19 +141,21 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           View Details
         </Link>
 
-        {isRSVPed ? (
-          <Button variant="outlined" color="success" size="small" disabled>
-            Joined
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            color="primary"
-            size="small"
-            onClick={RSVP}
-          >
-            Join
-          </Button>
+        {isAuthenticated && (
+          isRSVPed ? (
+            <Button variant="outlined" color="success" size="small" disabled>
+              Joined
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              onClick={RSVP}
+            >
+              Join
+            </Button>
+          )
         )}
       </CardActions>
     </Card>

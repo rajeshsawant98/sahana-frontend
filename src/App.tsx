@@ -44,8 +44,11 @@ const App = () => {
             <AuthBootstrap />
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<LoginPage />} />
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignUpComponent />} />
+              <Route path="/nearby-events" element={<NearbyEventsPage />} />
+              <Route path="/events/:id" element={<EventDetails />} />
 
               {/* Admin Routes */}
 
@@ -76,16 +79,8 @@ const App = () => {
                 element={<ProtectedRoute element={<UserInterests />} />}
               />
               <Route
-                path="/nearby-events"
-                element={<ProtectedRoute element={<NearbyEventsPage />} />}
-              />
-              <Route
                 path="/events"
                 element={<ProtectedRoute element={<Events />} />}
-              />
-              <Route
-                path="/events/:id"
-                element={<ProtectedRoute element={<EventDetails />} />}
               />
               <Route
                 path="/events/:id/edit"

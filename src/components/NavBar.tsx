@@ -29,6 +29,7 @@ const NavBar: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const navigate = useNavigate();
   const darkMode = useSelector((state: RootState) => state.theme.darkMode);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
     if (
@@ -40,13 +41,17 @@ const NavBar: React.FC = () => {
     setDrawerOpen(open);
   };
 
-  const navItems: NavItem[] = [
-    { text: 'Events', route: '/events' },
-    { text: 'Nearby Events', route: '/nearby-events' },
-    { text: 'Interests', route: '/interests' },
-    { text: 'Profile', route: '/profile' },
-    { text: 'Login', route: '/login' },
-  ];
+  // Dynamic navigation items based on authentication status
+  const navItems: NavItem[] = isAuthenticated 
+    ? [
+        { text: 'Events', route: '/events' },
+        { text: 'My Events', route: '/events/my' },
+        { text: 'Interests', route: '/interests' },
+        { text: 'Profile', route: '/profile' },
+      ]
+    : [
+        { text: 'Login', route: '/login' },
+      ];
 
   const drawerContent = (
     <Box
@@ -123,7 +128,7 @@ const NavBar: React.FC = () => {
             color: darkMode ? '#ffffff' : '#333333',
             cursor: 'pointer',
           }}
-          onClick={() => navigate('/home')}
+          onClick={() => navigate(isAuthenticated ? '/home' : '/')}
         >
           Sahana
         </Typography>
@@ -131,101 +136,45 @@ const NavBar: React.FC = () => {
         {/* Desktop Navigation */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, alignItems: 'center' }}>
           <LocationNavbar />
-          <Button
-            color="inherit"
-            sx={{
-              color: darkMode ? '#ffffff' : '#333333',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              border: 'none !important',
-              outline: 'none !important',
-              boxShadow: 'none !important',
-              '&:hover': {
-                color: '#FFBF49',
-                backgroundColor: 'transparent',
+          
+          {/* Dynamic Navigation Buttons */}
+          {navItems.map((item) => (
+            <Button
+              key={item.text}
+              color="inherit"
+              sx={{
+                color: darkMode ? '#ffffff' : '#333333',
+                fontWeight: '500',
+                transition: 'color 0.3s',
                 border: 'none !important',
                 outline: 'none !important',
                 boxShadow: 'none !important',
-              },
-              '&:focus': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '&:active': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-            }}
-            onClick={() => navigate('/events')}
-          >
-            Events
-          </Button>
-          <Button
-            color="inherit"
-            sx={{
-              color: darkMode ? '#ffffff' : '#333333',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              border: 'none !important',
-              outline: 'none !important',
-              boxShadow: 'none !important',
-              '&:hover': {
-                color: '#FFBF49',
-                backgroundColor: 'transparent',
-                border: 'none !important',
-                outline: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '&:focus': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '&:active': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-            }}
-            onClick={() => navigate('/interests')}
-          >
-            Interests
-          </Button>
-          <Button
-            color="inherit"
-            sx={{
-              color: darkMode ? '#ffffff' : '#333333',
-              fontWeight: '500',
-              transition: 'color 0.3s',
-              border: 'none !important',
-              outline: 'none !important',
-              boxShadow: 'none !important',
-              '&:hover': {
-                color: '#FFBF49',
-                backgroundColor: 'transparent',
-                border: 'none !important',
-                outline: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '&:focus': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '&:active': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-            }}
-            onClick={() => navigate('/profile')}
-          >
-            Profile
-          </Button>
+                '&:hover': {
+                  color: '#FFBF49',
+                  backgroundColor: 'transparent',
+                  border: 'none !important',
+                  outline: 'none !important',
+                  boxShadow: 'none !important',
+                },
+                '&:focus': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+                '&:active': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+              }}
+              onClick={() => navigate(item.route)}
+            >
+              {item.text}
+            </Button>
+          ))}
+          
           <DarkModeToggle />
-          <LogoutButton />
+          {isAuthenticated && <LogoutButton />}
         </Box>
 
         {/* Mobile Hamburger Menu */}
@@ -268,6 +217,12 @@ const NavBar: React.FC = () => {
             onClose={toggleDrawer(false)}
           >
             {drawerContent}
+            {/* Add logout button in mobile drawer for authenticated users */}
+            {isAuthenticated && (
+              <Box sx={{ p: 2 }}>
+                <LogoutButton />
+              </Box>
+            )}
           </Drawer>
         </Box>
       </Toolbar>

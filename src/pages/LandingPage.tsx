@@ -1,6 +1,9 @@
 import React from "react";
 import { Button, Container, Typography, Box } from "@mui/material";
 import { useTheme } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 import NavBar from "../components/NavBar";
 import AnimateSVG from "../components/AnimateSVG";
 import groupDiscussionSVG from "../assets/group-discussion.svg?raw";
@@ -8,6 +11,16 @@ import "../styles/vendor/group-discussion-styles.css";
 
 const LandingPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/events');
+    } else {
+      navigate('/login');
+    }
+  };
   
   return (
     <>
@@ -73,6 +86,7 @@ const LandingPage: React.FC = () => {
           <Button
             variant="contained"
             size="large"
+            onClick={handleGetStarted}
             sx={{
               px: 6,
               py: 1.5,
@@ -81,7 +95,7 @@ const LandingPage: React.FC = () => {
               fontWeight: "bold",
             }}
           >
-            Get Started
+            {isAuthenticated ? "Explore Events" : "Get Started"}
           </Button>
         </Container>
       </Box>

@@ -30,10 +30,11 @@ const EventDetails: React.FC = () => {
 
   const rsvpedEvents = useSelector((state: RootState) => state.userEvents.rsvpedEvents);
   const currentUser = useSelector((state: RootState) => state.auth.user);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   const isRSVPed = useMemo(
-    () => rsvpedEvents.some((e) => e.eventId === id || e.eventId === id),
-    [rsvpedEvents, id]
+    () => isAuthenticated && rsvpedEvents.some((e) => e.eventId === id || e.eventId === id),
+    [isAuthenticated, rsvpedEvents, id]
   );
 
   const canEditEvent = useMemo(() => {
@@ -58,7 +59,7 @@ const EventDetails: React.FC = () => {
   }, [id]);
 
   const handleRSVP = async (): Promise<void> => {
-    if (!id) return;
+    if (!id || !isAuthenticated) return;
     
     try {
       await rsvpToEvent(id, { status: "joined" });
@@ -192,7 +193,7 @@ const EventDetails: React.FC = () => {
             </Box>
 
             <Stack direction="row" spacing={2}>
-              {canEditEvent && (
+              {isAuthenticated && canEditEvent && (
                 <Button
                   variant="outlined"
                   color="secondary"
@@ -203,13 +204,23 @@ const EventDetails: React.FC = () => {
                 </Button>
               )}
               {!isOnline && (
-                isRSVPed ? (
-                  <Button variant="outlined" color="success" startIcon={<CheckIcon />} disabled>
-                    Joined
-                  </Button>
+                isAuthenticated ? (
+                  isRSVPed ? (
+                    <Button variant="outlined" color="success" startIcon={<CheckIcon />} disabled>
+                      Joined
+                    </Button>
+                  ) : (
+                    <Button variant="contained" color="primary" onClick={handleRSVP}>
+                      Join Event
+                    </Button>
+                  )
                 ) : (
-                  <Button variant="contained" color="primary" onClick={handleRSVP}>
-                    Join Event
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={() => navigate('/login')}
+                  >
+                    Login to Join
                   </Button>
                 )
               )}

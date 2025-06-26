@@ -77,6 +77,15 @@ npm run preview # Preview production build locally
 
 ## 🎯 Features
 
+### Anonymous User Experience
+
+- ✅ **Anonymous Browsing** - Browse events without authentication
+- ✅ **Public Event Access** - View event details and information without login
+- ✅ **Smart Landing Page** - Authentication-aware onboarding experience
+- ✅ **Context-Aware Navigation** - Dynamic navigation based on user status
+- ✅ **Location Services for All** - GPS-based event discovery for anonymous users
+- ✅ **Responsive Anonymous UI** - Mobile-optimized experience for all user types
+
 ### Core Functionality
 
 - ✅ **User Authentication** - Google SSO & email/password login with JWT
@@ -94,6 +103,10 @@ npm run preview # Preview production build locally
 - ✅ **Image Upload** - Firebase-powered event banner uploads
 - ✅ **Responsive Design** - Mobile-first Material-UI components
 - ✅ **Type Safety** - 100% TypeScript coverage for robust development
+- ✅ **Dark Mode** - Complete dark/light theme system with user preferences
+- ✅ **Role-Based Access** - Admin dashboard and user role management
+- ✅ **Anonymous User Support** - Full event browsing without authentication
+- ✅ **Dynamic Navigation** - Context-aware UI based on authentication status
 
 ### Upcoming Features
 
@@ -199,6 +212,7 @@ Add `vercel.json` for React Router fallback:
 ### Project Documentation
 
 - **[📚 Documentation Hub](./docs/README.md)** - Complete project documentation
+- **[📋 JIRA Stories](./docs/JIRA_STORIES.md)** - Anonymous user enhancement stories
 - **[API Architecture Guide](./docs/API_SEPARATION_GUIDE.md)** - API design patterns
 - **[Dark Mode Implementation](./docs/DARK_MODE_IMPLEMENTATION.md)** - Theme system guide
 - **[Documentation Guidelines](./docs/DOCUMENTATION_GUIDELINES.md)** - Contributing standards

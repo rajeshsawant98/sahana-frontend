@@ -12,10 +12,8 @@ import {
   Typography,
   Grid,
   Divider,
-  Collapse,
   Chip,
 } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Autocomplete } from "@react-google-maps/api";
 import { useForm, Controller } from "react-hook-form";
 import { Autocomplete as MuiAutocomplete } from "@mui/material";
@@ -50,10 +48,10 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
     control,
     setValue,
     reset,
+    watch,
     formState: { errors },
   } = useForm<EventFormData>({ defaultValues: initialValues });
 
-  const [descOpen, setDescOpen] = useState<boolean>(!!initialValues.description);
   const [isOnline, setIsOnline] = useState<boolean>(initialValues.isOnline || false);
   const [organizers, setOrganizers] = useState<string[]>(initialValues.organizers || []);
   const [moderators, setModerators] = useState<string[]>(initialValues.moderators || []);
@@ -107,6 +105,11 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
   };
 
   const internalSubmit = async (data: EventFormData): Promise<void> => {
+    // Validate location for in-person events
+    if (!data.isOnline && !locationInput.trim()) {
+      return; // Form validation will show error
+    }
+
     if (imageFile) {
       const imageUrl = await uploadImage(imageFile);
       data.imageUrl = imageUrl;
@@ -139,32 +142,27 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
         </Grid>
 
         <Grid item xs={12}>
-          <Box display="flex" alignItems="center" gap={1}>
-            <ExpandMoreIcon fontSize="small" />
-            <Typography
-              onClick={() => setDescOpen((prev) => !prev)}
-              sx={{ cursor: "pointer", fontWeight: 500 }}
-            >
-              {descOpen ? "Hide description" : "Add description"}
-            </Typography>
-          </Box>
-          <Collapse in={descOpen}>
-            <TextField
-              fullWidth
-              label="Event Description"
-              multiline
-              rows={4}
-              sx={{ mt: 2 }}
-              {...register("description", { required: "Description is required" })}
-              error={!!errors.description}
-              helperText={errors.description?.message}
-            />
-          </Collapse>
+          <TextField
+            fullWidth
+            label="Event Description"
+            multiline
+            minRows={3}
+            maxRows={10}
+            placeholder="Describe your event..."
+            {...register("description")}
+            error={!!errors.description}
+            helperText={errors.description?.message}
+            sx={{
+              '& .MuiInputBase-root': {
+                alignItems: 'flex-start',
+              },
+            }}
+          />
         </Grid>
 
         <Grid item xs={12}>
           <Typography variant="subtitle1" fontWeight={500} mb={1}>Event Banner</Typography>
-          <Box display="flex" gap={3} flexDirection={{ xs: "column", sm: "row" }}>
+          <Box display="flex" gap={3} flexDirection={{ xs: "column", sm: "row" }} alignItems="flex-start">
             <Box
               sx={{
                 width: 240,
@@ -173,6 +171,10 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
                 overflow: "hidden",
                 boxShadow: 3,
                 bgcolor: "#f5f5f5",
+                border: "2px dashed #ddd",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               {imageFile ? (
@@ -188,11 +190,9 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               ) : (
-                <Box
-                  sx={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "text.secondary" }}
-                >
+                <Typography variant="body2" color="text.secondary">
                   No image yet
-                </Box>
+                </Typography>
               )}
             </Box>
             <Box>
@@ -207,21 +207,32 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
                 <Box
                   component="span"
                   sx={{
-                    px: 2,
-                    py: 1,
-                    border: "1px solid",
+                    px: 3,
+                    py: 1.5,
+                    border: "1px solid #FFBF49",
                     borderRadius: 1,
                     cursor: "pointer",
+                    display: "inline-block",
+                    color: "#FFBF49",
+                    fontWeight: 500,
+                    "&:hover": {
+                      backgroundColor: "#FFBF49",
+                      color: "white",
+                    },
+                    transition: "all 0.2s ease",
                   }}
                 >
                   {imageFile || initialValues.imageUrl ? "Replace Image" : "Upload Image"}
                 </Box>
               </label>
               {imageFile && (
-                <Typography variant="body2" sx={{ mt: 1 }}>
+                <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
                   Selected: {imageFile.name}
                 </Typography>
               )}
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                Recommended: 1200x600px, max 5MB
+              </Typography>
             </Box>
           </Box>
         </Grid>
@@ -250,7 +261,7 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
         </Grid>
 
         <Grid item xs={12} sm={4}>
-          <FormControl fullWidth>
+          <FormControl fullWidth error={!!errors.categories}>
             <InputLabel>Categories</InputLabel>
             <Controller
               name="categories"
@@ -265,6 +276,11 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
                 </Select>
               )}
             />
+            {errors.categories && (
+              <Typography variant="caption" color="error" sx={{ mt: 0.5, mx: 1.75 }}>
+                {errors.categories.message}
+              </Typography>
+            )}
           </FormControl>
         </Grid>
 
@@ -273,22 +289,40 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
             <TextField
               fullWidth
               label="Location"
+              placeholder="Search for a location..."
               value={locationInput}
               onChange={(e) => setLocationInput(e.target.value)}
+              error={!isOnline && !locationInput.trim()}
+              helperText={!isOnline && !locationInput.trim() ? "Location is required for in-person events" : ""}
             />
           </Autocomplete>
         </Grid>
 
         <Grid item xs={12}>
           <FormControlLabel
-            control={<Checkbox checked={isOnline} onChange={(e) => { setIsOnline(e.target.checked); setValue("isOnline", e.target.checked); }} />}
+            control={
+              <Checkbox 
+                checked={isOnline} 
+                onChange={(e) => { 
+                  setIsOnline(e.target.checked); 
+                  setValue("isOnline", e.target.checked);
+                  // Clear join link if unchecked
+                  if (!e.target.checked) {
+                    setValue("joinLink", "");
+                  }
+                }} 
+              />
+            }
             label="Online Event"
           />
           {isOnline && (
             <TextField
               fullWidth
               label="Join Link"
-              {...register("joinLink", { required: "Join Link is required" })}
+              placeholder="https://zoom.us/j/..."
+              {...register("joinLink", { 
+                required: isOnline ? "Join Link is required for online events" : false 
+              })}
               error={!!errors.joinLink}
               helperText={errors.joinLink?.message}
               sx={{ mt: 2 }}
@@ -302,11 +336,31 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
             freeSolo
             options={[]}
             value={organizers}
-            onChange={(_, newValue) => setOrganizers(newValue as string[])}
+            onChange={(_, newValue) => {
+              // Filter out empty strings and trim whitespace
+              const filteredValues = newValue
+                .map(val => val.trim())
+                .filter(val => val.length > 0);
+              setOrganizers(filteredValues);
+            }}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => <Chip variant="outlined" label={option} {...getTagProps({ index })} />)
+              value.map((option, index) => (
+                <Chip 
+                  variant="outlined" 
+                  label={option} 
+                  {...getTagProps({ index })}
+                  key={index}
+                />
+              ))
             }
-            renderInput={(params) => <TextField {...params} label="Organizers" />}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Organizers" 
+                placeholder="Type name and press Enter"
+                helperText="Enter names of people organizing this event"
+              />
+            )}
           />
         </Grid>
 
@@ -316,11 +370,31 @@ const EventForm: React.FC<EventFormProps> = ({ initialValues = {}, onSubmit }) =
             freeSolo
             options={[]}
             value={moderators}
-            onChange={(_, newValue) => setModerators(newValue as string[])}
+            onChange={(_, newValue) => {
+              // Filter out empty strings and trim whitespace
+              const filteredValues = newValue
+                .map(val => val.trim())
+                .filter(val => val.length > 0);
+              setModerators(filteredValues);
+            }}
             renderTags={(value, getTagProps) =>
-              value.map((option, index) => <Chip variant="outlined" label={option} {...getTagProps({ index })} />)
+              value.map((option, index) => (
+                <Chip 
+                  variant="outlined" 
+                  label={option} 
+                  {...getTagProps({ index })}
+                  key={index}
+                />
+              ))
             }
-            renderInput={(params) => <TextField {...params} label="Moderators" />}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Moderators" 
+                placeholder="Type name and press Enter"
+                helperText="Enter names of people moderating this event"
+              />
+            )}
           />
         </Grid>
       </Grid>

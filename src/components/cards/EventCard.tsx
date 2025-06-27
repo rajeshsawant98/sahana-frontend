@@ -12,9 +12,10 @@ import {
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "../../redux/store";
 import { rsvpToEvent } from "../../apis/eventsAPI";
+import { addRSVPedEvent } from "../../redux/slices/userEventsSlice";
 import { Event } from "../../types/Event";
 import musicImage from "../../assets/categories/Music.svg";
 
@@ -24,6 +25,7 @@ interface EventCardProps {
 
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
   
   const handleCardClick = (): void => {
     navigate(`/events/${event.eventId}`);
@@ -33,7 +35,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const rsvpedEvents = useSelector((state: RootState) => state.userEvents.rsvpedEvents);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const isRSVPed = rsvpedEvents.some(
-    (r) => r.eventId === event.eventId || r.eventId === event.eventId
+    (r) => r.eventId === event.eventId
   );
 
   const RSVP = async (): Promise<void> => {
@@ -42,6 +44,8 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     try {
       await rsvpToEvent(event.eventId, { status: "joined" });
       console.log("RSVP successful");
+      // Add this event to the RSVP'd events list
+      dispatch(addRSVPedEvent(event));
     } catch (err) {
       console.error("RSVP failed:", err);
     }

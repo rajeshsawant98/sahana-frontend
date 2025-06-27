@@ -89,7 +89,11 @@ const createAppTheme = (darkMode: boolean): Theme => {
                 color: darkMode ? "#b0b0b0" : "#757575", // Adapt placeholder color
                 lineHeight: "24px",
               },
-              height: 50, // Set the height of the text field
+              minHeight: 50, // Set minimum height for single-line fields
+              "&.MuiInputBase-multiline": {
+                height: "auto", // Allow multiline fields to auto-resize
+                minHeight: "auto", // Remove min-height for multiline
+              },
             },
             "& .MuiInputLabel-root": {
               color: "#FFBF49", // Golden yellow color for the label

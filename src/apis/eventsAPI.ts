@@ -61,6 +61,18 @@ export const fetchRSVPedEvents = async (): Promise<Event[]> => {
   return res.data.events;
 };
 
+// 🟠 Organized events (user is organizer)
+export const fetchOrganizedEvents = async (): Promise<Event[]> => {
+  const res = await axiosInstance.get("/events/me/organized");
+  return res.data.events;
+};
+
+// 🟣 Moderated events (user is moderator)
+export const fetchModeratedEvents = async (): Promise<Event[]> => {
+  const res = await axiosInstance.get("/events/me/moderated");
+  return res.data.events;
+};
+
 export const cancelRSVP = async (eventId: string): Promise<string> => {
   await axiosInstance.delete(`/events/${eventId}/rsvp`);
   return eventId;

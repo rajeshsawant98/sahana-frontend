@@ -8,13 +8,15 @@ interface AdminRouteProps {
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ element }) => {
-  const { isAuthenticated, accessToken, initialized, role } = useSelector(
+  const { isAuthenticated, accessToken, initialized, role, user } = useSelector(
     (state: RootState) => state.auth
   );
 
   if (!initialized) return <div>Loading...</div>;
 
-  if (!isAuthenticated || role !== "admin") return <Navigate to="/" />;
+  // Check both the role field and user.role for consistency
+  const userRole = user?.role || role;
+  if (!isAuthenticated || userRole !== "admin") return <Navigate to="/" />;
 
   return <>{element}</>;
 };

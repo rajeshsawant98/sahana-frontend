@@ -43,13 +43,14 @@ const NavBar: React.FC = () => {
     setDrawerOpen(open);
   };
 
-  // Dynamic navigation items based on authentication status
+  // Dynamic navigation items based on authentication status and role
   const navItems: NavItem[] = isAuthenticated 
     ? [
         { text: 'Events', route: '/events' },
         { text: 'My Events', route: '/events/my' },
         { text: 'Friends', route: '/friends' },
         { text: 'Interests', route: '/interests' },
+        ...(user?.role === 'admin' ? [{ text: 'Admin Panel', route: '/admin' }] : []),
       ]
     : [
         { text: 'Login', route: '/login' },

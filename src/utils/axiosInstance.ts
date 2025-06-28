@@ -18,7 +18,6 @@ axiosInstance.interceptors.request.use(
         if (accessToken && config.headers) {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
-        console.log("🔵 Request:", config.method?.toUpperCase(), config.url, config.headers?.Authorization);
         return config;
     },
     (error) => Promise.reject(error)
@@ -27,11 +26,9 @@ axiosInstance.interceptors.request.use(
 // Handle expired tokens
 axiosInstance.interceptors.response.use(
     (response: AxiosResponse) => {
-        console.log("🟢 Response:", response.status, response.data);
         return response;
     },
     async (error) => {
-        console.error("🔴 Error:", error.response?.status, error.response?.data);
         
         const originalRequest = error.config;
 

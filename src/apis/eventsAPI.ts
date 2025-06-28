@@ -1,5 +1,12 @@
 import axiosInstance from "../utils/axiosInstance";
 import { Event } from "../types/Event";
+import { 
+  PaginatedResponse, 
+  LegacyEventsResponse, 
+  EventsApiParams,
+  LocationEventsApiParams,
+  PaginationParams 
+} from "../types/Pagination";
 
 // Event API interfaces
 export interface CreateEventRequest {
@@ -34,43 +41,83 @@ export interface UpdateModeratorsRequest {
   moderatorEmails: string[];
 }
 
-// 🟡 External events (Ticketmaster)
-export const fetchExternalEventsByLocation = async (city: string, state: string): Promise<Event[]> => {
-  const res = await axiosInstance.get(
-    `/events/location/external?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`
-  );
-  return res.data.events;
+// External events (Ticketmaster) - Updated with pagination
+export const fetchExternalEventsByLocation = async (
+  params: LocationEventsApiParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const { city, state, page, page_size } = params;
+  const queryParams = new URLSearchParams({
+    city,
+    state,
+    ...(page && { page: page.toString() }),
+    ...(page_size && { page_size: page_size.toString() }),
+  });
+  
+  const res = await axiosInstance.get(`/events/location/external?${queryParams}`);
+  return res.data;
 };
 
-export const fetchNearbyEventsByLocation = async (city: string, state: string): Promise<Event[]> => {
-  const res = await axiosInstance.get(
-    `/events/location/nearby?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}`
-  );
-  return res.data.events;
+export const fetchNearbyEventsByLocation = async (
+  params: LocationEventsApiParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const { city, state, page, page_size } = params;
+  const queryParams = new URLSearchParams({
+    city,
+    state,
+    ...(page && { page: page.toString() }),
+    ...(page_size && { page_size: page_size.toString() }),
+  });
+  
+  const res = await axiosInstance.get(`/events/location/nearby?${queryParams}`);
+  return res.data;
 };
 
-// 🟢 Created events (by user)
-export const fetchCreatedEvents = async (): Promise<Event[]> => {
-  const res = await axiosInstance.get("/events/me/created");
-  return res.data.events;
+// 🟢 Created events (by user) - Updated with pagination
+export const fetchCreatedEvents = async (
+  params?: PaginationParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  
+  const res = await axiosInstance.get(`/events/me/created${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
 };
 
-// 🔵 RSVP'd events (user joined)
-export const fetchRSVPedEvents = async (): Promise<Event[]> => {
-  const res = await axiosInstance.get("/events/me/rsvped");
-  return res.data.events;
+// 🔵 RSVP'd events (user joined) - Updated with pagination
+export const fetchRSVPedEvents = async (
+  params?: PaginationParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  
+  const res = await axiosInstance.get(`/events/me/rsvped${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
 };
 
-// 🟠 Organized events (user is organizer)
-export const fetchOrganizedEvents = async (): Promise<Event[]> => {
-  const res = await axiosInstance.get("/events/me/organized");
-  return res.data.events;
+// 🟠 Organized events (user is organizer) - Updated with pagination
+export const fetchOrganizedEvents = async (
+  params?: PaginationParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  
+  const res = await axiosInstance.get(`/events/me/organized${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
 };
 
-// 🟣 Moderated events (user is moderator)
-export const fetchModeratedEvents = async (): Promise<Event[]> => {
-  const res = await axiosInstance.get("/events/me/moderated");
-  return res.data.events;
+// 🟣 Moderated events (user is moderator) - Updated with pagination
+export const fetchModeratedEvents = async (
+  params?: PaginationParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  
+  const res = await axiosInstance.get(`/events/me/moderated${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
 };
 
 export const cancelRSVP = async (eventId: string): Promise<string> => {
@@ -78,16 +125,50 @@ export const cancelRSVP = async (eventId: string): Promise<string> => {
   return eventId;
 };
 
-// 🔺 All public events
-export const fetchAllPublicEvents = async (): Promise<Event[]> => {
-  const res = await axiosInstance.get("/events");
-  return res.data.events;
+// 🔺 All public events - Updated with pagination
+export const fetchAllPublicEvents = async (
+  params?: EventsApiParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const queryParams = new URLSearchParams();
+  
+  // Add pagination parameters
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  
+  // Add filter parameters
+  if (params?.city) queryParams.set('city', params.city);
+  if (params?.state) queryParams.set('state', params.state);
+  if (params?.category) queryParams.set('category', params.category);
+  if (params?.is_online !== undefined) queryParams.set('is_online', params.is_online.toString());
+  if (params?.creator_email) queryParams.set('creator_email', params.creator_email);
+  if (params?.start_date) queryParams.set('start_date', params.start_date);
+  if (params?.end_date) queryParams.set('end_date', params.end_date);
+  
+  const res = await axiosInstance.get(`/events${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
 };
 
-// 🔸 Admin: Get all events (unfiltered)
-export const fetchAllAdminEvents = async (): Promise<Event[]> => {
-  const res = await axiosInstance.get("/events");
-  return res.data.events;
+// 🔸 Admin: Get all events (unfiltered) - Updated with pagination
+export const fetchAllAdminEvents = async (
+  params?: EventsApiParams
+): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+  const queryParams = new URLSearchParams();
+  
+  // Add pagination parameters
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  
+  // Add filter parameters
+  if (params?.city) queryParams.set('city', params.city);
+  if (params?.state) queryParams.set('state', params.state);
+  if (params?.category) queryParams.set('category', params.category);
+  if (params?.is_online !== undefined) queryParams.set('is_online', params.is_online.toString());
+  if (params?.creator_email) queryParams.set('creator_email', params.creator_email);
+  if (params?.start_date) queryParams.set('start_date', params.start_date);
+  if (params?.end_date) queryParams.set('end_date', params.end_date);
+  
+  const res = await axiosInstance.get(`/events${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
 };
 
 // ✨ NEW: Event management functions

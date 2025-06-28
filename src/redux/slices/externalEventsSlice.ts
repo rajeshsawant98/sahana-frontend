@@ -3,20 +3,16 @@ import { fetchExternalEventsByLocation as fetchEventsAPI } from "../../apis/even
 import { Event } from "../../types/Event";
 import type { RootState } from "../store";
 
-const CACHE_DURATION = 5 * 60 * 1000;
-
 interface ExternalEventsState {
   events: Event[];
   loading: boolean;
   error: string | null;
-  lastFetched: number | null;
 }
 
 const initialState: ExternalEventsState = {
   events: [],
   loading: false,
   error: null,
-  lastFetched: null,
 };
 
 interface LocationParams {
@@ -28,13 +24,17 @@ export const fetchExternalEventsByLocation = createAsyncThunk<
   Event[],
   LocationParams,
   { state: RootState; rejectValue: string }
->("externalEvents/fetchByLocation", async ({ city, state }, { getState, rejectWithValue }) => {
-  const { lastFetched } = getState().externalEvents;
-  const now = Date.now();
-  if (lastFetched && now - lastFetched < CACHE_DURATION) return [];
-
+>("externalEvents/fetchByLocation", async ({ city, state }, { rejectWithValue }) => {
   try {
-    return await fetchEventsAPI(city, state);
+    const response = await fetchEventsAPI({ city, state });
+    // Handle both paginated and legacy responses
+    if ('items' in response) {
+      return response.items;
+    } else if ('events' in response) {
+      return response.events;
+    } else {
+      return response as Event[];
+    }
   } catch {
     return rejectWithValue("Failed to fetch external events");
   }
@@ -55,10 +55,7 @@ const externalEventsSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchExternalEventsByLocation.fulfilled, (state, action) => {
-        if (action.payload && action.payload.length > 0) {
-          state.events = action.payload;
-          state.lastFetched = Date.now();
-        }
+        state.events = action.payload;
         state.loading = false;
       })
       .addCase(fetchExternalEventsByLocation.rejected, (state, action) => {

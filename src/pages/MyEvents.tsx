@@ -10,15 +10,28 @@ import {
   Button,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { RootState, AppDispatch } from "../redux/store";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import NavBar from "../components/NavBar";
 import EventCard from "../components/cards/EventCard";
-import { fetchCreatedEvents, fetchRSVPedEvents, fetchOrganizedEvents, fetchModeratedEvents } from "../redux/slices/userEventsSlice";
+import PaginationControls from "../components/PaginationControls";
+import { 
+  fetchCreatedEvents, 
+  fetchRSVPedEvents, 
+  fetchOrganizedEvents, 
+  fetchModeratedEvents,
+  setCreatedPage,
+  setCreatedPageSize,
+  setRSVPedPage,
+  setRSVPedPageSize,
+  setOrganizedPage,
+  setOrganizedPageSize,
+  setModeratedPage,
+  setModeratedPageSize
+} from "../redux/slices/userEventsSlice";
 
 const MyEvents: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<number>(0);
 
@@ -26,61 +39,138 @@ const MyEvents: React.FC = () => {
     createdEvents,
     loadingCreated,
     errorCreated,
-    lastFetchedCreated,
     rsvpedEvents,
     loadingRSVPed,
     errorRSVPed,
-    lastFetchedRSVPed,
     hasFetchedRSVPed,
     organizedEvents,
     loadingOrganized,
     errorOrganized,
-    lastFetchedOrganized,
     hasFetchedOrganized,
     moderatedEvents,
     loadingModerated,
     errorModerated,
-    lastFetchedModerated,
     hasFetchedModerated,
-  } = useSelector((state: RootState) => state.userEvents);
+    createdPagination,
+    rsvpedPagination,
+    organizedPagination,
+    moderatedPagination,
+  } = useAppSelector((state) => state.userEvents);
 
   useEffect(() => {
-    dispatch(fetchCreatedEvents());
-  }, [dispatch]);
+    dispatch(fetchCreatedEvents({ page: createdPagination.currentPage, page_size: createdPagination.pageSize }));
+  }, [dispatch, createdPagination.currentPage, createdPagination.pageSize]);
   
   useEffect(() => {
     if (activeTab === 1 && !hasFetchedRSVPed) {
-      dispatch(fetchRSVPedEvents());
+      dispatch(fetchRSVPedEvents({ page: rsvpedPagination.currentPage, page_size: rsvpedPagination.pageSize }));
     } else if (activeTab === 2 && !hasFetchedOrganized) {
-      dispatch(fetchOrganizedEvents());
+      dispatch(fetchOrganizedEvents({ page: organizedPagination.currentPage, page_size: organizedPagination.pageSize }));
     } else if (activeTab === 3 && !hasFetchedModerated) {
-      dispatch(fetchModeratedEvents());
+      dispatch(fetchModeratedEvents({ page: moderatedPagination.currentPage, page_size: moderatedPagination.pageSize }));
     }
-  }, [activeTab, hasFetchedRSVPed, hasFetchedOrganized, hasFetchedModerated, dispatch]);
+  }, [
+    activeTab, dispatch, hasFetchedRSVPed, hasFetchedOrganized, hasFetchedModerated,
+    rsvpedPagination.currentPage, rsvpedPagination.pageSize,
+    organizedPagination.currentPage, organizedPagination.pageSize,
+    moderatedPagination.currentPage, moderatedPagination.pageSize
+  ]);
 
-  const formatLastUpdated = (timestamp: number | null): string | null => {
-    if (!timestamp) return null;
-    const minutesAgo = Math.floor((Date.now() - timestamp) / (1000 * 60));
-    if (minutesAgo < 1) return "Just now";
-    if (minutesAgo === 1) return "1 minute ago";
-    return `${minutesAgo} minutes ago`;
-  };
-
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number): void => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
-  const handleCreateEvent = (): void => {
-    navigate("/events/new");
+  // Created events pagination handlers
+  const handleCreatedPageChange = (page: number) => {
+    dispatch(setCreatedPage(page));
+    
+    // Immediately trigger API call with new page
+    dispatch(fetchCreatedEvents({ 
+      page: page, 
+      page_size: createdPagination.pageSize 
+    }));
   };
 
-  const getLastUpdatedTimestamp = () => {
+  const handleCreatedPageSizeChange = (pageSize: number) => {
+    dispatch(setCreatedPageSize(pageSize));
+    
+    // Immediately trigger API call with new page size (page resets to 1)
+    dispatch(fetchCreatedEvents({ 
+      page: 1, 
+      page_size: pageSize 
+    }));
+  };
+
+  // RSVP'd events pagination handlers
+  const handleRSVPedPageChange = (page: number) => {
+    dispatch(setRSVPedPage(page));
+    
+    // Immediately trigger API call with new page
+    dispatch(fetchRSVPedEvents({ 
+      page: page, 
+      page_size: rsvpedPagination.pageSize 
+    }));
+  };
+
+  const handleRSVPedPageSizeChange = (pageSize: number) => {
+    dispatch(setRSVPedPageSize(pageSize));
+    
+    // Immediately trigger API call with new page size (page resets to 1)
+    dispatch(fetchRSVPedEvents({ 
+      page: 1, 
+      page_size: pageSize 
+    }));
+  };
+
+  // Organized events pagination handlers
+  const handleOrganizedPageChange = (page: number) => {
+    dispatch(setOrganizedPage(page));
+    
+    // Immediately trigger API call with new page
+    dispatch(fetchOrganizedEvents({ 
+      page: page, 
+      page_size: organizedPagination.pageSize 
+    }));
+  };
+
+  const handleOrganizedPageSizeChange = (pageSize: number) => {
+    dispatch(setOrganizedPageSize(pageSize));
+    
+    // Immediately trigger API call with new page size (page resets to 1)
+    dispatch(fetchOrganizedEvents({ 
+      page: 1, 
+      page_size: pageSize 
+    }));
+  };
+
+  // Moderated events pagination handlers
+  const handleModeratedPageChange = (page: number) => {
+    dispatch(setModeratedPage(page));
+    
+    // Immediately trigger API call with new page
+    dispatch(fetchModeratedEvents({ 
+      page: page, 
+      page_size: moderatedPagination.pageSize 
+    }));
+  };
+
+  const handleModeratedPageSizeChange = (pageSize: number) => {
+    dispatch(setModeratedPageSize(pageSize));
+    
+    // Immediately trigger API call with new page size (page resets to 1)
+    dispatch(fetchModeratedEvents({ 
+      page: 1, 
+      page_size: pageSize 
+    }));
+  };
+
+  const getCurrentLoading = () => {
     switch (activeTab) {
-      case 0: return lastFetchedCreated;
-      case 1: return lastFetchedRSVPed;
-      case 2: return lastFetchedOrganized;
-      case 3: return lastFetchedModerated;
-      default: return null;
+      case 0: return loadingCreated;
+      case 1: return loadingRSVPed;
+      case 2: return loadingOrganized;
+      case 3: return loadingModerated;
+      default: return false;
     }
   };
 
@@ -94,76 +184,65 @@ const MyEvents: React.FC = () => {
     }
   };
 
-  const isCurrentTabLoading = () => {
-    switch (activeTab) {
-      case 0: return loadingCreated;
-      case 1: return loadingRSVPed;
-      case 2: return loadingOrganized;
-      case 3: return loadingModerated;
-      default: return false;
-    }
-  };
-
   return (
     <>
       <NavBar />
-      <Box sx={{ p: 3 }}>
-        {/* Header with title and create button */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
-          <Typography variant="h4">
+      <Box sx={{ padding: 4 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+          <Typography variant="h4" gutterBottom>
             My Events
           </Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={handleCreateEvent}
-            sx={{ 
-              textTransform: "none",
-              fontWeight: 500,
-            }}
+            onClick={() => navigate("/events/new")}
+            color="primary"
           >
-            Create New Event
+            Create Event
           </Button>
         </Box>
-
-        {getLastUpdatedTimestamp() && (
-          <Typography variant="caption" color="text.secondary">
-            Last updated: {formatLastUpdated(getLastUpdatedTimestamp())}
-          </Typography>
-        )}
 
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
-          sx={{ mb: 2 }}
-          variant="scrollable"
-          scrollButtons="auto"
+          sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}
         >
-          <Tab label="Created Events" />
-          <Tab label="RSVP'd Events" />
-          <Tab label="Organized Events" />
-          <Tab label="Moderated Events" />
+          <Tab label="Created" />
+          <Tab label="RSVP'd" />
+          <Tab label="Organized" />
+          <Tab label="Moderated" />
         </Tabs>
 
-        {isCurrentTabLoading() ? (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-            <CircularProgress />
-          </Box>
+        {getCurrentLoading() ? (
+          <CircularProgress />
+        ) : getCurrentError() ? (
+          <Alert severity="error">{getCurrentError()}</Alert>
         ) : (
           <>
             {activeTab === 0 && (
               <>
                 {createdEvents.length > 0 ? (
-                  <Grid2 container spacing={3}>
-                    {createdEvents.map((event) => (
-                      <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
-                        <EventCard event={event} />
-                      </Grid2>
-                    ))}
-                  </Grid2>
+                  <>
+                    <Grid2 container spacing={3}>
+                      {createdEvents.map((event) => (
+                        <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
+                          <EventCard event={event} />
+                        </Grid2>
+                      ))}
+                    </Grid2>
+                    
+                    <PaginationControls
+                      currentPage={createdPagination.currentPage}
+                      totalPages={createdPagination.totalPages}
+                      pageSize={createdPagination.pageSize}
+                      totalCount={createdPagination.totalCount}
+                      onPageChange={handleCreatedPageChange}
+                      onPageSizeChange={handleCreatedPageSizeChange}
+                    />
+                  </>
                 ) : (
-                  <Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
-                    You haven't created any events yet.
+                  <Typography variant="body1" color="text.secondary">
+                    No events created yet.
                   </Typography>
                 )}
               </>
@@ -172,16 +251,27 @@ const MyEvents: React.FC = () => {
             {activeTab === 1 && (
               <>
                 {rsvpedEvents.length > 0 ? (
-                  <Grid2 container spacing={3}>
-                    {rsvpedEvents.map((event) => (
-                      <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
-                        <EventCard event={event} />
-                      </Grid2>
-                    ))}
-                  </Grid2>
+                  <>
+                    <Grid2 container spacing={3}>
+                      {rsvpedEvents.map((event) => (
+                        <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
+                          <EventCard event={event} />
+                        </Grid2>
+                      ))}
+                    </Grid2>
+                    
+                    <PaginationControls
+                      currentPage={rsvpedPagination.currentPage}
+                      totalPages={rsvpedPagination.totalPages}
+                      pageSize={rsvpedPagination.pageSize}
+                      totalCount={rsvpedPagination.totalCount}
+                      onPageChange={handleRSVPedPageChange}
+                      onPageSizeChange={handleRSVPedPageSizeChange}
+                    />
+                  </>
                 ) : (
-                  <Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
-                    You haven't RSVP'd to any events yet.
+                  <Typography variant="body1" color="text.secondary">
+                    No RSVP'd events found.
                   </Typography>
                 )}
               </>
@@ -190,16 +280,27 @@ const MyEvents: React.FC = () => {
             {activeTab === 2 && (
               <>
                 {organizedEvents.length > 0 ? (
-                  <Grid2 container spacing={3}>
-                    {organizedEvents.map((event) => (
-                      <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
-                        <EventCard event={event} />
-                      </Grid2>
-                    ))}
-                  </Grid2>
+                  <>
+                    <Grid2 container spacing={3}>
+                      {organizedEvents.map((event) => (
+                        <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
+                          <EventCard event={event} />
+                        </Grid2>
+                      ))}
+                    </Grid2>
+                    
+                    <PaginationControls
+                      currentPage={organizedPagination.currentPage}
+                      totalPages={organizedPagination.totalPages}
+                      pageSize={organizedPagination.pageSize}
+                      totalCount={organizedPagination.totalCount}
+                      onPageChange={handleOrganizedPageChange}
+                      onPageSizeChange={handleOrganizedPageSizeChange}
+                    />
+                  </>
                 ) : (
-                  <Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
-                    You haven't been added as an organizer to any events yet.
+                  <Typography variant="body1" color="text.secondary">
+                    No organized events found.
                   </Typography>
                 )}
               </>
@@ -208,16 +309,27 @@ const MyEvents: React.FC = () => {
             {activeTab === 3 && (
               <>
                 {moderatedEvents.length > 0 ? (
-                  <Grid2 container spacing={3}>
-                    {moderatedEvents.map((event) => (
-                      <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
-                        <EventCard event={event} />
-                      </Grid2>
-                    ))}
-                  </Grid2>
+                  <>
+                    <Grid2 container spacing={3}>
+                      {moderatedEvents.map((event) => (
+                        <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
+                          <EventCard event={event} />
+                        </Grid2>
+                      ))}
+                    </Grid2>
+                    
+                    <PaginationControls
+                      currentPage={moderatedPagination.currentPage}
+                      totalPages={moderatedPagination.totalPages}
+                      pageSize={moderatedPagination.pageSize}
+                      totalCount={moderatedPagination.totalCount}
+                      onPageChange={handleModeratedPageChange}
+                      onPageSizeChange={handleModeratedPageSizeChange}
+                    />
+                  </>
                 ) : (
-                  <Typography variant="body1" color="text.secondary" sx={{ textAlign: "center", mt: 4 }}>
-                    You haven't been added as a moderator to any events yet.
+                  <Typography variant="body1" color="text.secondary">
+                    No moderated events found.
                   </Typography>
                 )}
               </>

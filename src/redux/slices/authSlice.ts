@@ -31,7 +31,6 @@ const authSlice = createSlice({
         role?: "admin" | "user";
       }>
     ) => {
-      console.log("Login action payload: %o", action.payload);
       state.isAuthenticated = true;
       state.user = action.payload.user;
       state.role = action.payload.role || "user";

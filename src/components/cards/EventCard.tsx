@@ -29,7 +29,6 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   
   const handleCardClick = (): void => {
     navigate(`/events/${event.eventId}`);
-    console.log("Card clicked:", event.eventName);
   };
   
   const rsvpedEvents = useSelector((state: RootState) => state.userEvents.rsvpedEvents);
@@ -43,7 +42,6 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     
     try {
       await rsvpToEvent(event.eventId, { status: "joined" });
-      console.log("RSVP successful");
       // Add this event to the RSVP'd events list
       dispatch(addRSVPedEvent(event));
     } catch (err) {

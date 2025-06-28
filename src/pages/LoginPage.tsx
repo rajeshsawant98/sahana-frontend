@@ -54,11 +54,10 @@ const LoginPage: React.FC = () => {
         );
         
         // Fetch user events data in the background for better UX
-        dispatch(fetchCreatedEvents());
-        dispatch(fetchRSVPedEvents());
+        dispatch(fetchCreatedEvents({ page: 1, page_size: 12 }));
+        dispatch(fetchRSVPedEvents({ page: 1, page_size: 12 }));
         
       } catch (profileError) {
-        console.warn("Failed to fetch user profile, using minimal data:", profileError);
         // Fallback to minimal user data if profile fetch fails
         dispatch(
           login({
@@ -105,11 +104,10 @@ const LoginPage: React.FC = () => {
         );
         
         // Fetch user events data in the background for better UX
-        dispatch(fetchCreatedEvents());
-        dispatch(fetchRSVPedEvents());
+        dispatch(fetchCreatedEvents({ page: 1, page_size: 12 }));
+        dispatch(fetchRSVPedEvents({ page: 1, page_size: 12 }));
         
       } catch (profileError) {
-        console.warn("Failed to fetch user profile, using minimal data:", profileError);
         // Fallback to minimal user data if profile fetch fails
         dispatch(
           login({

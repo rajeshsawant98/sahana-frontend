@@ -1,25 +1,78 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Box, CircularProgress, Typography, Button, Grid, Container } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
-import { fetchEvents } from '../redux/slices/eventsSlice';
-import { RootState, AppDispatch } from '../redux/store';
+import { fetchEvents, setPage, setPageSize, setFilters, clearFilters } from '../redux/slices/eventsSlice';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import NavBar from '../components/NavBar';
 import EventCard from '../components/cards/EventCard';
+import PaginationControls from '../components/PaginationControls';
+import EventFiltersComponent from '../components/EventFilters';
 import { Event } from '../types/Event';
+import { EventFilters } from '../types/Pagination';
 
 const Events: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const { events, loading, error } = useSelector((state: RootState) => state.events);
+  const { 
+    events, 
+    loading, 
+    error, 
+    currentPage, 
+    pageSize, 
+    totalCount, 
+    totalPages, 
+    hasNext, 
+    hasPrevious,
+    filters
+  } = useAppSelector((state) => state.events);
+  
   const typedEvents = events as Event[];
 
+  // Fetch events with current pagination and filter settings
+  const fetchEventsWithParams = useCallback(() => {
+    dispatch(fetchEvents({
+      page: currentPage,
+      page_size: pageSize,
+      ...filters,
+    }));
+  }, [dispatch, currentPage, pageSize, filters]);
+
   useEffect(() => {
-    dispatch(fetchEvents());
-  }, [dispatch]);
+    fetchEventsWithParams();
+  }, [fetchEventsWithParams]);
+
+  const handlePageChange = (page: number) => {
+    dispatch(setPage(page));
+    
+    // Immediately trigger API call with new page
+    dispatch(fetchEvents({
+      page: page,
+      page_size: pageSize,
+      ...filters,
+    }));
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    dispatch(setPageSize(newPageSize));
+    
+    // Immediately trigger API call with new page size (page resets to 1)
+    dispatch(fetchEvents({
+      page: 1,
+      page_size: newPageSize,
+      ...filters,
+    }));
+  };
+
+  const handleFiltersChange = (newFilters: EventFilters) => {
+    dispatch(setFilters(newFilters));
+  };
+
+  const handleClearFilters = () => {
+    dispatch(clearFilters());
+  };
 
   return (
     <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
@@ -29,6 +82,13 @@ const Events: React.FC = () => {
           Upcoming Events
         </Typography>
 
+        {/* Filters */}
+        <EventFiltersComponent
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onClearFilters={handleClearFilters}
+        />
+
         {loading ? (
           <CircularProgress color="primary" />
         ) : error ? (
@@ -36,19 +96,31 @@ const Events: React.FC = () => {
         ) : typedEvents.length === 0 ? (
           <Typography>No events found.</Typography>
         ) : (
-          <Grid
-            container
-            spacing={3}
-            display="flex"
-            flexWrap="wrap"
-            alignItems="stretch"
-          >
-            {typedEvents.map((event) => (
-              <Grid item xs={12} sm={6} md={4} key={event.eventId}>
-                <EventCard event={event} />
-              </Grid>
-            ))}
-          </Grid>
+          <>
+            <Grid
+              container
+              spacing={3}
+              display="flex"
+              flexWrap="wrap"
+              alignItems="stretch"
+            >
+              {typedEvents.map((event) => (
+                <Grid item xs={12} sm={6} md={4} key={event.eventId}>
+                  <EventCard event={event} />
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Pagination Controls */}
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          </>
         )}
 
         {/* Buttons */}

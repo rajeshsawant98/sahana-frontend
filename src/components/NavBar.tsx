@@ -11,6 +11,7 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Avatar,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom';
@@ -30,6 +31,7 @@ const NavBar: React.FC = () => {
   const navigate = useNavigate();
   const darkMode = useSelector((state: RootState) => state.theme.darkMode);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const toggleDrawer = (open: boolean) => (event: React.KeyboardEvent | React.MouseEvent) => {
     if (
@@ -48,7 +50,6 @@ const NavBar: React.FC = () => {
         { text: 'My Events', route: '/events/my' },
         { text: 'Friends', route: '/friends' },
         { text: 'Interests', route: '/interests' },
-        { text: 'Profile', route: '/profile' },
       ]
     : [
         { text: 'Login', route: '/login' },
@@ -66,6 +67,48 @@ const NavBar: React.FC = () => {
       onKeyDown={toggleDrawer(false)}
     >
       <List>
+        {/* Add Profile option for mobile if authenticated */}
+        {isAuthenticated && (
+          <ListItem key="Profile" disablePadding>
+            <ListItemButton 
+              onClick={() => navigate('/profile')}
+              sx={{
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  border: 'none !important',
+                  outline: 'none !important',
+                  boxShadow: 'none !important',
+                  '& .MuiListItemText-primary': {
+                    color: '#FFBF49',
+                  },
+                },
+                '&:focus': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+                '&:active': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+              }}
+            >
+              <ListItemText
+                primary="Profile"
+                sx={{
+                  color: darkMode ? '#ffffff' : '#333333',
+                  fontWeight: '500',
+                  textAlign: 'center',
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        )}
+        
         {navItems.map(({ text, route }) => (
           <ListItem key={text} disablePadding>
             <ListItemButton 
@@ -156,6 +199,8 @@ const NavBar: React.FC = () => {
                   border: 'none !important',
                   outline: 'none !important',
                   boxShadow: 'none !important',
+                  transform: 'scale(1.1)',
+                  transition: 'transform 0.2s ease-in-out',
                 },
                 '&:focus': {
                   outline: 'none !important',
@@ -173,6 +218,52 @@ const NavBar: React.FC = () => {
               {item.text}
             </Button>
           ))}
+          
+          {/* Profile Picture for authenticated users */}
+          {isAuthenticated && (
+            <IconButton
+              onClick={() => navigate('/profile')}
+              sx={{
+                border: 'none !important',
+                outline: 'none !important',
+                boxShadow: 'none !important',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  border: 'none !important',
+                  outline: 'none !important',
+                  boxShadow: 'none !important',
+                  '& .MuiAvatar-root': {
+                    transform: 'scale(1.1)',
+                  },
+                },
+                '&:focus': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+                '&:active': {
+                  outline: 'none !important',
+                  border: 'none !important',
+                  boxShadow: 'none !important',
+                },
+              }}
+            >
+              <Avatar
+                src={user?.profile_picture}
+                alt={user?.name || 'User'}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease-in-out',
+                  border: '1px solid',
+                  borderColor: darkMode ? '#ffffff' : 'primary.main',
+                }}
+              >
+                {!user?.profile_picture && (user?.name ? user.name.charAt(0).toUpperCase() : 'U')}
+              </Avatar>
+            </IconButton>
+          )}
           
           <DarkModeToggle />
           {isAuthenticated && <LogoutButton />}

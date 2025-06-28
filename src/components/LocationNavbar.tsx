@@ -102,6 +102,8 @@ const LocationNavbar: React.FC = () => {
                 border: 'none !important',
                 outline: 'none !important',
                 boxShadow: 'none !important',
+                transform: 'scale(1.1)',
+                transition: 'transform 0.2s ease-in-out',
               },
               '&:focus': {
                 outline: 'none !important',
@@ -112,6 +114,8 @@ const LocationNavbar: React.FC = () => {
                 outline: 'none !important',
                 border: 'none !important',
                 boxShadow: 'none !important',
+                transform: 'scale(1.1)',
+                transition: 'transform 0.2s ease-in-out',
               },
             }}
             onClick={handleLocationClick}

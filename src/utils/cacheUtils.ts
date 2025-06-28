@@ -191,6 +191,27 @@ export const invalidateCache = {
     cacheManager.invalidate('admin_events_');
   },
   
+  // Invalidate friends data
+  friends: () => {
+    cacheManager.invalidate('friends_');
+  },
+  
+  // Invalidate friend requests
+  friendRequests: () => {
+    cacheManager.invalidate('friend_requests_');
+  },
+  
+  // Invalidate user search results
+  userSearch: () => {
+    cacheManager.invalidate('user_search_');
+  },
+  
+  // Invalidate user profiles
+  userProfiles: () => {
+    cacheManager.invalidate('user_profile_');
+    cacheManager.invalidate('friendship_status_');
+  },
+  
   // Clear all cache
   all: () => {
     cacheManager.invalidateAll();

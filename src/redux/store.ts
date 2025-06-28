@@ -6,6 +6,8 @@ import userEventsReducer from "./slices/userEventsSlice";
 import externalEventsReducer from "./slices/externalEventsSlice";
 import nearbyEventsReducer from "./slices/nearbyEventsSlice";
 import themeReducer from "./slices/themeSlice";
+import friendsReducer from "./slices/friendsSlice";
+import friendRequestsReducer from "./slices/friendRequestsSlice";
 
 const store = configureStore({
   reducer: {
@@ -15,6 +17,8 @@ const store = configureStore({
     externalEvents: externalEventsReducer,
     nearbyEvents: nearbyEventsReducer,
     theme: themeReducer,
+    friends: friendsReducer,
+    friendRequests: friendRequestsReducer,
   },
 });
 

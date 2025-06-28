@@ -46,6 +46,7 @@ const NavBar: React.FC = () => {
     ? [
         { text: 'Events', route: '/events' },
         { text: 'My Events', route: '/events/my' },
+        { text: 'Friends', route: '/friends' },
         { text: 'Interests', route: '/interests' },
         { text: 'Profile', route: '/profile' },
       ]

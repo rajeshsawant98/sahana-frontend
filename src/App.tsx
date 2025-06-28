@@ -26,6 +26,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageEvents from "./pages/admin/ManageEvents";
 import CacheStatus from "./components/CacheStatus";
+import { Friends } from "./pages/Friends"; // Import Friends component
 
 const App = () => {
   const darkMode = useSelector((state: RootState) => state.theme.darkMode);
@@ -94,6 +95,10 @@ const App = () => {
               <Route
                 path="/events/my"
                 element={<ProtectedRoute element={<MyEvents />} />}
+              />
+              <Route
+                path="/friends"
+                element={<ProtectedRoute element={<Friends />} />}
               />
             </Routes>
             {/* Development-only cache status component */}

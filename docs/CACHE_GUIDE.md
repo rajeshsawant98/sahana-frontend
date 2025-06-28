@@ -442,6 +442,7 @@ import {
   invalidateCache 
 } from '../utils/cacheUtils';
 import { useCacheInvalidation } from '../hooks/useCacheInvalidation';
+import { useFriendsCacheInvalidation } from '../hooks/useFriendsCacheInvalidation';
 
 // Basic caching
 const data = await getCachedData(key, apiCall, CACHE_TTL.EVENTS);
@@ -450,8 +451,15 @@ const data = await getCachedData(key, apiCall, CACHE_TTL.EVENTS);
 const { invalidateEvents } = useCacheInvalidation();
 invalidateEvents();
 
+// Friends-specific invalidation
+const { invalidateFriends, invalidateFriendRequests } = useFriendsCacheInvalidation();
+invalidateFriends();
+invalidateFriendRequests();
+
 // Manual invalidation
 invalidateCache.events();
+invalidateCache.friends();
+invalidateCache.friendRequests();
 invalidateCache.all();
 
 // Create cache keys

@@ -13,6 +13,14 @@ import {
   PaginationParams 
 } from "../../types/Pagination";
 import type { RootState } from "../store";
+import { 
+  createCacheKey, 
+  getCachedData, 
+  PaginatedCacheData, 
+  CACHE_TTL,
+  prefetchPage,
+  invalidateCache 
+} from "../../utils/cacheUtils";
 
 // Helper function to determine if response is paginated
 const isPaginatedResponse = (
@@ -91,22 +99,95 @@ export const fetchCreatedEvents = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >("userEvents/fetchCreated", async (params, { rejectWithValue }) => {
   try {
-    const response = await fetchCreatedEventsAPI(params);
+    // Create cache key
+    const cacheKey = createCacheKey.userCreatedEvents(
+      params.page || 1,
+      params.page_size || 12
+    );
     
-    if (isPaginatedResponse(response)) {
+    // Use cached data with API fallback
+    const cachedData = await getCachedData<Event>(
+      cacheKey,
+      async () => {
+        const response = await fetchCreatedEventsAPI(params);
+        
+        if (isPaginatedResponse(response)) {
+          return {
+            items: response.items,
+            totalCount: response.total_count,
+            totalPages: response.total_pages,
+            page: response.page,
+            pageSize: response.page_size,
+            hasNext: response.has_next,
+            hasPrevious: response.has_previous,
+          };
+        } else {
+          return {
+            items: response.events || response,
+            totalCount: (response.events || response).length,
+            totalPages: 1,
+            page: 1,
+            pageSize: (response.events || response).length,
+            hasNext: false,
+            hasPrevious: false,
+          };
+        }
+      },
+      CACHE_TTL.USER_EVENTS
+    );
+    
+    // Prefetch next page if available
+    if (cachedData.hasNext) {
+      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
+      const nextPageCacheKey = createCacheKey.userCreatedEvents(
+        nextPageParams.page || 1,
+        nextPageParams.page_size || 12
+      );
+      
+      prefetchPage<Event>(
+        nextPageCacheKey,
+        async () => {
+          const response = await fetchCreatedEventsAPI(nextPageParams);
+          if (isPaginatedResponse(response)) {
+            return {
+              items: response.items,
+              totalCount: response.total_count,
+              totalPages: response.total_pages,
+              page: response.page,
+              pageSize: response.page_size,
+              hasNext: response.has_next,
+              hasPrevious: response.has_previous,
+            };
+          } else {
+            return {
+              items: response.events || response,
+              totalCount: (response.events || response).length,
+              totalPages: 1,
+              page: 1,
+              pageSize: (response.events || response).length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          }
+        },
+        CACHE_TTL.USER_EVENTS
+      );
+    }
+    
+    if (cachedData.totalPages > 1) {
       return {
-        events: response.items,
+        events: cachedData.items,
         pagination: {
-          total_count: response.total_count,
-          page: response.page,
-          page_size: response.page_size,
-          total_pages: response.total_pages,
-          has_next: response.has_next,
-          has_previous: response.has_previous,
+          total_count: cachedData.totalCount,
+          page: cachedData.page,
+          page_size: cachedData.pageSize,
+          total_pages: cachedData.totalPages,
+          has_next: cachedData.hasNext,
+          has_previous: cachedData.hasPrevious,
         },
       };
     } else {
-      return { events: response.events || response };
+      return { events: cachedData.items };
     }
   } catch (error) {
     return rejectWithValue("Failed to fetch created events");
@@ -119,22 +200,95 @@ export const fetchRSVPedEvents = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >("userEvents/fetchRSVPed", async (params, { rejectWithValue }) => {
   try {
-    const response = await fetchRSVPedEventsAPI(params);
+    // Create cache key
+    const cacheKey = createCacheKey.userRSVPedEvents(
+      params.page || 1,
+      params.page_size || 12
+    );
     
-    if (isPaginatedResponse(response)) {
+    // Use cached data with API fallback
+    const cachedData = await getCachedData<Event>(
+      cacheKey,
+      async () => {
+        const response = await fetchRSVPedEventsAPI(params);
+        
+        if (isPaginatedResponse(response)) {
+          return {
+            items: response.items,
+            totalCount: response.total_count,
+            totalPages: response.total_pages,
+            page: response.page,
+            pageSize: response.page_size,
+            hasNext: response.has_next,
+            hasPrevious: response.has_previous,
+          };
+        } else {
+          return {
+            items: response.events || response,
+            totalCount: (response.events || response).length,
+            totalPages: 1,
+            page: 1,
+            pageSize: (response.events || response).length,
+            hasNext: false,
+            hasPrevious: false,
+          };
+        }
+      },
+      CACHE_TTL.USER_EVENTS
+    );
+    
+    // Prefetch next page if available
+    if (cachedData.hasNext) {
+      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
+      const nextPageCacheKey = createCacheKey.userRSVPedEvents(
+        nextPageParams.page || 1,
+        nextPageParams.page_size || 12
+      );
+      
+      prefetchPage<Event>(
+        nextPageCacheKey,
+        async () => {
+          const response = await fetchRSVPedEventsAPI(nextPageParams);
+          if (isPaginatedResponse(response)) {
+            return {
+              items: response.items,
+              totalCount: response.total_count,
+              totalPages: response.total_pages,
+              page: response.page,
+              pageSize: response.page_size,
+              hasNext: response.has_next,
+              hasPrevious: response.has_previous,
+            };
+          } else {
+            return {
+              items: response.events || response,
+              totalCount: (response.events || response).length,
+              totalPages: 1,
+              page: 1,
+              pageSize: (response.events || response).length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          }
+        },
+        CACHE_TTL.USER_EVENTS
+      );
+    }
+    
+    if (cachedData.totalPages > 1) {
       return {
-        events: response.items,
+        events: cachedData.items,
         pagination: {
-          total_count: response.total_count,
-          page: response.page,
-          page_size: response.page_size,
-          total_pages: response.total_pages,
-          has_next: response.has_next,
-          has_previous: response.has_previous,
+          total_count: cachedData.totalCount,
+          page: cachedData.page,
+          page_size: cachedData.pageSize,
+          total_pages: cachedData.totalPages,
+          has_next: cachedData.hasNext,
+          has_previous: cachedData.hasPrevious,
         },
       };
     } else {
-      return { events: response.events || response };
+      return { events: cachedData.items };
     }
   } catch (error) {
     return rejectWithValue("Failed to fetch RSVP'd events");
@@ -147,22 +301,95 @@ export const fetchOrganizedEvents = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >("userEvents/fetchOrganized", async (params, { rejectWithValue }) => {
   try {
-    const response = await fetchOrganizedEventsAPI(params);
+    // Create cache key
+    const cacheKey = createCacheKey.userOrganizedEvents(
+      params.page || 1,
+      params.page_size || 12
+    );
     
-    if (isPaginatedResponse(response)) {
+    // Use cached data with API fallback
+    const cachedData = await getCachedData<Event>(
+      cacheKey,
+      async () => {
+        const response = await fetchOrganizedEventsAPI(params);
+        
+        if (isPaginatedResponse(response)) {
+          return {
+            items: response.items,
+            totalCount: response.total_count,
+            totalPages: response.total_pages,
+            page: response.page,
+            pageSize: response.page_size,
+            hasNext: response.has_next,
+            hasPrevious: response.has_previous,
+          };
+        } else {
+          return {
+            items: response.events || response,
+            totalCount: (response.events || response).length,
+            totalPages: 1,
+            page: 1,
+            pageSize: (response.events || response).length,
+            hasNext: false,
+            hasPrevious: false,
+          };
+        }
+      },
+      CACHE_TTL.USER_EVENTS
+    );
+    
+    // Prefetch next page if available
+    if (cachedData.hasNext) {
+      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
+      const nextPageCacheKey = createCacheKey.userOrganizedEvents(
+        nextPageParams.page || 1,
+        nextPageParams.page_size || 12
+      );
+      
+      prefetchPage<Event>(
+        nextPageCacheKey,
+        async () => {
+          const response = await fetchOrganizedEventsAPI(nextPageParams);
+          if (isPaginatedResponse(response)) {
+            return {
+              items: response.items,
+              totalCount: response.total_count,
+              totalPages: response.total_pages,
+              page: response.page,
+              pageSize: response.page_size,
+              hasNext: response.has_next,
+              hasPrevious: response.has_previous,
+            };
+          } else {
+            return {
+              items: response.events || response,
+              totalCount: (response.events || response).length,
+              totalPages: 1,
+              page: 1,
+              pageSize: (response.events || response).length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          }
+        },
+        CACHE_TTL.USER_EVENTS
+      );
+    }
+    
+    if (cachedData.totalPages > 1) {
       return {
-        events: response.items,
+        events: cachedData.items,
         pagination: {
-          total_count: response.total_count,
-          page: response.page,
-          page_size: response.page_size,
-          total_pages: response.total_pages,
-          has_next: response.has_next,
-          has_previous: response.has_previous,
+          total_count: cachedData.totalCount,
+          page: cachedData.page,
+          page_size: cachedData.pageSize,
+          total_pages: cachedData.totalPages,
+          has_next: cachedData.hasNext,
+          has_previous: cachedData.hasPrevious,
         },
       };
     } else {
-      return { events: response.events || response };
+      return { events: cachedData.items };
     }
   } catch (error) {
     return rejectWithValue("Failed to fetch organized events");
@@ -175,22 +402,95 @@ export const fetchModeratedEvents = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >("userEvents/fetchModerated", async (params, { rejectWithValue }) => {
   try {
-    const response = await fetchModeratedEventsAPI(params);
+    // Create cache key
+    const cacheKey = createCacheKey.userModeratedEvents(
+      params.page || 1,
+      params.page_size || 12
+    );
     
-    if (isPaginatedResponse(response)) {
+    // Use cached data with API fallback
+    const cachedData = await getCachedData<Event>(
+      cacheKey,
+      async () => {
+        const response = await fetchModeratedEventsAPI(params);
+        
+        if (isPaginatedResponse(response)) {
+          return {
+            items: response.items,
+            totalCount: response.total_count,
+            totalPages: response.total_pages,
+            page: response.page,
+            pageSize: response.page_size,
+            hasNext: response.has_next,
+            hasPrevious: response.has_previous,
+          };
+        } else {
+          return {
+            items: response.events || response,
+            totalCount: (response.events || response).length,
+            totalPages: 1,
+            page: 1,
+            pageSize: (response.events || response).length,
+            hasNext: false,
+            hasPrevious: false,
+          };
+        }
+      },
+      CACHE_TTL.USER_EVENTS
+    );
+    
+    // Prefetch next page if available
+    if (cachedData.hasNext) {
+      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
+      const nextPageCacheKey = createCacheKey.userModeratedEvents(
+        nextPageParams.page || 1,
+        nextPageParams.page_size || 12
+      );
+      
+      prefetchPage<Event>(
+        nextPageCacheKey,
+        async () => {
+          const response = await fetchModeratedEventsAPI(nextPageParams);
+          if (isPaginatedResponse(response)) {
+            return {
+              items: response.items,
+              totalCount: response.total_count,
+              totalPages: response.total_pages,
+              page: response.page,
+              pageSize: response.page_size,
+              hasNext: response.has_next,
+              hasPrevious: response.has_previous,
+            };
+          } else {
+            return {
+              items: response.events || response,
+              totalCount: (response.events || response).length,
+              totalPages: 1,
+              page: 1,
+              pageSize: (response.events || response).length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          }
+        },
+        CACHE_TTL.USER_EVENTS
+      );
+    }
+    
+    if (cachedData.totalPages > 1) {
       return {
-        events: response.items,
+        events: cachedData.items,
         pagination: {
-          total_count: response.total_count,
-          page: response.page,
-          page_size: response.page_size,
-          total_pages: response.total_pages,
-          has_next: response.has_next,
-          has_previous: response.has_previous,
+          total_count: cachedData.totalCount,
+          page: cachedData.page,
+          page_size: cachedData.pageSize,
+          total_pages: cachedData.totalPages,
+          has_next: cachedData.hasNext,
+          has_previous: cachedData.hasPrevious,
         },
       };
     } else {
-      return { events: response.events || response };
+      return { events: cachedData.items };
     }
   } catch (error) {
     return rejectWithValue("Failed to fetch moderated events");
@@ -223,6 +523,8 @@ const userEventsSlice = createSlice({
         state.rsvpedEvents.push(action.payload);
         state.rsvpedPagination.totalCount += 1;
       }
+      // Invalidate RSVP cache
+      invalidateCache.userEvents();
     },
     addCreatedEventLocal: (state, action: PayloadAction<Event>) => {
       const exists = state.createdEvents.some(event => event.eventId === action.payload.eventId);
@@ -230,6 +532,8 @@ const userEventsSlice = createSlice({
         state.createdEvents.push(action.payload);
         state.createdPagination.totalCount += 1;
       }
+      // Invalidate created events cache
+      invalidateCache.userEvents();
     },
     removeRSVPedEvent: (state, action: PayloadAction<string>) => {
       const index = state.rsvpedEvents.findIndex(event => event.eventId === action.payload);
@@ -237,6 +541,8 @@ const userEventsSlice = createSlice({
         state.rsvpedEvents.splice(index, 1);
         state.rsvpedPagination.totalCount = Math.max(0, state.rsvpedPagination.totalCount - 1);
       }
+      // Invalidate RSVP cache
+      invalidateCache.userEvents();
     },
     // Pagination actions
     setCreatedPage: (state, action: PayloadAction<number>) => {
@@ -366,6 +672,8 @@ const userEventsSlice = createSlice({
         const eventId = action.payload;
         state.rsvpedEvents = state.rsvpedEvents.filter(event => event.eventId !== eventId);
         state.rsvpedPagination.totalCount = Math.max(0, state.rsvpedPagination.totalCount - 1);
+        // Invalidate cache when RSVP is cancelled
+        invalidateCache.userEvents();
       });
   },
 });

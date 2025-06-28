@@ -25,6 +25,7 @@ import AdminRoute from "./components/AdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import ManageEvents from "./pages/admin/ManageEvents";
+import CacheStatus from "./components/CacheStatus";
 
 const App = () => {
   const darkMode = useSelector((state: RootState) => state.theme.darkMode);
@@ -95,6 +96,8 @@ const App = () => {
                 element={<ProtectedRoute element={<MyEvents />} />}
               />
             </Routes>
+            {/* Development-only cache status component */}
+            {import.meta.env.DEV && <CacheStatus />}
           </LoadScript>
         </Router>
       </GoogleOAuthProvider>

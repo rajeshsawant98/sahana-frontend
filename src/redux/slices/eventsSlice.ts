@@ -8,6 +8,13 @@ import {
   EventFilters 
 } from "../../types/Pagination";
 import type { RootState } from "../store";
+import { 
+  createCacheKey, 
+  getCachedData, 
+  PaginatedCacheData, 
+  CACHE_TTL,
+  prefetchPage 
+} from "../../utils/cacheUtils";
 
 // Helper function to determine if response is paginated
 const isPaginatedResponse = (
@@ -50,22 +57,97 @@ export const fetchEvents = createAsyncThunk<
   { state: RootState; rejectValue: string }
 >("events/fetchEvents", async (params, { rejectWithValue }) => {
   try {
-    const response = await fetchPublicEventsAPI(params);
+    // Create cache key
+    const cacheKey = createCacheKey.events(
+      params.page || 1, 
+      params.page_size || 12, 
+      params
+    );
     
-    if (isPaginatedResponse(response)) {
+    // Use cached data with API fallback
+    const cachedData = await getCachedData<Event>(
+      cacheKey,
+      async () => {
+        const response = await fetchPublicEventsAPI(params);
+        
+        if (isPaginatedResponse(response)) {
+          return {
+            items: response.items,
+            totalCount: response.total_count,
+            totalPages: response.total_pages,
+            page: response.page,
+            pageSize: response.page_size,
+            hasNext: response.has_next,
+            hasPrevious: response.has_previous,
+          };
+        } else {
+          return {
+            items: response.events || response,
+            totalCount: (response.events || response).length,
+            totalPages: 1,
+            page: 1,
+            pageSize: (response.events || response).length,
+            hasNext: false,
+            hasPrevious: false,
+          };
+        }
+      },
+      CACHE_TTL.EVENTS
+    );
+    
+    // Prefetch next page if available
+    if (cachedData.hasNext) {
+      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
+      const nextPageCacheKey = createCacheKey.events(
+        nextPageParams.page || 1,
+        nextPageParams.page_size || 12,
+        nextPageParams
+      );
+      
+      prefetchPage<Event>(
+        nextPageCacheKey,
+        async () => {
+          const response = await fetchPublicEventsAPI(nextPageParams);
+          if (isPaginatedResponse(response)) {
+            return {
+              items: response.items,
+              totalCount: response.total_count,
+              totalPages: response.total_pages,
+              page: response.page,
+              pageSize: response.page_size,
+              hasNext: response.has_next,
+              hasPrevious: response.has_previous,
+            };
+          } else {
+            return {
+              items: response.events || response,
+              totalCount: (response.events || response).length,
+              totalPages: 1,
+              page: 1,
+              pageSize: (response.events || response).length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          }
+        },
+        CACHE_TTL.EVENTS
+      );
+    }
+    
+    if (cachedData.totalPages > 1) {
       return {
-        events: response.items,
+        events: cachedData.items,
         pagination: {
-          total_count: response.total_count,
-          page: response.page,
-          page_size: response.page_size,
-          total_pages: response.total_pages,
-          has_next: response.has_next,
-          has_previous: response.has_previous,
+          total_count: cachedData.totalCount,
+          page: cachedData.page,
+          page_size: cachedData.pageSize,
+          total_pages: cachedData.totalPages,
+          has_next: cachedData.hasNext,
+          has_previous: cachedData.hasPrevious,
         },
       };
     } else {
-      return { events: response.events || response };
+      return { events: cachedData.items };
     }
   } catch (error) {
     return rejectWithValue("Failed to fetch events");

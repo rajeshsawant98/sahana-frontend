@@ -6,6 +6,13 @@ import {
   LocationEventsApiParams 
 } from "../../types/Pagination";
 import type { RootState } from "../store";
+import { 
+  createCacheKey, 
+  getCachedData, 
+  PaginatedCacheData, 
+  CACHE_TTL,
+  prefetchPage 
+} from "../../utils/cacheUtils";
 
 interface NearbyEventsState {
   events: Event[];
@@ -50,16 +57,69 @@ export const fetchNearbyEventsByLocation = createAsyncThunk<
   };
 
   try {
-    const response = await fetchEventsAPI(requestParams) as PaginatedResponse<Event>;
+    // Create cache key
+    const cacheKey = createCacheKey.nearbyEvents(
+      requestParams.city,
+      requestParams.state,
+      requestParams.page,
+      requestParams.page_size
+    );
+    
+    // Use cached data with API fallback
+    const cachedData = await getCachedData<Event>(
+      cacheKey,
+      async () => {
+        const response = await fetchEventsAPI(requestParams) as PaginatedResponse<Event>;
+        
+        return {
+          items: response.items,
+          totalCount: response.total_count,
+          totalPages: response.total_pages,
+          page: response.page,
+          pageSize: response.page_size,
+          hasNext: response.has_next,
+          hasPrevious: response.has_previous,
+        };
+      },
+      CACHE_TTL.NEARBY_EVENTS
+    );
+    
+    // Prefetch next page if available
+    if (cachedData.hasNext) {
+      const nextPageParams = { ...requestParams, page: requestParams.page + 1 };
+      const nextPageCacheKey = createCacheKey.nearbyEvents(
+        nextPageParams.city,
+        nextPageParams.state,
+        nextPageParams.page,
+        nextPageParams.page_size
+      );
+      
+      prefetchPage<Event>(
+        nextPageCacheKey,
+        async () => {
+          const response = await fetchEventsAPI(nextPageParams) as PaginatedResponse<Event>;
+          return {
+            items: response.items,
+            totalCount: response.total_count,
+            totalPages: response.total_pages,
+            page: response.page,
+            pageSize: response.page_size,
+            hasNext: response.has_next,
+            hasPrevious: response.has_previous,
+          };
+        },
+        CACHE_TTL.NEARBY_EVENTS
+      );
+    }
     
     return {
-      events: response.items,
-      total_count: response.total_count,
-      page: response.page,
-      page_size: response.page_size,
-      total_pages: response.total_pages,
-      has_next: response.has_next,
-      has_previous: response.has_previous,
+      events: cachedData.items,
+      total_count: cachedData.totalCount,
+      page: cachedData.page,
+      page_size: cachedData.pageSize,
+      total_pages: cachedData.totalPages,
+      has_next: cachedData.hasNext,
+      has_previous: cachedData.hasPrevious,
     };
   } catch (error) {
     return rejectWithValue("Failed to fetch nearby events");

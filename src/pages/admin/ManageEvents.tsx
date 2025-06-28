@@ -18,6 +18,12 @@ import { fetchAllAdminEvents } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { EventFilters, PaginatedResponse, LegacyEventsResponse } from "../../types/Pagination";
 import { useNavigate } from "react-router-dom";
+import { 
+  createCacheKey, 
+  getCachedData, 
+  PaginatedCacheData, 
+  CACHE_TTL 
+} from "../../utils/cacheUtils";
 
 // Helper function to determine if response is paginated
 const isPaginatedResponse = (
@@ -40,30 +46,58 @@ const ManageEvents: React.FC = () => {
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {
-        page: currentPage,
-        page_size: pageSize,
-        ...filters,
-      };
+      const cacheKey = createCacheKey.adminEvents(currentPage, pageSize, filters);
       
-      const response = await fetchAllAdminEvents(params);
+      const cachedData = await getCachedData<Event>(
+        cacheKey,
+        async () => {
+          const params = {
+            page: currentPage,
+            page_size: pageSize,
+            ...filters,
+          };
+          
+          const response = await fetchAllAdminEvents(params);
+          
+          if (isPaginatedResponse(response)) {
+            return {
+              items: response.items,
+              totalCount: response.total_count,
+              totalPages: response.total_pages,
+              page: response.page,
+              pageSize: response.page_size,
+              hasNext: response.has_next,
+              hasPrevious: response.has_previous,
+            };
+          } else if (Array.isArray(response)) {
+            return {
+              items: response,
+              totalCount: response.length,
+              totalPages: 1,
+              page: 1,
+              pageSize: response.length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          } else {
+            return {
+              items: response.events,
+              totalCount: response.events.length,
+              totalPages: 1,
+              page: 1,
+              pageSize: response.events.length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          }
+        },
+        CACHE_TTL.ADMIN_DATA
+      );
       
-      if (isPaginatedResponse(response)) {
-        setEvents(response.items);
-        setTotalCount(response.total_count);
-        setTotalPages(response.total_pages);
-        setIsUsingPagination(true);
-      } else if (Array.isArray(response)) {
-        // Direct array response
-        setEvents(response);
-        setTotalCount(response.length);
-        setIsUsingPagination(false);
-      } else {
-        // Legacy response format
-        setEvents(response.events);
-        setTotalCount(response.events.length);
-        setIsUsingPagination(false);
-      }
+      setEvents(cachedData.items);
+      setTotalCount(cachedData.totalCount);
+      setTotalPages(cachedData.totalPages);
+      setIsUsingPagination(cachedData.totalPages > 1);
     } catch (err) {
       console.error("Failed to fetch events", err);
     } finally {

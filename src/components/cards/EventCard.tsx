@@ -18,6 +18,7 @@ import { rsvpToEvent } from "../../apis/eventsAPI";
 import { addRSVPedEvent } from "../../redux/slices/userEventsSlice";
 import { Event } from "../../types/Event";
 import musicImage from "../../assets/categories/Music.svg";
+import { useCacheInvalidation } from "../../hooks/useCacheInvalidation";
 
 interface EventCardProps {
   event: Event;
@@ -26,7 +27,8 @@ interface EventCardProps {
 const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  
+  const { invalidateUserEvents, invalidateEvents } = useCacheInvalidation();
+
   const handleCardClick = (): void => {
     navigate(`/events/${event.eventId}`);
   };
@@ -44,6 +46,9 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       await rsvpToEvent(event.eventId, { status: "joined" });
       // Add this event to the RSVP'd events list
       dispatch(addRSVPedEvent(event));
+      // Invalidate cache to ensure fresh data
+      invalidateUserEvents();
+      invalidateEvents();
     } catch (err) {
       console.error("RSVP failed:", err);
     }

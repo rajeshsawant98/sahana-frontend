@@ -21,6 +21,12 @@ import PaginationControls from "../../components/PaginationControls";
 import { User } from "../../types/User";
 import { fetchAllUsers } from "../../apis/adminAPI";
 import { PaginatedResponse, LegacyUsersResponse, UserFilters } from "../../types/Pagination";
+import { 
+  createCacheKey, 
+  getCachedData, 
+  PaginatedCacheData, 
+  CACHE_TTL 
+} from "../../utils/cacheUtils";
 
 // Helper function to determine if response is paginated
 const isPaginatedResponse = (
@@ -42,30 +48,58 @@ const ManageUsers: React.FC = () => {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {
-        page: currentPage,
-        page_size: pageSize,
-        ...filters,
-      };
+      const cacheKey = createCacheKey.adminUsers(currentPage, pageSize, filters);
       
-      const response = await fetchAllUsers(params);
+      const cachedData = await getCachedData<User>(
+        cacheKey,
+        async () => {
+          const params = {
+            page: currentPage,
+            page_size: pageSize,
+            ...filters,
+          };
+          
+          const response = await fetchAllUsers(params);
+          
+          if (isPaginatedResponse(response)) {
+            return {
+              items: response.items,
+              totalCount: response.total_count,
+              totalPages: response.total_pages,
+              page: response.page,
+              pageSize: response.page_size,
+              hasNext: response.has_next,
+              hasPrevious: response.has_previous,
+            };
+          } else if (Array.isArray(response)) {
+            return {
+              items: response,
+              totalCount: response.length,
+              totalPages: 1,
+              page: 1,
+              pageSize: response.length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          } else {
+            return {
+              items: response.users,
+              totalCount: response.users.length,
+              totalPages: 1,
+              page: 1,
+              pageSize: response.users.length,
+              hasNext: false,
+              hasPrevious: false,
+            };
+          }
+        },
+        CACHE_TTL.ADMIN_DATA
+      );
       
-      if (isPaginatedResponse(response)) {
-        setUsers(response.items);
-        setTotalCount(response.total_count);
-        setTotalPages(response.total_pages);
-        setIsUsingPagination(true);
-      } else if (Array.isArray(response)) {
-        // Direct array response
-        setUsers(response);
-        setTotalCount(response.length);
-        setIsUsingPagination(false);
-      } else {
-        // Legacy response format
-        setUsers(response.users);
-        setTotalCount(response.users.length);
-        setIsUsingPagination(false);
-      }
+      setUsers(cachedData.items);
+      setTotalCount(cachedData.totalCount);
+      setTotalPages(cachedData.totalPages);
+      setIsUsingPagination(cachedData.totalPages > 1);
     } catch (err) {
       console.error("Failed to fetch users", err);
     } finally {

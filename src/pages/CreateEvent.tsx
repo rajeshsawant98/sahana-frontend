@@ -18,6 +18,7 @@ import { addCreatedEventLocal } from "../redux/slices/userEventsSlice";
 import EventForm from "../components/EventForm";
 import { createEvent, updateEventOrganizers, updateEventModerators } from "../apis/eventsAPI";
 import NavBar from "../components/NavBar";
+import { useCacheInvalidation } from "../hooks/useCacheInvalidation";
 
 interface EventFormData {
   eventName: string;
@@ -40,6 +41,7 @@ const CreateEvent: React.FC = () => {
   const initialized = useSelector((state: RootState) => state.auth.initialized);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+  const { invalidateUserEvents, invalidateEvents, invalidateNearbyEvents } = useCacheInvalidation();
 
   const [successOpen, setSuccessOpen] = useState<boolean>(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState<boolean>(false);
@@ -79,6 +81,13 @@ const CreateEvent: React.FC = () => {
         organizers: formData.organizers || [],
         moderators: formData.moderators || [],
       }));
+      
+      // Invalidate cache to ensure fresh data everywhere
+      invalidateUserEvents();
+      invalidateEvents();
+      if (formData.location?.city && formData.location?.state) {
+        invalidateNearbyEvents(formData.location.city, formData.location.state);
+      }
       
       setSuccessOpen(true);
 

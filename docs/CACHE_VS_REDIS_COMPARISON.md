@@ -7,6 +7,7 @@ Our current implementation is similar to Redis in concept (key-value caching wit
 ## Similarities to Redis
 
 ### 1. Key-Value Storage
+
 ```typescript
 // Our cache (similar to Redis)
 cache.set('events:page-1:size-12', data, ttl);
@@ -18,6 +19,7 @@ const data = JSON.parse(redis.get('events:page-1:size-12'));
 ```
 
 ### 2. TTL (Time To Live)
+
 ```typescript
 // Our cache
 const CACHE_TTL = {
@@ -31,6 +33,7 @@ redis.setex('events:page-1', 300, data); // 300 seconds = 5 minutes
 ```
 
 ### 3. Pattern-Based Operations
+
 ```typescript
 // Our cache
 invalidateCache(['events:*', 'user-events:*']);
@@ -53,7 +56,8 @@ if (keys.length > 0) await redis.del(...keys);
 
 ### Use Cases
 
-**Our Cache (Frontend)**
+#### Our Cache (Frontend)
+
 ```typescript
 // Optimizes repeated API calls within a user session
 // User navigates: Events → Profile → Events (cached!)
@@ -62,7 +66,8 @@ dispatch(fetchEvents({ page: 1 })); // API call
 dispatch(fetchEvents({ page: 1 })); // Returns from cache
 ```
 
-**Redis (Backend)**
+** Redis (Backend)
+
 ```typescript
 // Optimizes database queries across all users
 // User A fetches popular events → cached in Redis
@@ -80,6 +85,7 @@ app.get('/events', async (req, res) => {
 ## Architecture Comparison
 
 ### Our Current Setup (Frontend Cache)
+
 ```text
 User Browser
 ├── React Components
@@ -89,6 +95,7 @@ User Browser
 ```
 
 ### With Redis (Backend Cache)
+
 ```text
 User Browser                    Backend Server
 ├── React Components           ├── API Endpoints
@@ -98,6 +105,7 @@ User Browser                    Backend Server
 ```
 
 ### Ideal Setup (Both)
+
 ```text
 User Browser                    Backend Server
 ├── React Components           ├── API Endpoints
@@ -108,7 +116,8 @@ User Browser                    Backend Server
 
 ## Performance Benefits Comparison
 
-### Our Cache (Frontend)
+### Our Cache (Frontend) - Performance
+
 - ✅ Eliminates redundant API calls within session
 - ✅ Instant page navigation for visited pages
 - ✅ Prefetching for smooth UX
@@ -116,6 +125,7 @@ User Browser                    Backend Server
 - ❌ Each user makes same API calls initially
 
 ### Redis (Backend)
+
 - ✅ Eliminates redundant database queries
 - ✅ Shared across all users
 - ✅ Persists across server restarts
@@ -123,6 +133,7 @@ User Browser                    Backend Server
 - ❌ Still requires API calls from frontend
 
 ### Both Together
+
 - ✅ Maximum performance optimization
 - ✅ Reduced API calls (frontend cache)
 - ✅ Reduced database load (Redis)
@@ -131,6 +142,7 @@ User Browser                    Backend Server
 ## Code Examples
 
 ### Current Implementation (Frontend Cache)
+
 ```typescript
 // In Redux thunk
 export const fetchEvents = createAsyncThunk(
@@ -151,6 +163,7 @@ export const fetchEvents = createAsyncThunk(
 ```
 
 ### If We Added Redis (Backend Cache)
+
 ```typescript
 // Backend API endpoint
 app.get('/api/events', async (req, res) => {
@@ -193,25 +206,31 @@ export const fetchEvents = createAsyncThunk(
 ## When to Use Each
 
 ### Frontend Cache (Our Current Implementation)
+
 **Best for:**
+
 - Single-user session optimization
 - Reducing redundant API calls
 - Improving navigation performance
 - Prefetching related data
 
 **Use when:**
+
 - You want to optimize user experience
 - API calls are expensive (slow/rate-limited)
 - Users frequently navigate back to same data
 
 ### Redis (Backend Cache)
+
 **Best for:**
+
 - Multi-user shared data
 - Reducing database load
 - Caching expensive computations
 - Session storage
 
 **Use when:**
+
 - Multiple users request same data
 - Database queries are expensive
 - You need persistent cache
@@ -226,6 +245,7 @@ Our cache is **Redis-inspired** but **frontend-focused**:
 - **Complementary**: Could work alongside Redis for maximum optimization
 
 Think of it as:
+
 - **Our cache** = Personal notebook (fast access to your recent work)
 - **Redis** = Shared library (everyone benefits from cached resources)
 

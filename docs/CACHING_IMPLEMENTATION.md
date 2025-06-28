@@ -54,11 +54,13 @@ This document describes the comprehensive caching solution implemented for all p
 ### Cache Invalidation Strategy
 
 #### Automatic Invalidation
+
 - **User Events**: Invalidated when RSVP actions occur
 - **All Events**: Invalidated when new events are created
 - **Location-specific**: Invalidated when events are created in specific locations
 
 #### Manual Invalidation
+
 - React hook: `useCacheInvalidation()` provides methods for components
 - Cache controls in development environment
 - Pattern-based invalidation for bulk operations
@@ -83,6 +85,7 @@ This document describes the comprehensive caching solution implemented for all p
 ## Usage Examples
 
 ### Fetching with Cache
+
 ```typescript
 // Redux slice example
 const cachedData = await getCachedData<Event>(
@@ -97,6 +100,7 @@ const cachedData = await getCachedData<Event>(
 ```
 
 ### Cache Invalidation in Components
+
 ```typescript
 const MyComponent = () => {
   const { invalidateUserEvents, invalidateEvents } = useCacheInvalidation();
@@ -110,6 +114,7 @@ const MyComponent = () => {
 ```
 
 ### Manual Cache Control (Development)
+
 ```typescript
 import { invalidateCache } from '../utils/cacheUtils';
 
@@ -125,6 +130,7 @@ invalidateCache.all();
 ## Configuration
 
 ### Cache TTL Settings
+
 ```typescript
 export const CACHE_TTL = {
   EVENTS: 5 * 60 * 1000,        // 5 minutes
@@ -135,6 +141,7 @@ export const CACHE_TTL = {
 ```
 
 ### Environment-specific Features
+
 - **Development**: Cache status component visible
 - **Production**: Cache status component hidden
 - **Debug Mode**: Enhanced logging and statistics
@@ -164,12 +171,14 @@ export const CACHE_TTL = {
 ## Monitoring and Debugging
 
 ### Development Tools
+
 - Cache status component in top-right corner (dev only)
 - Real-time cache statistics
 - Manual cache invalidation controls
 - Visual indicators for cache hits/misses
 
 ### Performance Metrics
+
 - Cache hit ratio tracking
 - Memory usage monitoring
 - TTL effectiveness analysis
@@ -200,16 +209,19 @@ export const CACHE_TTL = {
 ## Migration and Rollback
 
 ### Enabling Cache
+
 1. Cache is enabled by default for all pagination
 2. No configuration changes required
 3. Automatic fallback to API calls if cache fails
 
 ### Disabling Cache (if needed)
+
 1. Remove cache wrapper from async thunks
 2. Revert to direct API calls
 3. Clean up cache-related imports
 
 ### Performance Testing
+
 - A/B testing capabilities for cache vs no-cache
 - Performance benchmarking tools
 - User experience metrics comparison

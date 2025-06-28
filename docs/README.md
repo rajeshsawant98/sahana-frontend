@@ -24,19 +24,24 @@ This folder contains comprehensive documentation for the Sahana Frontend applica
 ## 🔧 Quick Reference
 
 ### Caching System
+
 The application features a comprehensive in-memory caching system:
+
 - Cache utilities in `src/utils/cacheUtils.ts`
 - Redux integration in all paginated slices
 - React hook for cache invalidation: `useCacheInvalidation`
 - Development tools in `src/components/CacheStatus.tsx`
 
 ### API Architecture
+
 Centralized API architecture with dedicated modules:
+
 - `src/apis/authAPI.ts` - Authentication endpoints
 - `src/apis/eventsAPI.ts` - Event management endpoints  
 - `src/apis/adminAPI.ts` - Admin functionality endpoints
 
 ### Performance Features
+
 - 70% reduction in API calls for repeated pagination
 - Automatic prefetching of next pages
 - Smart cache invalidation on data changes
@@ -59,4 +64,4 @@ For working with the caching system, start with [CACHE_GUIDE.md](./CACHE_GUIDE.m
 
 ---
 
-*Last updated: December 2024*
+### Last updated: December 2024

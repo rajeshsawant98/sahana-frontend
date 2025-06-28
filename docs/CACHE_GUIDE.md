@@ -150,7 +150,9 @@ const MyComponent = () => {
 ### When to Use Each Method
 
 #### `invalidateEvents()` - Public Events
+
 **Use when:**
+
 - Creating a new public event
 - Editing event details that affect listings
 - Admin actions on events
@@ -163,7 +165,9 @@ const handleCreateEvent = async (eventData) => {
 ```
 
 #### `invalidateUserEvents()` - User-Specific Events
+
 **Use when:**
+
 - User RSVPs to an event
 - User creates/edits their own events
 - User's event participation changes
@@ -177,7 +181,9 @@ const handleRSVP = async (eventId) => {
 ```
 
 #### `invalidateNearbyEvents(city?, state?)` - Location-Based Events
+
 **Use when:**
+
 - Creating events in specific locations
 - User changes location
 - Location-specific filters change
@@ -194,7 +200,9 @@ invalidateNearbyEvents(); // No parameters = clear all locations
 ```
 
 #### `invalidateAll()` - Nuclear Option
+
 **Use when:**
+
 - User logs out
 - Major data changes that affect everything
 - Error recovery scenarios
@@ -239,6 +247,7 @@ const handleBulkActions = async (actions) => {
 ### Disabling Cache for Testing
 
 #### Method 1: Environment Variable
+
 ```typescript
 // In your component or API file
 const useCache = import.meta.env.VITE_ENABLE_CACHE !== 'false';
@@ -249,6 +258,7 @@ const data = useCache
 ```
 
 #### Method 2: TTL = 0 (Always Fresh)
+
 ```typescript
 // Force fresh data by setting TTL to 0
 const data = await getCachedData(
@@ -259,6 +269,7 @@ const data = await getCachedData(
 ```
 
 #### Method 3: Conditional Caching
+
 ```typescript
 const CACHE_TTL_DEV = {
   EVENTS: import.meta.env.DEV ? 0 : 5 * 60 * 1000,
@@ -269,6 +280,7 @@ const CACHE_TTL_DEV = {
 ### Testing Cache Behavior
 
 #### Manual Testing with Dev Tools
+
 ```typescript
 // Access cache manager in browser console (dev only)
 window.cacheManager = cacheManager;
@@ -284,6 +296,7 @@ console.log(cacheManager.getStats());
 ```
 
 #### Unit Testing Cache Logic
+
 ```typescript
 // Mock the cache for testing
 jest.mock('../utils/cacheUtils', () => ({
@@ -308,24 +321,27 @@ it('should call API when cache disabled', async () => {
 
 ### Cache Status Component (Development Only)
 
-The cache status component appears in the bottom-left corner during development:
-
 **Features:**
+
 - Real-time cache statistics
 - Manual cache invalidation buttons
 - Cache entry inspection
 - Performance monitoring
 
 **Accessing:**
+
 1. Run `npm run dev`
 2. Look for the "Cache Status" accordion in bottom-left
 3. Expand to see cache controls and statistics
+4. Look for the "Cache Status" accordion in bottom-left
+5. Expand to see cache controls and statistics
 
 ### Debugging Cache Issues
 
 #### Common Problems and Solutions
 
 **Problem:** Data not updating after changes
+
 ```typescript
 // Solution: Check if proper invalidation is called
 const handleDataChange = async () => {
@@ -336,22 +352,24 @@ const handleDataChange = async () => {
 ```
 
 **Problem:** Cache not working (always hitting API)
+
 ```typescript
 // Check cache key consistency
 const key1 = createCacheKey.events(1, 12, { category: 'tech' });
-const key2 = createCacheKey.events(1, 12, { category: 'tech' });
-console.log(key1 === key2); // Should be true
-```
-
-**Problem:** Memory usage growing
-```typescript
+````typescript
 // Check cache cleanup is running
 console.log(cacheManager.getStats());
 // Expired entries should be cleaned up automatically
 
 // Manual cleanup if needed
 cacheManager.cleanup();
-```
+````markdown
+// Check cache cleanup is running
+console.log(cacheManager.getStats());
+// Expired entries should be cleaned up automatically
+
+// Manual cleanup if needed
+cacheManager.cleanup();
 
 #### Debug Logging
 
@@ -366,6 +384,15 @@ const getCachedDataWithLogging = async (key, apiCall, ttl) => {
   return result;
 };
 ```
+
+const getCachedDataWithLogging = async (key, apiCall, ttl) => {
+  console.log(`Cache check for key: ${key}`);
+  
+  const result = await getCachedData(key, apiCall, ttl);
+  
+  console.log(`Cache ${cacheManager.has(key) ? 'HIT' : 'MISS'} for ${key}`);
+  return result;
+};
 
 ## Performance Monitoring
 

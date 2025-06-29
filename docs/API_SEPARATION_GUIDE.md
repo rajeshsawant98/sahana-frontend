@@ -1,18 +1,21 @@
 # API Call Separation - Documentation
 
 ## Overview
+
 This document outlines the separation of API calls from page components into dedicated API modules for better organization, maintainability, and reusability.
 
 ## Files Modified
 
-### New API Files Created:
+### New API Files Created
+
 1. **`src/apis/authAPI.ts`** - Authentication-related API calls
 2. **`src/apis/eventsAPI.ts`** - Enhanced with additional event management functions
 3. **`src/apis/adminAPI.ts`** - Already existed, minimal changes needed
 
-### Pages/Components Updated:
+### Pages/Components Updated
 
-#### 1. Authentication Related:
+#### 1. Authentication Related
+
 - **`src/pages/LoginPage.tsx`**
   - Removed: Direct `axiosInstance.post("/auth/login")` calls
   - Added: `loginUser()` and `loginWithGoogle()` from `authAPI`
@@ -33,7 +36,8 @@ This document outlines the separation of API calls from page components into ded
   - Removed: Direct `axiosInstance` calls for auth refresh and user fetch
   - Added: `refreshToken()` and `getCurrentUser()` from `authAPI`
 
-#### 2. Event Related:
+#### 2. Event Related
+
 - **`src/pages/EventDetails.tsx`**
   - Removed: Direct `axiosInstance.get("/events/{id}")` and `axiosInstance.post("/events/{id}/rsvp")` calls
   - Added: `fetchEventById()` and `rsvpToEvent()` from `eventsAPI`
@@ -53,6 +57,7 @@ This document outlines the separation of API calls from page components into ded
 ## API Functions Created
 
 ### Auth API (`src/apis/authAPI.ts`)
+
 ```typescript
 - loginUser(data: LoginRequest): Promise<LoginResponse>
 - loginWithGoogle(data: GoogleLoginRequest): Promise<LoginResponse>
@@ -64,6 +69,7 @@ This document outlines the separation of API calls from page components into ded
 ```
 
 ### Events API (`src/apis/eventsAPI.ts`)
+
 ```typescript
 // Existing functions (unchanged):
 - fetchExternalEventsByLocation()
@@ -106,6 +112,7 @@ This document outlines the separation of API calls from page components into ded
 ## Files That Still Use axiosInstance Directly
 
 The following files still use `axiosInstance` directly but should be acceptable:
+
 - `src/utils/axiosInstance.ts` - The axios instance configuration itself
 - Any admin-specific pages that haven't been updated yet
 

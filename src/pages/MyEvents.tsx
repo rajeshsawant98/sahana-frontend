@@ -10,11 +10,13 @@ import {
   Button,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
+import { Archive, Event as EventIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import NavBar from "../components/NavBar";
 import EventCard from "../components/cards/EventCard";
 import PaginationControls from "../components/PaginationControls";
+import { ArchivedEventsView } from "../components/ArchivedEventsView";
 import { 
   fetchCreatedEvents, 
   fetchRSVPedEvents, 
@@ -56,6 +58,8 @@ const MyEvents: React.FC = () => {
     organizedPagination,
     moderatedPagination,
   } = useAppSelector((state) => state.userEvents);
+  
+  const { user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchCreatedEvents({ page: createdPagination.currentPage, page_size: createdPagination.pageSize }));
@@ -184,6 +188,24 @@ const MyEvents: React.FC = () => {
     }
   };
 
+  const handleArchiveSuccess = () => {
+    // Refresh the current tab's events
+    switch (activeTab) {
+      case 0:
+        dispatch(fetchCreatedEvents({ page: createdPagination.currentPage, page_size: createdPagination.pageSize }));
+        break;
+      case 1:
+        dispatch(fetchRSVPedEvents({ page: rsvpedPagination.currentPage, page_size: rsvpedPagination.pageSize }));
+        break;
+      case 2:
+        dispatch(fetchOrganizedEvents({ page: organizedPagination.currentPage, page_size: organizedPagination.pageSize }));
+        break;
+      case 3:
+        dispatch(fetchModeratedEvents({ page: moderatedPagination.currentPage, page_size: moderatedPagination.pageSize }));
+        break;
+    }
+  };
+
   return (
     <>
       <NavBar />
@@ -207,10 +229,11 @@ const MyEvents: React.FC = () => {
           onChange={handleTabChange}
           sx={{ borderBottom: 1, borderColor: "divider", marginBottom: 3 }}
         >
-          <Tab label="Created" />
+          <Tab label="Created" icon={<EventIcon />} iconPosition="start" />
           <Tab label="RSVP'd" />
           <Tab label="Organized" />
           <Tab label="Moderated" />
+          <Tab label="Archived" icon={<Archive />} iconPosition="start" />
         </Tabs>
 
         {getCurrentLoading() ? (
@@ -226,7 +249,11 @@ const MyEvents: React.FC = () => {
                     <Grid2 container spacing={3}>
                       {createdEvents.map((event) => (
                         <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
-                          <EventCard event={event} />
+                          <EventCard 
+                            event={event} 
+                            showArchiveButton={true}
+                            onArchiveSuccess={handleArchiveSuccess}
+                          />
                         </Grid2>
                       ))}
                     </Grid2>
@@ -333,6 +360,10 @@ const MyEvents: React.FC = () => {
                   </Typography>
                 )}
               </>
+            )}
+
+            {activeTab === 4 && (
+              <ArchivedEventsView />
             )}
           </>
         )}

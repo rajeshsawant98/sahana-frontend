@@ -15,4 +15,30 @@ export interface Event {
   organizers: string[];
   moderators: string[];
   location?: LocationData;
+  // Archive fields
+  isArchived?: boolean;
+  archivedAt?: string;
+  archivedBy?: string;
+  archiveReason?: string;
+}
+
+export interface ArchiveEventRequest {
+  reason: string;
+}
+
+export interface ArchiveEventResponse {
+  message: string;
+  archived_by: string;
+  reason: string;
+}
+
+export interface ArchivedEventsResponse {
+  archived_events: Event[];
+  count: number;
+}
+
+export interface BulkArchiveResponse {
+  message: string;
+  archived_count: number;
+  archived_by: string;
 }

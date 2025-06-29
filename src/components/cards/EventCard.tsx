@@ -8,6 +8,8 @@ import {
   Avatar,
   AvatarGroup,
   Link,
+  Chip,
+  Box,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocationOnRoundedIcon from "@mui/icons-material/LocationOnRounded";
@@ -19,12 +21,15 @@ import { addRSVPedEvent } from "../../redux/slices/userEventsSlice";
 import { Event } from "../../types/Event";
 import musicImage from "../../assets/categories/Music.svg";
 import { useCacheInvalidation } from "../../hooks/useCacheInvalidation";
+import { ArchiveEventButton } from "../ArchiveEventButton";
 
 interface EventCardProps {
   event: Event;
+  showArchiveButton?: boolean;
+  onArchiveSuccess?: () => void;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event }) => {
+const EventCard: React.FC<EventCardProps> = ({ event, showArchiveButton = false, onArchiveSuccess }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { invalidateUserEvents, invalidateEvents } = useCacheInvalidation();
@@ -35,9 +40,10 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   
   const rsvpedEvents = useSelector((state: RootState) => state.userEvents.rsvpedEvents);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-  const isRSVPed = rsvpedEvents.some(
-    (r) => r.eventId === event.eventId
-  );
+  const user = useSelector((state: RootState) => state.auth.user);
+  
+  const isRSVPed = rsvpedEvents.some((r) => r.eventId === event.eventId);
+  const isEventCreator = user?.email === event.createdByEmail;
 
   const RSVP = async (): Promise<void> => {
     if (!isAuthenticated) return;
@@ -79,6 +85,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         justifyContent: "space-between", // Pushes actions to bottom
         overflow: "hidden",
         cursor: "pointer",
+        opacity: event.isArchived ? 0.6 : 1,
       }}
     >
       {/* Avatar and Avatar Group */}
@@ -107,9 +114,14 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
       {/* Card content */}
       <CardContent>
-        <Typography variant="h6" component="div">
-          {event.eventName}
-        </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+          <Typography variant="h6" component="div">
+            {event.eventName}
+          </Typography>
+          {event.isArchived && (
+            <Chip label="Archived" size="small" color="warning" />
+          )}
+        </Box>
         <Typography
           variant="body2"
           color="text.secondary"
@@ -134,36 +146,59 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       <CardActions
         sx={{
           display: "flex",
-          justifyContent: "flex-end",
-          gap: 2,
+          justifyContent: "space-between",
+          gap: 1,
           padding: "16px",
+          flexWrap: "wrap",
         }}
       >
-        <Link
-          href="#"
-          underline="hover"
-          sx={{ textAlign: "right" }}
-          onClick={handleCardClick}
-        >
-          View Details
-        </Link>
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          <Link
+            href="#"
+            underline="hover"
+            onClick={handleCardClick}
+          >
+            View Details
+          </Link>
+        </Box>
 
-        {isAuthenticated && (
-          isRSVPed ? (
-            <Button variant="outlined" color="success" size="small" disabled>
-              Joined
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={RSVP}
-            >
-              Join
-            </Button>
-          )
-        )}
+        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+          {isAuthenticated && !event.isArchived && (
+            isRSVPed ? (
+              <Button variant="outlined" color="success" size="small" disabled>
+                Joined
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={RSVP}
+              >
+                Join
+              </Button>
+            )
+          )}
+          
+          {showArchiveButton && isEventCreator && !event.isArchived && (
+            <ArchiveEventButton 
+              event={event} 
+              size="small" 
+              variant="outlined"
+              onArchiveSuccess={onArchiveSuccess}
+            />
+          )}
+          
+          {event.isArchived && isEventCreator && (
+            <ArchiveEventButton 
+              event={event} 
+              isArchived={true} 
+              size="small" 
+              variant="outlined"
+              onUnarchiveSuccess={onArchiveSuccess}
+            />
+          )}
+        </Box>
       </CardActions>
     </Card>
   );

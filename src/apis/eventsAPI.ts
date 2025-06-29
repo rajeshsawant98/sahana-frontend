@@ -1,5 +1,5 @@
 import axiosInstance from "../utils/axiosInstance";
-import { Event } from "../types/Event";
+import { Event, ArchiveEventRequest, ArchiveEventResponse, ArchivedEventsResponse, BulkArchiveResponse } from "../types/Event";
 import { 
   PaginatedResponse, 
   LegacyEventsResponse, 
@@ -200,4 +200,34 @@ export const updateEventOrganizers = async (eventId: string, data: UpdateOrganiz
 
 export const updateEventModerators = async (eventId: string, data: UpdateModeratorsRequest): Promise<void> => {
   await axiosInstance.patch(`/events/${eventId}/moderators`, data);
+};
+
+// Archive Event Functions
+export const archiveEvent = async (eventId: string, reason: string): Promise<ArchiveEventResponse> => {
+  const response = await axiosInstance.patch(`/events/${eventId}/archive`, { reason });
+  return response.data;
+};
+
+export const unarchiveEvent = async (eventId: string): Promise<{ message: string }> => {
+  const response = await axiosInstance.patch(`/events/${eventId}/unarchive`);
+  return response.data;
+};
+
+export const fetchArchivedEvents = async (): Promise<ArchivedEventsResponse> => {
+  const response = await axiosInstance.get('/events/me/archived');
+  return response.data;
+};
+
+export const fetchAllAdminArchivedEvents = async (params?: { page?: number; page_size?: number }): Promise<ArchivedEventsResponse> => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  
+  const response = await axiosInstance.get(`/events/archived${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return response.data;
+};
+
+export const bulkArchivePastEvents = async (): Promise<BulkArchiveResponse> => {
+  const response = await axiosInstance.post('/events/archive/past-events');
+  return response.data;
 };

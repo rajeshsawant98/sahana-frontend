@@ -11,9 +11,9 @@ import {
 } from '@mui/material';
 import { Archive, Unarchive } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../redux/store';
-import { Event } from '../types/Event';
-import { archiveEvent, unarchiveEvent } from '../apis/eventsAPI';
+import { RootState, AppDispatch } from '../../redux/store';
+import { Event } from '../../types/Event';
+import { archiveEvent, unarchiveEvent } from '../../apis/eventsAPI';
 
 interface ArchiveEventButtonProps {
   event: Event;

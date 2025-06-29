@@ -19,7 +19,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import { RootState } from "../redux/store";
 import { Event } from "../types/Event";
 import { fetchEventById, rsvpToEvent } from "../apis/eventsAPI";
-import NavBar from "../components/NavBar";
+import { NavBar } from "../components/navigation";
 
 const EventDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();

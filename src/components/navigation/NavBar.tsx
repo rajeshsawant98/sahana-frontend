@@ -16,10 +16,10 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../redux/store';
-import LogoutButton from '../components/buttons/LogoutButton';
+import { RootState } from '../../redux/store';
+import { LogoutButton } from '../auth';
 import LocationNavbar from './LocationNavbar';
-import DarkModeToggle from './DarkModeToggle';
+import { DarkModeToggle } from '../ui';
 
 interface NavItem {
   text: string;

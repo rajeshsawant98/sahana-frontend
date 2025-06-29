@@ -4,8 +4,8 @@ import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import NavBar from "../components/NavBar";
-import AnimateSVG from "../components/AnimateSVG";
+import { NavBar } from "../components/navigation";
+import { AnimateSVG } from "../components/ui";
 import groupDiscussionSVG from "../assets/group-discussion.svg?raw";
 import "../styles/vendor/group-discussion-styles.css";
 

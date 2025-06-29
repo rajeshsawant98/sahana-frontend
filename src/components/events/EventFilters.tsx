@@ -19,7 +19,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ClearIcon from '@mui/icons-material/Clear';
-import { EventFilters } from '../types/Pagination';
+import { EventFilters } from '../../types/Pagination';
 
 interface EventFiltersProps {
   filters: EventFilters;

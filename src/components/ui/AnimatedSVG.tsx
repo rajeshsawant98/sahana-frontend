@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import '../styles/vendor/group-discussion-styles.css';
-import groupDiscussionSVG from '../assets/group-discussion-not-css.svg?raw';
+import '../../styles/vendor/group-discussion-styles.css';
+import groupDiscussionSVG from '../../assets/group-discussion-not-css.svg?raw';
 
 interface AnimatedSVGProps {
   style?: React.CSSProperties;

@@ -16,8 +16,8 @@ import {
   MenuItem,
   Grid,
 } from "@mui/material";
-import NavBar from "../../components/NavBar";
-import PaginationControls from "../../components/PaginationControls";
+import { NavBar } from "../../components/navigation";
+import { PaginationControls } from "../../components/ui";
 import { User } from "../../types/User";
 import { fetchAllUsers } from "../../apis/adminAPI";
 import { PaginatedResponse, LegacyUsersResponse, UserFilters } from "../../types/Pagination";

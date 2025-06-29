@@ -8,7 +8,7 @@ import { loginUser, loginWithGoogle, getCurrentUser } from "../apis/authAPI";
 import { login } from "../redux/slices/authSlice";
 import { fetchCreatedEvents, fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
 import { AppDispatch } from "../redux/store";
-import AnimateSVG from "../components/AnimateSVG";
+import { AnimateSVG } from "../components/ui";
 import fingerprintSVG from "../assets/fingerprint.svg?raw";
 import "../styles/vendor/fingerprint-styles.css";
 

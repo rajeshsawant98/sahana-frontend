@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
-import NavBar from "../../components/NavBar";
+import { NavBar } from "../../components/navigation";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard: React.FC = () => {

@@ -18,9 +18,9 @@ import { Autocomplete } from "@react-google-maps/api";
 import { useForm, Controller } from "react-hook-form";
 import { Autocomplete as MuiAutocomplete } from "@mui/material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../utils/firebase_init";
+import { storage } from "../../utils/firebase_init";
 import { v4 as uuidv4 } from "uuid";
-import { LocationData } from "../types/User";
+import { LocationData } from "../../types/User";
 
 interface EventFormData {
   eventName: string;

@@ -2,8 +2,8 @@ import React from 'react';
 import { IconButton, Tooltip } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../redux/store';
-import { toggleDarkMode } from '../redux/slices/themeSlice';
+import { RootState } from '../../redux/store';
+import { toggleDarkMode } from '../../redux/slices/themeSlice';
 
 const DarkModeToggle: React.FC = () => {
   const dispatch = useDispatch();

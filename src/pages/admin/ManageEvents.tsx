@@ -15,10 +15,9 @@ import {
   Tab,
 } from "@mui/material";
 import { Event as EventIcon, Archive } from "@mui/icons-material";
-import NavBar from "../../components/NavBar";
-import PaginationControls from "../../components/PaginationControls";
-import EventFiltersComponent from "../../components/EventFilters";
-import { BulkArchiveButton } from "../../components/BulkArchiveButton";
+import { NavBar } from "../../components/navigation";
+import { PaginationControls } from "../../components/ui";
+import { EventFilters as EventFiltersComponent, BulkArchiveButton } from "../../components/events";
 import { fetchAllAdminEvents, fetchAllAdminArchivedEvents } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { EventFilters, PaginatedResponse, LegacyEventsResponse } from "../../types/Pagination";

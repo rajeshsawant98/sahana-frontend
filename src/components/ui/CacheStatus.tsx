@@ -27,7 +27,7 @@ import {
   Chip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { cacheManager, invalidateCache } from '../utils/cacheUtils';
+import { cacheManager, invalidateCache } from '../../utils/cacheUtils';
 
 const CacheStatus: React.FC = () => {
   const [stats, setStats] = useState({ totalEntries: 0, expiredEntries: 0 });

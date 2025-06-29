@@ -15,9 +15,9 @@ import {
 } from "@mui/material";
 import { RootState, AppDispatch } from "../redux/store";
 import { addCreatedEventLocal } from "../redux/slices/userEventsSlice";
-import EventForm from "../components/EventForm";
+import { EventForm } from "../components/events";
 import { createEvent, updateEventOrganizers, updateEventModerators } from "../apis/eventsAPI";
-import NavBar from "../components/NavBar";
+import { NavBar } from "../components/navigation";
 import { useCacheInvalidation } from "../hooks/useCacheInvalidation";
 
 interface EventFormData {

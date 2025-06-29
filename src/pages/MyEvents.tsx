@@ -13,10 +13,10 @@ import AddIcon from "@mui/icons-material/Add";
 import { Archive, Event as EventIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import NavBar from "../components/NavBar";
-import EventCard from "../components/cards/EventCard";
-import PaginationControls from "../components/PaginationControls";
-import { ArchivedEventsView } from "../components/ArchivedEventsView";
+import { NavBar } from "../components/navigation";
+import { EventCard } from "../components/events";
+import { PaginationControls } from "../components/ui";
+import { ArchivedEventsView } from "../components/events";
 import { 
   fetchCreatedEvents, 
   fetchRSVPedEvents, 

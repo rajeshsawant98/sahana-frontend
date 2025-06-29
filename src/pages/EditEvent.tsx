@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchEventById, updateEvent, deleteEvent } from "../apis/eventsAPI";
-import EventForm from "../components/EventForm";
-import NavBar from "../components/NavBar";
+import { EventForm } from "../components/events";
+import { NavBar } from "../components/navigation";
 import {
   CircularProgress,
   Container,

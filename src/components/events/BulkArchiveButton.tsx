@@ -10,7 +10,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Archive } from '@mui/icons-material';
-import { bulkArchivePastEvents } from '../apis/eventsAPI';
+import { bulkArchivePastEvents } from '../../apis/eventsAPI';
 
 interface BulkArchiveButtonProps {
   onBulkArchiveSuccess?: (archivedCount: number) => void;

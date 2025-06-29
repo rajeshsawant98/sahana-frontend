@@ -15,7 +15,7 @@ import {
   Grid2
 } from "@mui/material";
 import { Edit as EditIcon } from "@mui/icons-material";
-import NavBar from "../components/NavBar";
+import { NavBar } from "../components/navigation";
 import { Autocomplete } from "@react-google-maps/api";
 import { login } from "../redux/slices/authSlice";
 import { RootState, AppDispatch } from "../redux/store";

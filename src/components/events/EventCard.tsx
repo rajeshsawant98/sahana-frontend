@@ -21,7 +21,7 @@ import { addRSVPedEvent } from "../../redux/slices/userEventsSlice";
 import { Event } from "../../types/Event";
 import musicImage from "../../assets/categories/Music.svg";
 import { useCacheInvalidation } from "../../hooks/useCacheInvalidation";
-import { ArchiveEventButton } from "../ArchiveEventButton";
+import { ArchiveEventButton } from "./ArchiveEventButton";
 
 interface EventCardProps {
   event: Event;

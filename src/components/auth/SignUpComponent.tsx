@@ -3,11 +3,11 @@ import { Box, TextField, Button, Typography, CircularProgress, Backdrop } from '
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { useTheme } from '@mui/material/styles';
-import { registerUser, getCurrentUser } from '../apis/authAPI';
-import { login } from "../redux/slices/authSlice";
-import { fetchCreatedEvents, fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
-import { AppDispatch } from '../redux/store';
-import signupBackground from '../assets/SignUp.svg';
+import { registerUser, getCurrentUser } from '../../apis/authAPI';
+import { login } from "../../redux/slices/authSlice";
+import { fetchCreatedEvents, fetchRSVPedEvents } from "../../redux/slices/userEventsSlice";
+import { AppDispatch } from '../../redux/store';
+import signupBackground from '../../assets/SignUp.svg';
 
 const SignUpComponent: React.FC = () => {
   const navigate = useNavigate();

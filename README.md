@@ -47,6 +47,8 @@ npm install
 npm run dev
 ```
 
+> 🆕 **Latest Updates (2025)**: This project now features a completely reorganized component structure AND dedicated routing system with semantic imports and enhanced TypeScript integration for superior developer experience!
+
 ### 🌱 Environment Setup
 
 Create a `.env` file in the root directory:
@@ -107,21 +109,41 @@ npm run preview # Preview production build locally
 - ✅ **Role-Based Access** - Admin dashboard and user role management
 - ✅ **Anonymous User Support** - Full event browsing without authentication
 - ✅ **Dynamic Navigation** - Context-aware UI based on authentication status
+- ✅ **Friends System** - Connect and follow other users with search and friend requests
+- 🆕 **Organized Architecture** - Completely reorganized component structure (2025)
+- 🆕 **Clean Routing System** - Dedicated routing structure with organized route management
+- 🆕 **Developer Experience** - Enhanced with semantic imports and better maintainability
 
 ### Upcoming Features
 
 - 🔄 **Calendar Integration** - Sync events with Google Calendar
-- 🔄 **Friend System** - Connect and follow other users
 - 🔄 **Push Notifications** - Real-time event updates
 - 🔄 **Event Chat** - In-app messaging for event participants
 
 ---
 
-## 🚀 TypeScript Migration
+## 🚀 TypeScript Migration & Architecture Improvements
 
-This project has been **fully migrated to TypeScript** for enhanced developer experience and code reliability:
+This project has been **fully migrated to TypeScript** and features **completely reorganized component and routing architecture** for enhanced developer experience and code reliability:
 
-### Migration Highlights
+### 🎯 Component Architecture Redesign (2025)
+
+- ✅ **Organized by Function** - Components grouped by purpose (auth, events, navigation, etc.)
+- ✅ **Clean Import Structure** - Semantic imports with category-based paths
+- ✅ **Index File Exports** - Centralized exports from each component category
+- ✅ **Improved Maintainability** - Related components co-located for easier development
+- ✅ **Team-Friendly Structure** - Clear organization for collaborative development
+- ✅ **Scalable Architecture** - Easy to extend with new component categories
+
+### 🛣️ Routing System Overhaul (2025)
+
+- ✅ **Dedicated Routing Directory** - All routes organized in `src/routes/`
+- ✅ **Clean App Component** - Reduced from 114 to 42 lines by extracting routes
+- ✅ **Categorized Routes** - Public, Protected, and Admin routes clearly separated
+- ✅ **Type-Safe Route Constants** - Route paths defined as TypeScript constants
+- ✅ **Better Maintainability** - Easy to add, modify, or remove routes
+
+### 🔧 TypeScript Migration Highlights
 
 - ✅ **100% TypeScript Coverage** - All `.js`/`.jsx` files converted to `.ts`/`.tsx`
 - ✅ **Type-Safe Redux** - Complete typing of actions, reducers, and state
@@ -129,13 +151,15 @@ This project has been **fully migrated to TypeScript** for enhanced developer ex
 - ✅ **Component Props** - All React components with proper prop typing
 - ✅ **External Library Integration** - Custom type declarations for third-party packages
 
-### Developer Benefits
+### 💻 Developer Benefits
 
 - 🔍 **IntelliSense** - Full autocomplete and code navigation
 - 🛡️ **Compile-time Error Detection** - Catch bugs before runtime
 - 📚 **Self-documenting Code** - Types serve as inline documentation
 - 🔄 **Refactoring Confidence** - Safe large-scale code changes
 - 🎯 **Better IDE Support** - Enhanced debugging and testing
+- 🏗️ **Organized Codebase** - Logical component and routing structure
+- 🚀 **Cleaner Architecture** - Separation of concerns with dedicated directories
 
 ---
 
@@ -143,19 +167,193 @@ This project has been **fully migrated to TypeScript** for enhanced developer ex
 
 ```text
 src/
-├── components/          # Reusable UI components
-│   ├── cards/          # Event cards and related components
-│   ├── buttons/        # Custom button components
+├── components/              # 🎯 Organized UI Components (NEW STRUCTURE!)
+│   ├── 🔐 auth/            # Authentication components
+│   │   ├── SignUpComponent.tsx
+│   │   ├── ProtectedRoute.tsx
+│   │   ├── LogoutButton.tsx
+│   │   └── index.ts
+│   ├── 🧭 navigation/      # Navigation and routing
+│   │   ├── NavBar.tsx
+│   │   ├── LocationNavbar.tsx
+│   │   └── index.ts
+│   ├── 📅 events/          # Event-related components
+│   │   ├── EventForm.tsx
+│   │   ├── EventCard.tsx
+│   │   ├── EventFilters.tsx
+│   │   ├── ArchivedEventsView.tsx
+│   │   ├── ArchiveEventButton.tsx
+│   │   ├── BulkArchiveButton.tsx
+│   │   └── index.ts
+│   ├── 👥 friends/         # Friend system components
+│   │   ├── FriendCard.tsx
+│   │   ├── FriendRequestCard.tsx
+│   │   ├── FriendSearch.tsx
+│   │   └── index.ts
+│   ├── 🎨 ui/             # Reusable UI components
+│   │   ├── DarkModeToggle.tsx
+│   │   ├── PaginationControls.tsx
+│   │   ├── CacheStatus.tsx
+│   │   ├── AnimatedSVG.tsx
+│   │   ├── AnimateSVG.tsx
+│   │   └── index.ts
+│   ├── 🗺️ maps/           # Location and mapping
+│   │   ├── MapComponent.tsx
+│   │   └── index.ts
+│   ├── 👨‍💼 admin/         # Admin-specific components
+│   │   ├── AdminRoute.tsx
+│   │   └── index.ts
+│   └── 📦 index.ts         # Main component exports
+├── routes/                  # 🛣️ Routing System (NEW!)
+│   ├── index.tsx           # Main AppRoutes component
+│   └── types.ts            # Route constants and types
+├── pages/                   # Main application pages
+│   ├── admin/              # Admin dashboard pages
+│   ├── CreateEvent.tsx
+│   ├── Events.tsx
+│   ├── Friends.tsx
 │   └── ...
-├── pages/              # Main application pages
-├── redux/              # State management
-│   ├── slices/         # Redux Toolkit slices
-│   └── store.ts        # Store configuration
-├── types/              # TypeScript type definitions
-├── utils/              # Utility functions and helpers
-├── apis/               # API service functions
-├── styles/             # Theme and styling
-└── assets/             # Static assets (images, icons)
+├── redux/                   # State management
+│   ├── slices/             # Redux Toolkit slices
+│   └── store.ts            # Store configuration
+├── types/                   # TypeScript type definitions
+├── utils/                   # Utility functions and helpers
+├── apis/                    # API service functions
+├── hooks/                   # Custom React hooks
+├── styles/                  # Theme and styling
+│   ├── theme/              # Material-UI theme configuration
+│   ├── global/             # Global styles
+│   └── vendor/             # Third-party styles
+└── assets/                  # Static assets (images, icons)
+    └── categories/         # Event category icons
+```
+
+### 🎯 Component Organization Benefits
+
+Our **newly reorganized component structure** provides:
+
+- **🔍 Better Discoverability** - Components grouped by functionality
+- **📦 Clean Imports** - Semantic import statements like `import { NavBar } from 'components/navigation'`
+- **🛠️ Improved Maintainability** - Related components co-located
+- **📈 Enhanced Scalability** - Easy to add new components to appropriate categories
+- **👥 Team Collaboration** - Clear structure for multiple developers
+
+#### Component Categories
+
+**🔐 Authentication (`auth/`)**
+
+- `SignUpComponent` - User registration form
+- `ProtectedRoute` - Route protection wrapper  
+- `LogoutButton` - User logout functionality
+
+**🧭 Navigation (`navigation/`)**
+
+- `NavBar` - Main navigation bar
+- `LocationNavbar` - Location-specific navigation
+
+**📅 Events (`events/`)**
+
+- `EventForm` - Create/edit event form
+- `EventFilters` - Event filtering controls
+- `EventCard` - Event display card
+- `ArchivedEventsView`, `ArchiveEventButton`, `BulkArchiveButton` - Archive features
+
+**👥 Friends (`friends/`)**
+
+- `FriendCard` - Friend profile display
+- `FriendRequestCard` - Friend request UI
+- `FriendSearch` - Friend search functionality
+
+**🎨 UI (`ui/`)**
+
+- `DarkModeToggle` - Theme switching
+- `PaginationControls` - Data pagination
+- `CacheStatus` - Cache information display
+- `AnimatedSVG`, `AnimateSVG` - SVG animations
+
+**🗺️ Maps (`maps/`)**
+
+- `MapComponent` - Google Maps integration
+
+**👨‍💼 Admin (`admin/`)**
+
+- `AdminRoute` - Admin route protection
+
+### 🛣️ Routing System Benefits
+
+Our **dedicated routing architecture** provides:
+
+- **🧹 Cleaner App Component** - Reduced from 114 to 42 lines
+- **📂 Organized Routes** - All routes in dedicated `src/routes/` directory
+- **🏷️ Categorized Structure** - Public, Protected, and Admin routes clearly separated
+- **🔧 Easy Maintenance** - Adding/modifying routes doesn't clutter App.tsx
+- **🎯 Type Safety** - Route paths defined as TypeScript constants
+
+#### Routing Structure
+
+**🌐 Public Routes** (No authentication required)
+
+- `/` - Landing page
+- `/login` - User login  
+- `/signup` - User registration
+- `/nearby-events` - Events near user location (anonymous access)
+- `/events/:id` - Event details (anonymous access)
+
+**🔐 Protected Routes** (Authentication required)
+
+- `/home` - Authenticated user home
+- `/profile` - User profile management
+- `/interests` - User interests configuration
+- `/events` - Events listing (authenticated)
+- `/events/:id/edit` - Edit event
+- `/events/new` - Create new event
+- `/events/my` - User's created events
+- `/friends` - Friends management
+
+**👨‍💼 Admin Routes** (Admin privileges required)
+
+- `/admin` - Admin dashboard
+- `/admin/users` - User management
+- `/admin/events` - Event management
+
+### 💡 Routing Architecture
+
+```typescript
+// 🎯 Clean App.tsx - Focus on app setup
+<Router>
+  <LoadScript>
+    <InitRedux />
+    <AuthBootstrap />
+    <AppRoutes />  {/* Single clean import! */}
+  </LoadScript>
+</Router>
+
+// 📂 Organized in src/routes/index.tsx
+export const AppRoutes = () => (
+  <Routes>
+    {/* Public Routes */}
+    <Route path="/" element={<LandingPage />} />
+    {/* Protected Routes */}
+    <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
+    {/* Admin Routes */}
+    <Route path="/admin" element={<AdminRoute element={<AdminDashboard />} />} />
+  </Routes>
+);
+```
+
+### 💡 Component Import Style
+
+```typescript
+// ✅ After reorganization - Clean & Semantic
+import { NavBar } from '../components/navigation';
+import { EventCard, EventForm } from '../components/events';
+import { LogoutButton } from '../components/auth';
+import { PaginationControls } from '../components/ui';
+
+// ❌ Before - Flat structure
+import NavBar from '../components/NavBar';
+import EventCard from '../components/cards/EventCard';
+import LogoutButton from '../components/buttons/LogoutButton';
 ```
 
 ---

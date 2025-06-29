@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { fetchEvents, setPage, setPageSize, setFilters, clearFilters } from '../redux/slices/eventsSlice';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import NavBar from '../components/NavBar';
-import EventCard from '../components/cards/EventCard';
-import PaginationControls from '../components/PaginationControls';
-import EventFiltersComponent from '../components/EventFilters';
+import { NavBar } from '../components/navigation';
+import { EventCard, EventFilters as EventFiltersComponent } from '../components/events';
+import { PaginationControls } from '../components/ui';
 import { Event } from '../types/Event';
 import { EventFilters } from '../types/Pagination';
 

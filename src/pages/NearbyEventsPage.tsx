@@ -10,9 +10,9 @@ import {
   Container,
 } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import NavBar from "../components/NavBar";
-import EventCard from "../components/cards/EventCard";
-import PaginationControls from "../components/PaginationControls";
+import { NavBar } from "../components/navigation";
+import { EventCard } from "../components/events";
+import { PaginationControls } from "../components/ui";
 
 interface LocationState {
   city?: string;

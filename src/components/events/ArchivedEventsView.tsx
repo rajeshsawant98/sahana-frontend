@@ -11,8 +11,8 @@ import {
   Grid2,
 } from '@mui/material';
 import { formatDistanceToNow } from 'date-fns';
-import { Event } from '../types/Event';
-import { fetchArchivedEvents } from '../apis/eventsAPI';
+import { Event } from '../../types/Event';
+import { fetchArchivedEvents } from '../../apis/eventsAPI';
 import { ArchiveEventButton } from './ArchiveEventButton';
 
 export const ArchivedEventsView: React.FC = () => {

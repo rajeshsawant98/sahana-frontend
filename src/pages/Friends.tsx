@@ -17,7 +17,7 @@ import { useFriendRequests } from '../hooks/useFriendRequests';
 import { FriendCard } from '../components/friends/FriendCard';
 import { FriendSearch } from '../components/friends/FriendSearch';
 import { FriendRequestCard } from '../components/friends/FriendRequestCard';
-import NavBar from '../components/NavBar';
+import { NavBar } from '../components/navigation';
 
 export const Friends: React.FC = () => {
   const friendsState = useFriends();

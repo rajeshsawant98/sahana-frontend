@@ -6,7 +6,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
-import NavBar from "../components/NavBar";
+import { NavBar } from "../components/navigation";
 import { updateUserInterests } from "../apis/authAPI";
 import { RootState, AppDispatch } from "../redux/store";
 import { login } from "../redux/slices/authSlice";

@@ -15,6 +15,7 @@ export interface Event {
   organizers: string[];
   moderators: string[];
   location?: LocationData;
+  rsvpList?: string[]; // Array of user emails who have RSVP'd
   // Archive fields
   isArchived?: boolean;
   archivedAt?: string;

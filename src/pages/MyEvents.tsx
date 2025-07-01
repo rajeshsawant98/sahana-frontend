@@ -188,23 +188,6 @@ const MyEvents: React.FC = () => {
     }
   };
 
-  const handleArchiveSuccess = () => {
-    // Refresh the current tab's events
-    switch (activeTab) {
-      case 0:
-        dispatch(fetchCreatedEvents({ page: createdPagination.currentPage, page_size: createdPagination.pageSize }));
-        break;
-      case 1:
-        dispatch(fetchRSVPedEvents({ page: rsvpedPagination.currentPage, page_size: rsvpedPagination.pageSize }));
-        break;
-      case 2:
-        dispatch(fetchOrganizedEvents({ page: organizedPagination.currentPage, page_size: organizedPagination.pageSize }));
-        break;
-      case 3:
-        dispatch(fetchModeratedEvents({ page: moderatedPagination.currentPage, page_size: moderatedPagination.pageSize }));
-        break;
-    }
-  };
 
   return (
     <>
@@ -249,11 +232,7 @@ const MyEvents: React.FC = () => {
                     <Grid2 container spacing={3}>
                       {createdEvents.map((event) => (
                         <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={event.eventId}>
-                          <EventCard 
-                            event={event} 
-                            showArchiveButton={true}
-                            onArchiveSuccess={handleArchiveSuccess}
-                          />
+                          <EventCard event={event} />
                         </Grid2>
                       ))}
                     </Grid2>

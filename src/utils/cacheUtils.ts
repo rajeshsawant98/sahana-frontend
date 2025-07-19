@@ -1,7 +1,7 @@
 // Cache utilities for pagination data
 import { Event } from '../types/Event';
 import { User } from '../types/User';
-import { EventFilters, UserFilters } from '../types/Pagination';
+import { EventFilters, UserFilters, CursorPaginatedResponse } from '../types/Pagination';
 
 // Cache TTL (Time To Live) in milliseconds
 export const CACHE_TTL = {
@@ -18,7 +18,7 @@ export interface CacheEntry<T> {
   expiresAt: number;
 }
 
-// Paginated cache data structure
+// Paginated cache data structure (legacy offset pagination)
 export interface PaginatedCacheData<T> {
   items: T[];
   totalCount: number;
@@ -27,6 +27,17 @@ export interface PaginatedCacheData<T> {
   pageSize: number;
   hasNext: boolean;
   hasPrevious: boolean;
+}
+
+// Cursor-based cache data structure
+export interface CursorCacheData<T> {
+  items: T[];
+  nextCursor?: string;
+  prevCursor?: string;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  pageSize: number;
+  totalCount?: number;
 }
 
 // Cache key generators
@@ -69,6 +80,16 @@ export const createCacheKey = {
   adminUsers: (page: number, pageSize: number, filters: UserFilters): string => {
     const filterStr = JSON.stringify(filters);
     return `admin_users_${page}_${pageSize}_${btoa(filterStr)}`;
+  },
+
+  // ACTIVELY USED: Admin pages - cursor pagination
+  cursorAdminUsers: (cursor: string | null, pageSize: number, filters: UserFilters): string => {
+    const filterStr = JSON.stringify(filters);
+    return `cursor_admin_users_${cursor || 'initial'}_${pageSize}_${btoa(filterStr)}`;
+  },
+
+  cursorAdminArchivedEvents: (cursor: string | null, pageSize: number): string => {
+    return `cursor_admin_archived_${cursor || 'initial'}_${pageSize}`;
   },
 
   // REMOVED UNUSED CACHE KEYS:
@@ -213,10 +234,12 @@ export const invalidateCache = {
   // Invalidate admin data
   adminUsers: () => {
     cacheManager.invalidate('admin_users_');
+    cacheManager.invalidate('cursor_admin_users_');
   },
   
   adminEvents: () => {
     cacheManager.invalidate('admin_events_');
+    cacheManager.invalidate('cursor_admin_archived_');
   },
   
   // Invalidate friends data
@@ -290,4 +313,32 @@ export const prefetchPage = async <T>(
     // Silently fail for prefetching
     console.warn('Prefetch failed:', error);
   }
+};
+
+// Cache helper for cursor-based paginated API responses
+export const getCachedCursorData = <T>(
+  cacheKey: string,
+  fetchFunction: () => Promise<CursorCacheData<T>>,
+  ttl: number
+): Promise<CursorCacheData<T>> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Try to get from cache first
+      const cached = cacheManager.get<CursorCacheData<T>>(cacheKey);
+      if (cached) {
+        resolve(cached);
+        return;
+      }
+      
+      // If not in cache, fetch from API
+      const data = await fetchFunction();
+      
+      // Store in cache
+      cacheManager.set(cacheKey, data, ttl);
+      
+      resolve(data);
+    } catch (error) {
+      reject(error);
+    }
+  });
 };

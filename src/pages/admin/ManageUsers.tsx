@@ -120,12 +120,19 @@ const ManageUsers: React.FC = () => {
     setCurrentPage(1); // Reset to first page
   };
 
-  const handleFilterChange = (key: keyof UserFilters, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value || undefined,
-    }));
+  const handleFiltersChange = (newFilters: UserFilters) => {
+    setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handleFilterChange = (field: keyof UserFilters, value: string) => {
+    const newFilters = { ...filters };
+    if (value === '') {
+      delete newFilters[field];
+    } else {
+      newFilters[field] = value;
+    }
+    handleFiltersChange(newFilters);
   };
 
   return (

@@ -239,6 +239,19 @@ export const fetchAllAdminArchivedEvents = async (params?: { page?: number; page
   return response.data;
 };
 
+// Admin: Get all archived events - Cursor pagination
+export const fetchAllAdminArchivedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
+  const queryParams = new URLSearchParams();
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
+  
+  const response = await axiosInstance.get(`/events/archived${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return response.data;
+};
+
 export const bulkArchivePastEvents = async (): Promise<BulkArchiveResponse> => {
   const response = await axiosInstance.post('/events/archive/past-events');
   return response.data;

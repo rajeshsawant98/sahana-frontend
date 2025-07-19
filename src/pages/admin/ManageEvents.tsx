@@ -16,42 +16,41 @@ import {
 } from "@mui/material";
 import { Event as EventIcon, Archive } from "@mui/icons-material";
 import { NavBar } from "../../components/navigation";
-import { PaginationControls } from "../../components/ui";
+import { PaginationControls, CursorPaginationControls } from "../../components/ui";
 import { EventFilters as EventFiltersComponent, BulkArchiveButton } from "../../components/events";
-import { fetchAllPublicEvents, fetchAllAdminArchivedEvents } from "../../apis/eventsAPI";
+import { fetchAllPublicEventsWithCursor, fetchAllAdminArchivedEventsWithCursor } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
-import { EventFilters, PaginatedResponse, LegacyEventsResponse } from "../../types/Pagination";
+import { EventFilters, CursorPaginatedResponse } from "../../types/Pagination";
 import { useNavigate } from "react-router-dom";
 import { 
   createCacheKey, 
-  getCachedData, 
-  PaginatedCacheData, 
+  getCachedCursorData,
+  CursorCacheData,
   CACHE_TTL 
 } from "../../utils/cacheUtils";
-
-// Helper function to determine if response is paginated
-const isPaginatedResponse = (
-  response: PaginatedResponse<Event> | LegacyEventsResponse | Event[]
-): response is PaginatedResponse<Event> => {
-  return 'items' in response;
-};
 
 const ManageEvents: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [archivedEvents, setArchivedEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingArchived, setLoadingArchived] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
-  const [totalCount, setTotalCount] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [isUsingPagination, setIsUsingPagination] = useState(false);
   
-  // Separate pagination state for archived events
-  const [archivedCurrentPage, setArchivedCurrentPage] = useState(1);
-  const [archivedTotalCount, setArchivedTotalCount] = useState(0);
-  const [archivedTotalPages, setArchivedTotalPages] = useState(0);
-  const [archivedIsUsingPagination, setArchivedIsUsingPagination] = useState(false);
+  // Cursor pagination state for active events
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [prevCursor, setPrevCursor] = useState<string | undefined>(undefined);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
+  const [totalCount, setTotalCount] = useState<number | undefined>(undefined);
+  const [pageSize, setPageSize] = useState(12);
+  
+  // Cursor pagination state for archived events
+  const [archivedCursor, setArchivedCursor] = useState<string | undefined>(undefined);
+  const [archivedNextCursor, setArchivedNextCursor] = useState<string | undefined>(undefined);
+  const [archivedPrevCursor, setArchivedPrevCursor] = useState<string | undefined>(undefined);
+  const [archivedHasNext, setArchivedHasNext] = useState(false);
+  const [archivedHasPrevious, setArchivedHasPrevious] = useState(false);
+  const [archivedTotalCount, setArchivedTotalCount] = useState<number | undefined>(undefined);
   
   const [filters, setFilters] = useState<EventFilters>({});
   const [activeTab, setActiveTab] = useState<number>(0);
@@ -60,64 +59,44 @@ const ManageEvents: React.FC = () => {
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const cacheKey = createCacheKey.events(currentPage, pageSize, filters);
+      const cacheKey = createCacheKey.cursorEvents(cursor || null, pageSize, filters);
       
-      const cachedData = await getCachedData<Event>(
+      const cachedData = await getCachedCursorData<Event>(
         cacheKey,
         async () => {
           const params = {
-            page: currentPage,
+            cursor: cursor,
             page_size: pageSize,
             ...filters,
           };
           
-          const response = await fetchAllPublicEvents(params);
+          const response = await fetchAllPublicEventsWithCursor(params);
           
-          if (isPaginatedResponse(response)) {
-            return {
-              items: response.items,
-              totalCount: response.total_count,
-              totalPages: response.total_pages,
-              page: response.page,
-              pageSize: response.page_size,
-              hasNext: response.has_next,
-              hasPrevious: response.has_previous,
-            };
-          } else if (Array.isArray(response)) {
-            return {
-              items: response,
-              totalCount: response.length,
-              totalPages: 1,
-              page: 1,
-              pageSize: response.length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          } else {
-            return {
-              items: response.events,
-              totalCount: response.events.length,
-              totalPages: 1,
-              page: 1,
-              pageSize: response.events.length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          }
+          return {
+            items: response.items,
+            nextCursor: response.pagination.next_cursor,
+            prevCursor: response.pagination.prev_cursor,
+            hasNext: response.pagination.has_next,
+            hasPrevious: response.pagination.has_previous,
+            pageSize: response.pagination.page_size,
+            totalCount: response.pagination.total_count,
+          };
         },
         CACHE_TTL.ADMIN_DATA
       );
       
       setEvents(cachedData.items);
+      setNextCursor(cachedData.nextCursor);
+      setPrevCursor(cachedData.prevCursor);
+      setHasNext(cachedData.hasNext);
+      setHasPrevious(cachedData.hasPrevious);
       setTotalCount(cachedData.totalCount);
-      setTotalPages(cachedData.totalPages);
-      setIsUsingPagination(cachedData.totalPages > 1);
     } catch (err) {
       console.error("Failed to fetch events", err);
     } finally {
       setLoading(false);
     }
-  }, [currentPage, pageSize, filters]);
+  }, [cursor, pageSize, filters]);
 
   useEffect(() => {
     fetchEvents();
@@ -128,46 +107,44 @@ const ManageEvents: React.FC = () => {
     
     setLoadingArchived(true);
     try {
-      const response = await fetchAllAdminArchivedEvents({ page: archivedCurrentPage, page_size: pageSize });
+      const cacheKey = createCacheKey.cursorAdminArchivedEvents(archivedCursor || null, pageSize);
       
-      // Handle different possible response structures
-      let events = [];
-      if (response.archived_events) {
-        events = response.archived_events;
-      } else if ((response as any).events) {
-        events = (response as any).events;
-      } else if (Array.isArray(response)) {
-        events = response;
-      } else if ((response as any).items) {
-        events = (response as any).items;
-      } else if ((response as any).data) {
-        events = (response as any).data;
-      }
+      const cachedData = await getCachedCursorData<Event>(
+        cacheKey,
+        async () => {
+          const params = {
+            cursor: archivedCursor,
+            page_size: pageSize,
+          };
+          
+          const response = await fetchAllAdminArchivedEventsWithCursor(params);
+          
+          return {
+            items: response.items,
+            nextCursor: response.pagination.next_cursor,
+            prevCursor: response.pagination.prev_cursor,
+            hasNext: response.pagination.has_next,
+            hasPrevious: response.pagination.has_previous,
+            pageSize: response.pagination.page_size,
+            totalCount: response.pagination.total_count,
+          };
+        },
+        CACHE_TTL.ADMIN_DATA
+      );
       
-      setArchivedEvents(events || []); // Ensure we always have an array
-      
-      // Handle pagination for archived events if provided
-      if ((response as any).total_count !== undefined) {
-        setArchivedTotalCount((response as any).total_count);
-        setArchivedTotalPages((response as any).total_pages || Math.ceil((response as any).total_count / pageSize));
-        setArchivedIsUsingPagination((response as any).total_pages > 1);
-      } else if ((response as any).count !== undefined) {
-        setArchivedTotalCount((response as any).count);
-        setArchivedTotalPages(Math.ceil((response as any).count / pageSize));
-        setArchivedIsUsingPagination(Math.ceil((response as any).count / pageSize) > 1);
-      } else {
-        // No pagination info, assume single page
-        setArchivedTotalCount(events?.length || 0);
-        setArchivedTotalPages(1);
-        setArchivedIsUsingPagination(false);
-      }
+      setArchivedEvents(cachedData.items);
+      setArchivedNextCursor(cachedData.nextCursor);
+      setArchivedPrevCursor(cachedData.prevCursor);
+      setArchivedHasNext(cachedData.hasNext);
+      setArchivedHasPrevious(cachedData.hasPrevious);
+      setArchivedTotalCount(cachedData.totalCount);
     } catch (err) {
       console.error("Failed to fetch archived events", err);
       setArchivedEvents([]); // Set empty array on error
     } finally {
       setLoadingArchived(false);
     }
-  }, [activeTab, archivedCurrentPage, pageSize]);
+  }, [activeTab, archivedCursor, pageSize]);
 
   useEffect(() => {
     if (activeTab === 1) {
@@ -175,32 +152,48 @@ const ManageEvents: React.FC = () => {
     }
   }, [fetchArchivedEventsData]);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const handleNext = () => {
+    if (nextCursor) {
+      setCursor(nextCursor);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (prevCursor) {
+      setCursor(prevCursor);
+    }
   };
 
   const handlePageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
-    setCurrentPage(1); // Reset to first page
+    setCursor(undefined); // Reset to first page
   };
 
-  const handleArchivedPageChange = (page: number) => {
-    setArchivedCurrentPage(page);
+  const handleArchivedNext = () => {
+    if (archivedNextCursor) {
+      setArchivedCursor(archivedNextCursor);
+    }
+  };
+
+  const handleArchivedPrevious = () => {
+    if (archivedPrevCursor) {
+      setArchivedCursor(archivedPrevCursor);
+    }
   };
 
   const handleArchivedPageSizeChange = (newPageSize: number) => {
     setPageSize(newPageSize);
-    setArchivedCurrentPage(1); // Reset to first page
+    setArchivedCursor(undefined); // Reset to first page
   };
 
   const handleFiltersChange = (newFilters: EventFilters) => {
     setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
+    setCursor(undefined); // Reset to first page when filters change
   };
 
   const handleClearFilters = () => {
     setFilters({});
-    setCurrentPage(1);
+    setCursor(undefined);
   };
 
   const handleBulkArchiveSuccess = (archivedCount: number) => {
@@ -216,9 +209,9 @@ const ManageEvents: React.FC = () => {
     setActiveTab(newValue);
     // Reset pagination when switching tabs
     if (newValue === 0) {
-      setCurrentPage(1);
+      setCursor(undefined);
     } else {
-      setArchivedCurrentPage(1);
+      setArchivedCursor(undefined);
     }
   };
 
@@ -302,14 +295,16 @@ const ManageEvents: React.FC = () => {
                 </Paper>
 
                 {/* Pagination Controls for Active Events */}
-                {isUsingPagination && (
-                  <PaginationControls
-                    currentPage={currentPage}
-                    totalPages={totalPages}
+                {(hasNext || hasPrevious) && (
+                  <CursorPaginationControls
                     pageSize={pageSize}
                     totalCount={totalCount}
-                    onPageChange={handlePageChange}
+                    hasNext={hasNext}
+                    hasPrevious={hasPrevious}
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
                     onPageSizeChange={handlePageSizeChange}
+                    currentPageItemsCount={events.length}
                   />
                 )}
               </>
@@ -377,14 +372,16 @@ const ManageEvents: React.FC = () => {
                 )}
 
                 {/* Pagination Controls for Archived Events */}
-                {archivedIsUsingPagination && (
-                  <PaginationControls
-                    currentPage={archivedCurrentPage}
-                    totalPages={archivedTotalPages}
+                {(archivedHasNext || archivedHasPrevious) && (
+                  <CursorPaginationControls
                     pageSize={pageSize}
                     totalCount={archivedTotalCount}
-                    onPageChange={handleArchivedPageChange}
+                    hasNext={archivedHasNext}
+                    hasPrevious={archivedHasPrevious}
+                    onNext={handleArchivedNext}
+                    onPrevious={handleArchivedPrevious}
                     onPageSizeChange={handleArchivedPageSizeChange}
+                    currentPageItemsCount={archivedEvents.length}
                   />
                 )}
               </>

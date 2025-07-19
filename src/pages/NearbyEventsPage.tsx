@@ -118,7 +118,7 @@ const NearbyEventsPage: React.FC = () => {
       <NavBar />
       <Container>
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ my: 4 }}>
           <Typography variant="h4" gutterBottom>
             Nearby Events
           </Typography>

@@ -138,7 +138,7 @@ const MyEventsPage: React.FC = () => {
       <NavBar />
       <Container>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 3 }}>
           <Typography variant="h4" gutterBottom>
             My Events
           </Typography>

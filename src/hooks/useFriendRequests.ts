@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../redux/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 import { 
   fetchFriendRequests,
   acceptFriendRequest,
@@ -10,53 +10,30 @@ import {
   clearErrors,
   clearRequestError
 } from '../redux/slices/friendRequestsSlice';
+import { useAsyncDispatch, useTabManagement, useRefresh } from './useCommonOperations';
 
 export const useFriendRequests = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const friendRequestsState = useSelector((state: RootState) => state.friendRequests);
+  const { executeAsync, dispatch } = useAsyncDispatch();
+  const { handleTabChange } = useTabManagement(setActiveTab, clearErrors);
+  const { refresh } = useRefresh(fetchFriendRequests);
 
   // Load friend requests on mount
   useEffect(() => {
     dispatch(fetchFriendRequests());
   }, [dispatch]);
 
-  const handleAcceptRequest = async (requestId: string) => {
-    try {
-      await dispatch(acceptFriendRequest(requestId)).unwrap();
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error as string };
-    }
-  };
+  const handleAcceptRequest = (requestId: string) => 
+    executeAsync(acceptFriendRequest, requestId);
 
-  const handleRejectRequest = async (requestId: string) => {
-    try {
-      await dispatch(rejectFriendRequest(requestId)).unwrap();
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error as string };
-    }
-  };
+  const handleRejectRequest = (requestId: string) => 
+    executeAsync(rejectFriendRequest, requestId);
 
-  const handleCancelRequest = async (requestId: string) => {
-    try {
-      await dispatch(cancelFriendRequest(requestId)).unwrap();
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error as string };
-    }
-  };
-
-  const handleTabChange = (tab: 'received' | 'sent') => {
-    dispatch(setActiveTab(tab));
-  };
+  const handleCancelRequest = (requestId: string) => 
+    executeAsync(cancelFriendRequest, requestId);
 
   const handleClearError = (requestId: string) => {
     dispatch(clearRequestError(requestId));
-  };
-
-  const refreshRequests = () => {
-    dispatch(fetchFriendRequests());
   };
 
   return {
@@ -66,6 +43,6 @@ export const useFriendRequests = () => {
     handleCancelRequest,
     handleTabChange,
     handleClearError,
-    refreshRequests,
+    refreshRequests: refresh,
   };
 };

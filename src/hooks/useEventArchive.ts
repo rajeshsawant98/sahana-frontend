@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { archiveEvent, unarchiveEvent, fetchArchivedEvents } from '../apis/eventsAPI';
+import { handleAsyncOperation, AsyncOperationResult } from '../utils/reduxHelpers';
 
 export const useEventArchive = () => {
   const [loading, setLoading] = useState({
@@ -14,53 +15,47 @@ export const useEventArchive = () => {
     fetchingArchived: null as string | null,
   });
 
-  const handleArchiveEvent = useCallback(async (eventId: string, reason: string) => {
-    setLoading(prev => ({ ...prev, archiving: true }));
-    setErrors(prev => ({ ...prev, archiving: null }));
+  const createAsyncHandler = useCallback((
+    operation: () => Promise<any>,
+    loadingKey: keyof typeof loading,
+    errorKey: keyof typeof errors
+  ) => {
+    return async (): Promise<AsyncOperationResult> => {
+      setLoading(prev => ({ ...prev, [loadingKey]: true }));
+      setErrors(prev => ({ ...prev, [errorKey]: null }));
 
-    try {
-      const result = await archiveEvent(eventId, reason);
-      return { success: true, data: result };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to archive event';
-      setErrors(prev => ({ ...prev, archiving: errorMessage }));
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(prev => ({ ...prev, archiving: false }));
-    }
+      const result = await handleAsyncOperation(operation);
+      
+      setLoading(prev => ({ ...prev, [loadingKey]: false }));
+      
+      if (!result.success) {
+        setErrors(prev => ({ ...prev, [errorKey]: result.error || `Failed to ${loadingKey}` }));
+      }
+      
+      return result;
+    };
   }, []);
 
-  const handleUnarchiveEvent = useCallback(async (eventId: string) => {
-    setLoading(prev => ({ ...prev, unarchiving: true }));
-    setErrors(prev => ({ ...prev, unarchiving: null }));
+  const handleArchiveEvent = useCallback((eventId: string, reason: string) => 
+    createAsyncHandler(
+      () => archiveEvent(eventId, reason),
+      'archiving',
+      'archiving'
+    )(), [createAsyncHandler]);
 
-    try {
-      const result = await unarchiveEvent(eventId);
-      return { success: true, data: result };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to unarchive event';
-      setErrors(prev => ({ ...prev, unarchiving: errorMessage }));
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(prev => ({ ...prev, unarchiving: false }));
-    }
-  }, []);
+  const handleUnarchiveEvent = useCallback((eventId: string) => 
+    createAsyncHandler(
+      () => unarchiveEvent(eventId),
+      'unarchiving',
+      'unarchiving'
+    )(), [createAsyncHandler]);
 
-  const getArchivedEvents = useCallback(async () => {
-    setLoading(prev => ({ ...prev, fetchingArchived: true }));
-    setErrors(prev => ({ ...prev, fetchingArchived: null }));
-
-    try {
-      const result = await fetchArchivedEvents();
-      return { success: true, data: result };
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch archived events';
-      setErrors(prev => ({ ...prev, fetchingArchived: errorMessage }));
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(prev => ({ ...prev, fetchingArchived: false }));
-    }
-  }, []);
+  const getArchivedEvents = useCallback(() => 
+    createAsyncHandler(
+      fetchArchivedEvents,
+      'fetchingArchived',
+      'fetchingArchived'
+    )(), [createAsyncHandler]);
 
   const clearErrors = useCallback(() => {
     setErrors({

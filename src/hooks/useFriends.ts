@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../redux/store';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 import { 
   fetchFriends, 
   searchUsers, 
@@ -11,10 +11,13 @@ import {
   clearErrors 
 } from '../redux/slices/friendsSlice';
 import { useDebounce } from './useDebounce';
+import { useAsyncDispatch, useTabManagement, useRefresh } from './useCommonOperations';
 
 export const useFriends = () => {
-  const dispatch = useDispatch<AppDispatch>();
   const friendsState = useSelector((state: RootState) => state.friends);
+  const { executeAsync, dispatch } = useAsyncDispatch();
+  const { handleTabChange } = useTabManagement(setSelectedTab, clearErrors);
+  const { refresh } = useRefresh(fetchFriends);
   
   const debouncedSearchTerm = useDebounce(friendsState.ui.searchTerm, 500);
 
@@ -38,29 +41,14 @@ export const useFriends = () => {
     dispatch(setSearchTerm(term));
   };
 
-  const handleSendFriendRequest = async (receiverId: string) => {
-    try {
-      await dispatch(sendFriendRequest(receiverId)).unwrap();
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error as string };
-    }
-  };
-
-  const handleTabChange = (tab: 'friends' | 'requests' | 'search') => {
-    dispatch(setSelectedTab(tab));
-    dispatch(clearErrors());
-  };
-
-  const refreshFriends = () => {
-    dispatch(fetchFriends());
-  };
+  const handleSendFriendRequest = (receiverId: string) =>
+    executeAsync(sendFriendRequest, receiverId);
 
   return {
     ...friendsState,
     handleSearchTermChange,
     handleSendFriendRequest,
     handleTabChange,
-    refreshFriends,
+    refreshFriends: refresh,
   };
 };

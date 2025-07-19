@@ -1,696 +1,418 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
-  fetchCreatedEvents as fetchCreatedEventsAPI,
-  fetchRSVPedEvents as fetchRSVPedEventsAPI,
-  fetchOrganizedEvents as fetchOrganizedEventsAPI,
-  fetchModeratedEvents as fetchModeratedEventsAPI,
-  cancelRSVP as cancelRSVPAPI,
+  fetchCreatedEventsWithCursor,
+  fetchRSVPedEventsWithCursor,
+  fetchOrganizedEventsWithCursor,
+  fetchModeratedEventsWithCursor,
 } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { 
-  PaginatedResponse, 
-  LegacyEventsResponse, 
-  PaginationParams 
+  CursorPaginatedResponse, 
+  CursorPaginationParams,
+  PaginatedResponse 
 } from "../../types/Pagination";
 import type { RootState } from "../store";
-import { 
-  createCacheKey, 
-  getCachedData, 
-  PaginatedCacheData, 
-  CACHE_TTL,
-  prefetchPage,
-  invalidateCache 
-} from "../../utils/cacheUtils";
 
-// Helper function to determine if response is paginated
-const isPaginatedResponse = (
-  response: PaginatedResponse<Event> | LegacyEventsResponse
-): response is PaginatedResponse<Event> => {
-  return 'items' in response;
-};
-
-interface UserEventsPaginationState {
-  currentPage: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
+// State interface for each event type
+interface UserEventState {
+  events: Event[];
+  loading: boolean;
+  loadingMore: boolean;
+  error: string | null;
+  nextCursor?: string;
+  prevCursor?: string;
   hasNext: boolean;
   hasPrevious: boolean;
+  pageSize: number;
+  totalCount?: number;
+  hasFetched: boolean;
 }
 
 interface UserEventsState {
-  createdEvents: Event[];
-  rsvpedEvents: Event[];
-  organizedEvents: Event[];
-  moderatedEvents: Event[];
-  loadingCreated: boolean;
-  loadingRSVPed: boolean;
-  loadingOrganized: boolean;
-  loadingModerated: boolean;
-  errorCreated: string | null;
-  errorRSVPed: string | null;
-  errorOrganized: string | null;
-  errorModerated: string | null;
-  hasFetchedRSVPed: boolean;
-  hasFetchedOrganized: boolean;
-  hasFetchedModerated: boolean;
-  // Pagination states for each event type
-  createdPagination: UserEventsPaginationState;
-  rsvpedPagination: UserEventsPaginationState;
-  organizedPagination: UserEventsPaginationState;
-  moderatedPagination: UserEventsPaginationState;
+  created: UserEventState;
+  rsvped: UserEventState;
+  organized: UserEventState;
+  moderated: UserEventState;
 }
 
-const defaultPaginationState: UserEventsPaginationState = {
-  currentPage: 1,
-  pageSize: 12,
-  totalCount: 0,
-  totalPages: 0,
+const defaultEventState: UserEventState = {
+  events: [],
+  loading: false,
+  loadingMore: false,
+  error: null,
+  nextCursor: undefined,
+  prevCursor: undefined,
   hasNext: false,
   hasPrevious: false,
+  pageSize: 12,
+  totalCount: undefined,
+  hasFetched: false,
 };
 
 const initialState: UserEventsState = {
-  createdEvents: [],
-  rsvpedEvents: [],
-  organizedEvents: [],
-  moderatedEvents: [],
-  loadingCreated: false,
-  loadingRSVPed: false,
-  loadingOrganized: false,
-  loadingModerated: false,
-  errorCreated: null,
-  errorRSVPed: null,
-  errorOrganized: null,
-  errorModerated: null,
-  hasFetchedRSVPed: false,
-  hasFetchedOrganized: false,
-  hasFetchedModerated: false,
-  createdPagination: { ...defaultPaginationState },
-  rsvpedPagination: { ...defaultPaginationState },
-  organizedPagination: { ...defaultPaginationState },
-  moderatedPagination: { ...defaultPaginationState },
+  created: { ...defaultEventState },
+  rsvped: { ...defaultEventState },
+  organized: { ...defaultEventState },
+  moderated: { ...defaultEventState },
 };
 
-// Async thunks
-export const fetchCreatedEvents = createAsyncThunk<
-  { events: Event[]; pagination?: Omit<PaginatedResponse<Event>, 'items'> },
-  PaginationParams,
+// Created Events Actions
+export const fetchInitialCreatedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorPaginationParams,
   { state: RootState; rejectValue: string }
->("userEvents/fetchCreated", async (params, { rejectWithValue }) => {
+>("userEvents/fetchInitialCreated", async (params, { rejectWithValue }) => {
   try {
-    // Create cache key
-    const cacheKey = createCacheKey.userCreatedEvents(
-      params.page || 1,
-      params.page_size || 12
-    );
-    
-    // Use cached data with API fallback
-    const cachedData = await getCachedData<Event>(
-      cacheKey,
-      async () => {
-        const response = await fetchCreatedEventsAPI(params);
-        
-        if (isPaginatedResponse(response)) {
-          return {
-            items: response.items,
-            totalCount: response.total_count,
-            totalPages: response.total_pages,
-            page: response.page,
-            pageSize: response.page_size,
-            hasNext: response.has_next,
-            hasPrevious: response.has_previous,
-          };
-        } else {
-          return {
-            items: response.events || response,
-            totalCount: (response.events || response).length,
-            totalPages: 1,
-            page: 1,
-            pageSize: (response.events || response).length,
-            hasNext: false,
-            hasPrevious: false,
-          };
-        }
-      },
-      CACHE_TTL.USER_EVENTS
-    );
-    
-    // Prefetch next page if available
-    if (cachedData.hasNext) {
-      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
-      const nextPageCacheKey = createCacheKey.userCreatedEvents(
-        nextPageParams.page || 1,
-        nextPageParams.page_size || 12
-      );
-      
-      prefetchPage<Event>(
-        nextPageCacheKey,
-        async () => {
-          const response = await fetchCreatedEventsAPI(nextPageParams);
-          if (isPaginatedResponse(response)) {
-            return {
-              items: response.items,
-              totalCount: response.total_count,
-              totalPages: response.total_pages,
-              page: response.page,
-              pageSize: response.page_size,
-              hasNext: response.has_next,
-              hasPrevious: response.has_previous,
-            };
-          } else {
-            return {
-              items: response.events || response,
-              totalCount: (response.events || response).length,
-              totalPages: 1,
-              page: 1,
-              pageSize: (response.events || response).length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          }
-        },
-        CACHE_TTL.USER_EVENTS
-      );
-    }
-    
-    if (cachedData.totalPages > 1) {
-      return {
-        events: cachedData.items,
-        pagination: {
-          total_count: cachedData.totalCount,
-          page: cachedData.page,
-          page_size: cachedData.pageSize,
-          total_pages: cachedData.totalPages,
-          has_next: cachedData.hasNext,
-          has_previous: cachedData.hasPrevious,
-        },
-      };
-    } else {
-      return { events: cachedData.items };
-    }
+    const response = await fetchCreatedEventsWithCursor({
+      page_size: params.page_size || 12,
+      cursor: undefined, // No cursor for initial load
+    });
+    return response;
   } catch (error) {
     return rejectWithValue("Failed to fetch created events");
   }
 });
 
-export const fetchRSVPedEvents = createAsyncThunk<
-  { events: Event[]; pagination?: Omit<PaginatedResponse<Event>, 'items'> },
-  PaginationParams,
+export const loadMoreCreatedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { cursor: string; pageSize?: number },
   { state: RootState; rejectValue: string }
->("userEvents/fetchRSVPed", async (params, { rejectWithValue }) => {
+>("userEvents/loadMoreCreated", async ({ cursor, pageSize = 12 }, { rejectWithValue }) => {
   try {
-    // Create cache key
-    const cacheKey = createCacheKey.userRSVPedEvents(
-      params.page || 1,
-      params.page_size || 12
-    );
-    
-    // Use cached data with API fallback
-    const cachedData = await getCachedData<Event>(
-      cacheKey,
-      async () => {
-        const response = await fetchRSVPedEventsAPI(params);
-        
-        if (isPaginatedResponse(response)) {
-          return {
-            items: response.items,
-            totalCount: response.total_count,
-            totalPages: response.total_pages,
-            page: response.page,
-            pageSize: response.page_size,
-            hasNext: response.has_next,
-            hasPrevious: response.has_previous,
-          };
-        } else {
-          return {
-            items: response.events || response,
-            totalCount: (response.events || response).length,
-            totalPages: 1,
-            page: 1,
-            pageSize: (response.events || response).length,
-            hasNext: false,
-            hasPrevious: false,
-          };
-        }
-      },
-      CACHE_TTL.USER_EVENTS
-    );
-    
-    // Prefetch next page if available
-    if (cachedData.hasNext) {
-      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
-      const nextPageCacheKey = createCacheKey.userRSVPedEvents(
-        nextPageParams.page || 1,
-        nextPageParams.page_size || 12
-      );
-      
-      prefetchPage<Event>(
-        nextPageCacheKey,
-        async () => {
-          const response = await fetchRSVPedEventsAPI(nextPageParams);
-          if (isPaginatedResponse(response)) {
-            return {
-              items: response.items,
-              totalCount: response.total_count,
-              totalPages: response.total_pages,
-              page: response.page,
-              pageSize: response.page_size,
-              hasNext: response.has_next,
-              hasPrevious: response.has_previous,
-            };
-          } else {
-            return {
-              items: response.events || response,
-              totalCount: (response.events || response).length,
-              totalPages: 1,
-              page: 1,
-              pageSize: (response.events || response).length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          }
-        },
-        CACHE_TTL.USER_EVENTS
-      );
-    }
-    
-    if (cachedData.totalPages > 1) {
-      return {
-        events: cachedData.items,
-        pagination: {
-          total_count: cachedData.totalCount,
-          page: cachedData.page,
-          page_size: cachedData.pageSize,
-          total_pages: cachedData.totalPages,
-          has_next: cachedData.hasNext,
-          has_previous: cachedData.hasPrevious,
-        },
-      };
-    } else {
-      return { events: cachedData.items };
-    }
+    const response = await fetchCreatedEventsWithCursor({
+      cursor,
+      page_size: pageSize,
+      direction: 'next',
+    });
+    return response;
   } catch (error) {
-    return rejectWithValue("Failed to fetch RSVP'd events");
+    return rejectWithValue("Failed to load more created events");
   }
 });
 
-export const fetchOrganizedEvents = createAsyncThunk<
-  { events: Event[]; pagination?: Omit<PaginatedResponse<Event>, 'items'> },
-  PaginationParams,
+// RSVP Events Actions
+export const fetchInitialRsvpEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorPaginationParams,
   { state: RootState; rejectValue: string }
->("userEvents/fetchOrganized", async (params, { rejectWithValue }) => {
+>("userEvents/fetchInitialRsvp", async (params, { rejectWithValue }) => {
   try {
-    // Create cache key
-    const cacheKey = createCacheKey.userOrganizedEvents(
-      params.page || 1,
-      params.page_size || 12
-    );
-    
-    // Use cached data with API fallback
-    const cachedData = await getCachedData<Event>(
-      cacheKey,
-      async () => {
-        const response = await fetchOrganizedEventsAPI(params);
-        
-        if (isPaginatedResponse(response)) {
-          return {
-            items: response.items,
-            totalCount: response.total_count,
-            totalPages: response.total_pages,
-            page: response.page,
-            pageSize: response.page_size,
-            hasNext: response.has_next,
-            hasPrevious: response.has_previous,
-          };
-        } else {
-          return {
-            items: response.events || response,
-            totalCount: (response.events || response).length,
-            totalPages: 1,
-            page: 1,
-            pageSize: (response.events || response).length,
-            hasNext: false,
-            hasPrevious: false,
-          };
-        }
-      },
-      CACHE_TTL.USER_EVENTS
-    );
-    
-    // Prefetch next page if available
-    if (cachedData.hasNext) {
-      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
-      const nextPageCacheKey = createCacheKey.userOrganizedEvents(
-        nextPageParams.page || 1,
-        nextPageParams.page_size || 12
-      );
-      
-      prefetchPage<Event>(
-        nextPageCacheKey,
-        async () => {
-          const response = await fetchOrganizedEventsAPI(nextPageParams);
-          if (isPaginatedResponse(response)) {
-            return {
-              items: response.items,
-              totalCount: response.total_count,
-              totalPages: response.total_pages,
-              page: response.page,
-              pageSize: response.page_size,
-              hasNext: response.has_next,
-              hasPrevious: response.has_previous,
-            };
-          } else {
-            return {
-              items: response.events || response,
-              totalCount: (response.events || response).length,
-              totalPages: 1,
-              page: 1,
-              pageSize: (response.events || response).length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          }
-        },
-        CACHE_TTL.USER_EVENTS
-      );
-    }
-    
-    if (cachedData.totalPages > 1) {
-      return {
-        events: cachedData.items,
-        pagination: {
-          total_count: cachedData.totalCount,
-          page: cachedData.page,
-          page_size: cachedData.pageSize,
-          total_pages: cachedData.totalPages,
-          has_next: cachedData.hasNext,
-          has_previous: cachedData.hasPrevious,
-        },
-      };
-    } else {
-      return { events: cachedData.items };
-    }
+    const response = await fetchRSVPedEventsWithCursor({
+      page_size: params.page_size || 12,
+      cursor: undefined, // No cursor for initial load
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to fetch RSVP events");
+  }
+});
+
+export const loadMoreRsvpEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { cursor: string; pageSize?: number },
+  { state: RootState; rejectValue: string }
+>("userEvents/loadMoreRsvp", async ({ cursor, pageSize = 12 }, { rejectWithValue }) => {
+  try {
+    const response = await fetchRSVPedEventsWithCursor({
+      cursor,
+      page_size: pageSize,
+      direction: 'next',
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to load more RSVP events");
+  }
+});
+
+// Organized Events Actions
+export const fetchInitialOrganizedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorPaginationParams,
+  { state: RootState; rejectValue: string }
+>("userEvents/fetchInitialOrganized", async (params, { rejectWithValue }) => {
+  try {
+    const response = await fetchOrganizedEventsWithCursor({
+      page_size: params.page_size || 12,
+      cursor: undefined, // No cursor for initial load
+    });
+    return response;
   } catch (error) {
     return rejectWithValue("Failed to fetch organized events");
   }
 });
 
-export const fetchModeratedEvents = createAsyncThunk<
-  { events: Event[]; pagination?: Omit<PaginatedResponse<Event>, 'items'> },
-  PaginationParams,
+export const loadMoreOrganizedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { cursor: string; pageSize?: number },
   { state: RootState; rejectValue: string }
->("userEvents/fetchModerated", async (params, { rejectWithValue }) => {
+>("userEvents/loadMoreOrganized", async ({ cursor, pageSize = 12 }, { rejectWithValue }) => {
   try {
-    // Create cache key
-    const cacheKey = createCacheKey.userModeratedEvents(
-      params.page || 1,
-      params.page_size || 12
-    );
-    
-    // Use cached data with API fallback
-    const cachedData = await getCachedData<Event>(
-      cacheKey,
-      async () => {
-        const response = await fetchModeratedEventsAPI(params);
-        
-        if (isPaginatedResponse(response)) {
-          return {
-            items: response.items,
-            totalCount: response.total_count,
-            totalPages: response.total_pages,
-            page: response.page,
-            pageSize: response.page_size,
-            hasNext: response.has_next,
-            hasPrevious: response.has_previous,
-          };
-        } else {
-          return {
-            items: response.events || response,
-            totalCount: (response.events || response).length,
-            totalPages: 1,
-            page: 1,
-            pageSize: (response.events || response).length,
-            hasNext: false,
-            hasPrevious: false,
-          };
-        }
-      },
-      CACHE_TTL.USER_EVENTS
-    );
-    
-    // Prefetch next page if available
-    if (cachedData.hasNext) {
-      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
-      const nextPageCacheKey = createCacheKey.userModeratedEvents(
-        nextPageParams.page || 1,
-        nextPageParams.page_size || 12
-      );
-      
-      prefetchPage<Event>(
-        nextPageCacheKey,
-        async () => {
-          const response = await fetchModeratedEventsAPI(nextPageParams);
-          if (isPaginatedResponse(response)) {
-            return {
-              items: response.items,
-              totalCount: response.total_count,
-              totalPages: response.total_pages,
-              page: response.page,
-              pageSize: response.page_size,
-              hasNext: response.has_next,
-              hasPrevious: response.has_previous,
-            };
-          } else {
-            return {
-              items: response.events || response,
-              totalCount: (response.events || response).length,
-              totalPages: 1,
-              page: 1,
-              pageSize: (response.events || response).length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          }
-        },
-        CACHE_TTL.USER_EVENTS
-      );
-    }
-    
-    if (cachedData.totalPages > 1) {
-      return {
-        events: cachedData.items,
-        pagination: {
-          total_count: cachedData.totalCount,
-          page: cachedData.page,
-          page_size: cachedData.pageSize,
-          total_pages: cachedData.totalPages,
-          has_next: cachedData.hasNext,
-          has_previous: cachedData.hasPrevious,
-        },
-      };
-    } else {
-      return { events: cachedData.items };
-    }
+    const response = await fetchOrganizedEventsWithCursor({
+      cursor,
+      page_size: pageSize,
+      direction: 'next',
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to load more organized events");
+  }
+});
+
+// Moderated Events Actions
+export const fetchInitialModeratedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorPaginationParams,
+  { state: RootState; rejectValue: string }
+>("userEvents/fetchInitialModerated", async (params, { rejectWithValue }) => {
+  try {
+    const response = await fetchModeratedEventsWithCursor({
+      page_size: params.page_size || 12,
+      cursor: undefined,
+    });
+    return response;
   } catch (error) {
     return rejectWithValue("Failed to fetch moderated events");
   }
 });
 
-export const cancelRSVP = createAsyncThunk<
-  string,
-  string,
+export const loadMoreModeratedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { cursor: string; pageSize?: number },
   { state: RootState; rejectValue: string }
->("userEvents/cancelRSVP", async (eventId, { rejectWithValue }) => {
+>("userEvents/loadMoreModerated", async ({ cursor, pageSize = 12 }, { rejectWithValue }) => {
   try {
-    await cancelRSVPAPI(eventId);
-    return eventId;
+    const response = await fetchModeratedEventsWithCursor({
+      cursor,
+      page_size: pageSize,
+      direction: 'next',
+    });
+    return response;
   } catch (error) {
-    return rejectWithValue("Failed to cancel RSVP");
+    return rejectWithValue("Failed to load more moderated events");
   }
 });
 
 const userEventsSlice = createSlice({
-  name: "userEvents",
+  name: "cursorUserEvents",
   initialState,
   reducers: {
+    // Reset all states
     resetUserEvents: (state) => {
       Object.assign(state, initialState);
     },
-    addRSVPedEvent: (state, action: PayloadAction<Event>) => {
-      const exists = state.rsvpedEvents.some(event => event.eventId === action.payload.eventId);
-      if (!exists) {
-        state.rsvpedEvents.push(action.payload);
-        state.rsvpedPagination.totalCount += 1;
-      }
-      // Invalidate RSVP cache
-      invalidateCache.userEvents();
+    
+    // Reset specific event type
+    resetCreatedEvents: (state) => {
+      state.created = { ...defaultEventState };
     },
-    addCreatedEventLocal: (state, action: PayloadAction<Event>) => {
-      const exists = state.createdEvents.some(event => event.eventId === action.payload.eventId);
-      if (!exists) {
-        state.createdEvents.push(action.payload);
-        state.createdPagination.totalCount += 1;
-      }
-      // Invalidate created events cache
-      invalidateCache.userEvents();
+    resetRSVPedEvents: (state) => {
+      state.rsvped = { ...defaultEventState };
     },
-    removeRSVPedEvent: (state, action: PayloadAction<string>) => {
-      const index = state.rsvpedEvents.findIndex(event => event.eventId === action.payload);
-      if (index !== -1) {
-        state.rsvpedEvents.splice(index, 1);
-        state.rsvpedPagination.totalCount = Math.max(0, state.rsvpedPagination.totalCount - 1);
-      }
-      // Invalidate RSVP cache
-      invalidateCache.userEvents();
+    resetOrganizedEvents: (state) => {
+      state.organized = { ...defaultEventState };
     },
-    // Pagination actions
-    setCreatedPage: (state, action: PayloadAction<number>) => {
-      state.createdPagination.currentPage = action.payload;
+    resetModeratedEvents: (state) => {
+      state.moderated = { ...defaultEventState };
     },
+    
+    // Update page size
     setCreatedPageSize: (state, action: PayloadAction<number>) => {
-      state.createdPagination.pageSize = action.payload;
-      state.createdPagination.currentPage = 1;
-    },
-    setRSVPedPage: (state, action: PayloadAction<number>) => {
-      state.rsvpedPagination.currentPage = action.payload;
+      state.created.pageSize = action.payload;
     },
     setRSVPedPageSize: (state, action: PayloadAction<number>) => {
-      state.rsvpedPagination.pageSize = action.payload;
-      state.rsvpedPagination.currentPage = 1;
-    },
-    setOrganizedPage: (state, action: PayloadAction<number>) => {
-      state.organizedPagination.currentPage = action.payload;
+      state.rsvped.pageSize = action.payload;
     },
     setOrganizedPageSize: (state, action: PayloadAction<number>) => {
-      state.organizedPagination.pageSize = action.payload;
-      state.organizedPagination.currentPage = 1;
-    },
-    setModeratedPage: (state, action: PayloadAction<number>) => {
-      state.moderatedPagination.currentPage = action.payload;
+      state.organized.pageSize = action.payload;
     },
     setModeratedPageSize: (state, action: PayloadAction<number>) => {
-      state.moderatedPagination.pageSize = action.payload;
-      state.moderatedPagination.currentPage = 1;
+      state.moderated.pageSize = action.payload;
+    },
+    
+    // Remove RSVP'd event (when user cancels RSVP)
+    removeRSVPedEvent: (state, action: PayloadAction<string>) => {
+      state.rsvped.events = state.rsvped.events.filter(event => event.eventId !== action.payload);
+      if (state.rsvped.totalCount) {
+        state.rsvped.totalCount = Math.max(0, state.rsvped.totalCount - 1);
+      }
+    },
+    
+    // Add newly created event to created events list
+    addCreatedEventLocal: (state, action: PayloadAction<Event>) => {
+      state.created.events.unshift(action.payload);
+      if (state.created.totalCount) {
+        state.created.totalCount += 1;
+      }
     },
   },
   extraReducers: (builder) => {
     builder
-      // Created events
-      .addCase(fetchCreatedEvents.pending, (state) => {
-        state.loadingCreated = true;
-        state.errorCreated = null;
+      // Created Events
+      .addCase(fetchInitialCreatedEvents.pending, (state) => {
+        state.created.loading = true;
+        state.created.error = null;
       })
-      .addCase(fetchCreatedEvents.fulfilled, (state, action) => {
-        state.createdEvents = action.payload.events;
-        state.loadingCreated = false;
-        
-        if (action.payload.pagination) {
-          state.createdPagination.currentPage = action.payload.pagination.page;
-          state.createdPagination.pageSize = action.payload.pagination.page_size;
-          state.createdPagination.totalCount = action.payload.pagination.total_count;
-          state.createdPagination.totalPages = action.payload.pagination.total_pages;
-          state.createdPagination.hasNext = action.payload.pagination.has_next;
-          state.createdPagination.hasPrevious = action.payload.pagination.has_previous;
-        }
+      .addCase(fetchInitialCreatedEvents.fulfilled, (state, action) => {
+        state.created.loading = false;
+        state.created.hasFetched = true;
+        state.created.events = action.payload.items;
+        state.created.nextCursor = action.payload.pagination.next_cursor;
+        state.created.prevCursor = action.payload.pagination.prev_cursor;
+        state.created.hasNext = action.payload.pagination.has_next;
+        state.created.hasPrevious = action.payload.pagination.has_previous;
+        state.created.pageSize = action.payload.pagination.page_size;
+        state.created.totalCount = action.payload.pagination.total_count;
       })
-      .addCase(fetchCreatedEvents.rejected, (state, action) => {
-        state.loadingCreated = false;
-        state.errorCreated = action.payload || "Failed to fetch created events";
+      .addCase(fetchInitialCreatedEvents.rejected, (state, action) => {
+        state.created.loading = false;
+        state.created.error = action.payload || "Failed to fetch created events";
       })
-      // RSVP'd events
-      .addCase(fetchRSVPedEvents.pending, (state) => {
-        state.loadingRSVPed = true;
-        state.errorRSVPed = null;
+      .addCase(loadMoreCreatedEvents.pending, (state) => {
+        state.created.loadingMore = true;
+        state.created.error = null;
       })
-      .addCase(fetchRSVPedEvents.fulfilled, (state, action) => {
-        state.rsvpedEvents = action.payload.events;
-        state.loadingRSVPed = false;
-        state.hasFetchedRSVPed = true;
-        
-        if (action.payload.pagination) {
-          state.rsvpedPagination.currentPage = action.payload.pagination.page;
-          state.rsvpedPagination.pageSize = action.payload.pagination.page_size;
-          state.rsvpedPagination.totalCount = action.payload.pagination.total_count;
-          state.rsvpedPagination.totalPages = action.payload.pagination.total_pages;
-          state.rsvpedPagination.hasNext = action.payload.pagination.has_next;
-          state.rsvpedPagination.hasPrevious = action.payload.pagination.has_previous;
-        }
+      .addCase(loadMoreCreatedEvents.fulfilled, (state, action) => {
+        state.created.loadingMore = false;
+        state.created.events = [...state.created.events, ...action.payload.items];
+        state.created.nextCursor = action.payload.pagination.next_cursor;
+        state.created.prevCursor = action.payload.pagination.prev_cursor;
+        state.created.hasNext = action.payload.pagination.has_next;
+        state.created.hasPrevious = action.payload.pagination.has_previous;
+        state.created.totalCount = action.payload.pagination.total_count;
       })
-      .addCase(fetchRSVPedEvents.rejected, (state, action) => {
-        state.loadingRSVPed = false;
-        state.errorRSVPed = action.payload || "Failed to fetch RSVP'd events";
+      .addCase(loadMoreCreatedEvents.rejected, (state, action) => {
+        state.created.loadingMore = false;
+        state.created.error = action.payload || "Failed to load more created events";
       })
-      // Organized events
-      .addCase(fetchOrganizedEvents.pending, (state) => {
-        state.loadingOrganized = true;
-        state.errorOrganized = null;
+      
+      // RSVP'd Events
+      .addCase(fetchInitialRsvpEvents.pending, (state) => {
+        state.rsvped.loading = true;
+        state.rsvped.error = null;
       })
-      .addCase(fetchOrganizedEvents.fulfilled, (state, action) => {
-        state.organizedEvents = action.payload.events;
-        state.loadingOrganized = false;
-        state.hasFetchedOrganized = true;
-        
-        if (action.payload.pagination) {
-          state.organizedPagination.currentPage = action.payload.pagination.page;
-          state.organizedPagination.pageSize = action.payload.pagination.page_size;
-          state.organizedPagination.totalCount = action.payload.pagination.total_count;
-          state.organizedPagination.totalPages = action.payload.pagination.total_pages;
-          state.organizedPagination.hasNext = action.payload.pagination.has_next;
-          state.organizedPagination.hasPrevious = action.payload.pagination.has_previous;
-        }
+      .addCase(fetchInitialRsvpEvents.fulfilled, (state, action) => {
+        state.rsvped.loading = false;
+        state.rsvped.hasFetched = true;
+        state.rsvped.events = action.payload.items;
+        state.rsvped.nextCursor = action.payload.pagination.next_cursor;
+        state.rsvped.prevCursor = action.payload.pagination.prev_cursor;
+        state.rsvped.hasNext = action.payload.pagination.has_next;
+        state.rsvped.hasPrevious = action.payload.pagination.has_previous;
+        state.rsvped.pageSize = action.payload.pagination.page_size;
+        state.rsvped.totalCount = action.payload.pagination.total_count;
       })
-      .addCase(fetchOrganizedEvents.rejected, (state, action) => {
-        state.loadingOrganized = false;
-        state.errorOrganized = action.payload || "Failed to fetch organized events";
+      .addCase(fetchInitialRsvpEvents.rejected, (state, action) => {
+        state.rsvped.loading = false;
+        state.rsvped.error = action.payload || "Failed to fetch RSVP'd events";
       })
-      // Moderated events
-      .addCase(fetchModeratedEvents.pending, (state) => {
-        state.loadingModerated = true;
-        state.errorModerated = null;
+      .addCase(loadMoreRsvpEvents.pending, (state) => {
+        state.rsvped.loadingMore = true;
+        state.rsvped.error = null;
       })
-      .addCase(fetchModeratedEvents.fulfilled, (state, action) => {
-        state.moderatedEvents = action.payload.events;
-        state.loadingModerated = false;
-        state.hasFetchedModerated = true;
-        
-        if (action.payload.pagination) {
-          state.moderatedPagination.currentPage = action.payload.pagination.page;
-          state.moderatedPagination.pageSize = action.payload.pagination.page_size;
-          state.moderatedPagination.totalCount = action.payload.pagination.total_count;
-          state.moderatedPagination.totalPages = action.payload.pagination.total_pages;
-          state.moderatedPagination.hasNext = action.payload.pagination.has_next;
-          state.moderatedPagination.hasPrevious = action.payload.pagination.has_previous;
-        }
+      .addCase(loadMoreRsvpEvents.fulfilled, (state, action) => {
+        state.rsvped.loadingMore = false;
+        state.rsvped.events = [...state.rsvped.events, ...action.payload.items];
+        state.rsvped.nextCursor = action.payload.pagination.next_cursor;
+        state.rsvped.prevCursor = action.payload.pagination.prev_cursor;
+        state.rsvped.hasNext = action.payload.pagination.has_next;
+        state.rsvped.hasPrevious = action.payload.pagination.has_previous;
+        state.rsvped.totalCount = action.payload.pagination.total_count;
       })
-      .addCase(fetchModeratedEvents.rejected, (state, action) => {
-        state.loadingModerated = false;
-        state.errorModerated = action.payload || "Failed to fetch moderated events";
+      .addCase(loadMoreRsvpEvents.rejected, (state, action) => {
+        state.rsvped.loadingMore = false;
+        state.rsvped.error = action.payload || "Failed to load more RSVP'd events";
       })
-      // Cancel RSVP
-      .addCase(cancelRSVP.fulfilled, (state, action) => {
-        const eventId = action.payload;
-        state.rsvpedEvents = state.rsvpedEvents.filter(event => event.eventId !== eventId);
-        state.rsvpedPagination.totalCount = Math.max(0, state.rsvpedPagination.totalCount - 1);
-        // Invalidate cache when RSVP is cancelled
-        invalidateCache.userEvents();
+      
+      // Organized Events
+      .addCase(fetchInitialOrganizedEvents.pending, (state) => {
+        state.organized.loading = true;
+        state.organized.error = null;
+      })
+      .addCase(fetchInitialOrganizedEvents.fulfilled, (state, action) => {
+        state.organized.loading = false;
+        state.organized.hasFetched = true;
+        state.organized.events = action.payload.items;
+        state.organized.nextCursor = action.payload.pagination.next_cursor;
+        state.organized.prevCursor = action.payload.pagination.prev_cursor;
+        state.organized.hasNext = action.payload.pagination.has_next;
+        state.organized.hasPrevious = action.payload.pagination.has_previous;
+        state.organized.pageSize = action.payload.pagination.page_size;
+        state.organized.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(fetchInitialOrganizedEvents.rejected, (state, action) => {
+        state.organized.loading = false;
+        state.organized.error = action.payload || "Failed to fetch organized events";
+      })
+      .addCase(loadMoreOrganizedEvents.pending, (state) => {
+        state.organized.loadingMore = true;
+        state.organized.error = null;
+      })
+      .addCase(loadMoreOrganizedEvents.fulfilled, (state, action) => {
+        state.organized.loadingMore = false;
+        state.organized.events = [...state.organized.events, ...action.payload.items];
+        state.organized.nextCursor = action.payload.pagination.next_cursor;
+        state.organized.prevCursor = action.payload.pagination.prev_cursor;
+        state.organized.hasNext = action.payload.pagination.has_next;
+        state.organized.hasPrevious = action.payload.pagination.has_previous;
+        state.organized.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(loadMoreOrganizedEvents.rejected, (state, action) => {
+        state.organized.loadingMore = false;
+        state.organized.error = action.payload || "Failed to load more organized events";
+      })
+      
+      // Moderated Events
+      .addCase(fetchInitialModeratedEvents.pending, (state) => {
+        state.moderated.loading = true;
+        state.moderated.error = null;
+      })
+      .addCase(fetchInitialModeratedEvents.fulfilled, (state, action) => {
+        state.moderated.loading = false;
+        state.moderated.hasFetched = true;
+        state.moderated.events = action.payload.items;
+        state.moderated.nextCursor = action.payload.pagination.next_cursor;
+        state.moderated.prevCursor = action.payload.pagination.prev_cursor;
+        state.moderated.hasNext = action.payload.pagination.has_next;
+        state.moderated.hasPrevious = action.payload.pagination.has_previous;
+        state.moderated.pageSize = action.payload.pagination.page_size;
+        state.moderated.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(fetchInitialModeratedEvents.rejected, (state, action) => {
+        state.moderated.loading = false;
+        state.moderated.error = action.payload || "Failed to fetch moderated events";
+      })
+      .addCase(loadMoreModeratedEvents.pending, (state) => {
+        state.moderated.loadingMore = true;
+        state.moderated.error = null;
+      })
+      .addCase(loadMoreModeratedEvents.fulfilled, (state, action) => {
+        state.moderated.loadingMore = false;
+        state.moderated.events = [...state.moderated.events, ...action.payload.items];
+        state.moderated.nextCursor = action.payload.pagination.next_cursor;
+        state.moderated.prevCursor = action.payload.pagination.prev_cursor;
+        state.moderated.hasNext = action.payload.pagination.has_next;
+        state.moderated.hasPrevious = action.payload.pagination.has_previous;
+        state.moderated.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(loadMoreModeratedEvents.rejected, (state, action) => {
+        state.moderated.loadingMore = false;
+        state.moderated.error = action.payload || "Failed to load more moderated events";
       });
   },
 });
 
 export const {
   resetUserEvents,
-  addRSVPedEvent,
-  addCreatedEventLocal,
-  removeRSVPedEvent,
-  setCreatedPage,
+  resetCreatedEvents,
+  resetRSVPedEvents,
+  resetOrganizedEvents,
+  resetModeratedEvents,
   setCreatedPageSize,
-  setRSVPedPage,
   setRSVPedPageSize,
-  setOrganizedPage,
   setOrganizedPageSize,
-  setModeratedPage,
   setModeratedPageSize,
+  removeRSVPedEvent,
+  addCreatedEventLocal,
 } = userEventsSlice.actions;
 
 export default userEventsSlice.reducer;

@@ -1,156 +1,97 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { fetchAllPublicEvents as fetchPublicEventsAPI } from "../../apis/eventsAPI";
+import { fetchAllPublicEventsWithCursor } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { 
-  PaginatedResponse, 
-  LegacyEventsResponse, 
-  EventsApiParams, 
-  EventFilters 
+  CursorPaginatedResponse, 
+  CursorEventsApiParams,
+  EventFilters
 } from "../../types/Pagination";
 import type { RootState } from "../store";
-import { 
-  createCacheKey, 
-  getCachedData, 
-  PaginatedCacheData, 
-  CACHE_TTL,
-  prefetchPage 
-} from "../../utils/cacheUtils";
 
-// Helper function to determine if response is paginated
-const isPaginatedResponse = (
-  response: PaginatedResponse<Event> | LegacyEventsResponse
-): response is PaginatedResponse<Event> => {
-  return 'items' in response;
-};
-
+// State interface for cursor-based pagination
 interface EventsState {
   events: Event[];
   loading: boolean;
+  loadingMore: boolean;
   error: string | null;
-  // Pagination state
-  currentPage: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
+  nextCursor?: string;
+  prevCursor?: string;
   hasNext: boolean;
   hasPrevious: boolean;
-  // Filters state
+  pageSize: number;
+  totalCount?: number;
   filters: EventFilters;
+  isInitialLoad: boolean;
 }
 
 const initialState: EventsState = {
   events: [],
   loading: false,
+  loadingMore: false,
   error: null,
-  currentPage: 1,
-  pageSize: 12,
-  totalCount: 0,
-  totalPages: 0,
+  nextCursor: undefined,
+  prevCursor: undefined,
   hasNext: false,
   hasPrevious: false,
+  pageSize: 12,
+  totalCount: undefined,
   filters: {},
+  isInitialLoad: true,
 };
 
-export const fetchEvents = createAsyncThunk<
-  { events: Event[]; pagination?: Omit<PaginatedResponse<Event>, 'items'> },
-  EventsApiParams,
+// Fetch initial events (first page)
+export const fetchInitialEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorEventsApiParams,
   { state: RootState; rejectValue: string }
->("events/fetchEvents", async (params, { rejectWithValue }) => {
+>("events/fetchInitial", async (params, { rejectWithValue }) => {
   try {
-    // Create cache key
-    const cacheKey = createCacheKey.events(
-      params.page || 1, 
-      params.page_size || 12, 
-      params
-    );
-    
-    // Use cached data with API fallback
-    const cachedData = await getCachedData<Event>(
-      cacheKey,
-      async () => {
-        const response = await fetchPublicEventsAPI(params);
-        
-        if (isPaginatedResponse(response)) {
-          return {
-            items: response.items,
-            totalCount: response.total_count,
-            totalPages: response.total_pages,
-            page: response.page,
-            pageSize: response.page_size,
-            hasNext: response.has_next,
-            hasPrevious: response.has_previous,
-          };
-        } else {
-          return {
-            items: response.events || response,
-            totalCount: (response.events || response).length,
-            totalPages: 1,
-            page: 1,
-            pageSize: (response.events || response).length,
-            hasNext: false,
-            hasPrevious: false,
-          };
-        }
-      },
-      CACHE_TTL.EVENTS
-    );
-    
-    // Prefetch next page if available
-    if (cachedData.hasNext) {
-      const nextPageParams = { ...params, page: (params.page || 1) + 1 };
-      const nextPageCacheKey = createCacheKey.events(
-        nextPageParams.page || 1,
-        nextPageParams.page_size || 12,
-        nextPageParams
-      );
-      
-      prefetchPage<Event>(
-        nextPageCacheKey,
-        async () => {
-          const response = await fetchPublicEventsAPI(nextPageParams);
-          if (isPaginatedResponse(response)) {
-            return {
-              items: response.items,
-              totalCount: response.total_count,
-              totalPages: response.total_pages,
-              page: response.page,
-              pageSize: response.page_size,
-              hasNext: response.has_next,
-              hasPrevious: response.has_previous,
-            };
-          } else {
-            return {
-              items: response.events || response,
-              totalCount: (response.events || response).length,
-              totalPages: 1,
-              page: 1,
-              pageSize: (response.events || response).length,
-              hasNext: false,
-              hasPrevious: false,
-            };
-          }
-        },
-        CACHE_TTL.EVENTS
-      );
-    }
-    
-    if (cachedData.totalPages > 1) {
-      return {
-        events: cachedData.items,
-        pagination: {
-          total_count: cachedData.totalCount,
-          page: cachedData.page,
-          page_size: cachedData.pageSize,
-          total_pages: cachedData.totalPages,
-          has_next: cachedData.hasNext,
-          has_previous: cachedData.hasPrevious,
-        },
-      };
-    } else {
-      return { events: cachedData.items };
-    }
+    const response = await fetchAllPublicEventsWithCursor({
+      page_size: params.page_size || 12,
+      ...params,
+      cursor: undefined, // No cursor for initial load
+    });
+    return response;
   } catch (error) {
     return rejectWithValue("Failed to fetch events");
+  }
+});
+
+// Load more events (append to existing list)
+export const loadMoreEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { cursor: string; pageSize?: number; filters?: EventFilters },
+  { state: RootState; rejectValue: string }
+>("events/loadMore", async ({ cursor, pageSize = 12, filters = {} }, { rejectWithValue }) => {
+  try {
+    const response = await fetchAllPublicEventsWithCursor({
+      cursor,
+      page_size: pageSize,
+      direction: 'next',
+      ...filters,
+    });
+    
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to load more events");
+  }
+});
+
+// Refresh events (replace current list)
+export const refreshEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorEventsApiParams,
+  { state: RootState; rejectValue: string }
+>("events/refresh", async (params, { rejectWithValue }) => {
+  try {
+    const response = await fetchAllPublicEventsWithCursor({
+      page_size: params.page_size || 12,
+      ...params,
+      cursor: undefined, // No cursor for refresh
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to refresh events");
   }
 });
 
@@ -158,62 +99,135 @@ const eventsSlice = createSlice({
   name: "events",
   initialState,
   reducers: {
-    addEvent: (state, action: PayloadAction<Event>) => {
-      state.events.push(action.payload);
+    // Reset state
+    resetEvents: (state) => {
+      Object.assign(state, initialState);
     },
-    removeEvent: (state, action: PayloadAction<string>) => {
-      state.events = state.events.filter(
-        (event) => event.eventId !== action.payload
-      );
-    },
-    setPage: (state, action: PayloadAction<number>) => {
-      state.currentPage = action.payload;
-    },
-    setPageSize: (state, action: PayloadAction<number>) => {
-      state.pageSize = action.payload;
-      state.currentPage = 1; // Reset to first page when changing page size
-    },
+    
+    // Update filters
     setFilters: (state, action: PayloadAction<EventFilters>) => {
       state.filters = action.payload;
-      state.currentPage = 1; // Reset to first page when filters change
     },
-    clearFilters: (state) => {
-      state.filters = {};
-      state.currentPage = 1; // Reset to first page when clearing filters
+    
+    // Update page size
+    setPageSize: (state, action: PayloadAction<number>) => {
+      state.pageSize = action.payload;
+    },
+    
+    // Clear error
+    clearError: (state) => {
+      state.error = null;
+    },
+    
+    // Add new event to the list (for real-time updates)
+    addEvent: (state, action: PayloadAction<Event>) => {
+      // Insert at the beginning for chronological order (earliest first)
+      state.events.unshift(action.payload);
+      if (state.totalCount) {
+        state.totalCount += 1;
+      }
+    },
+    
+    // Remove event from the list
+    removeEvent: (state, action: PayloadAction<string>) => {
+      state.events = state.events.filter(event => event.eventId !== action.payload);
+      if (state.totalCount) {
+        state.totalCount = Math.max(0, state.totalCount - 1);
+      }
+    },
+    
+    // Update event in the list
+    updateEvent: (state, action: PayloadAction<Event>) => {
+      const index = state.events.findIndex(event => event.eventId === action.payload.eventId);
+      if (index !== -1) {
+        state.events[index] = action.payload;
+      }
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchEvents.pending, (state) => {
+      // Fetch initial events
+      .addCase(fetchInitialEvents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.isInitialLoad = true;
+      })
+      .addCase(fetchInitialEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isInitialLoad = false;
+        state.events = action.payload.items;
+        state.nextCursor = action.payload.pagination.next_cursor;
+        state.prevCursor = action.payload.pagination.prev_cursor;
+        state.hasNext = action.payload.pagination.has_next;
+        state.hasPrevious = action.payload.pagination.has_previous;
+        state.pageSize = action.payload.pagination.page_size;
+        state.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(fetchInitialEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.isInitialLoad = false;
+        state.error = action.payload || "Failed to fetch events";
+      })
+      
+      // Load more events
+      .addCase(loadMoreEvents.pending, (state) => {
+        state.loadingMore = true;
+        state.error = null;
+      })
+      .addCase(loadMoreEvents.fulfilled, (state, action) => {
+        state.loadingMore = false;
+        
+        const newEvents = action.payload.items;
+        const pagination = action.payload.pagination;
+        
+        // Add new events, avoiding duplicates
+        const existingIds = new Set(state.events.map(event => event.eventId));
+        const uniqueNewEvents = newEvents.filter(event => !existingIds.has(event.eventId));
+        
+        // Append new events to existing list
+        state.events = [...state.events, ...uniqueNewEvents];
+        state.nextCursor = pagination.next_cursor;
+        state.prevCursor = pagination.prev_cursor;
+        state.hasNext = pagination.has_next;
+        state.hasPrevious = pagination.has_previous;
+        state.totalCount = pagination.total_count;
+      })
+      .addCase(loadMoreEvents.rejected, (state, action) => {
+        state.loadingMore = false;
+        state.error = action.payload || "Failed to load more events";
+      })
+      
+      // Refresh events
+      .addCase(refreshEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchEvents.fulfilled, (state, action) => {
-        state.events = action.payload.events;
+      .addCase(refreshEvents.fulfilled, (state, action) => {
         state.loading = false;
-        
-        if (action.payload.pagination) {
-          // Paginated response
-          state.currentPage = action.payload.pagination.page;
-          state.pageSize = action.payload.pagination.page_size;
-          state.totalCount = action.payload.pagination.total_count;
-          state.totalPages = action.payload.pagination.total_pages;
-          state.hasNext = action.payload.pagination.has_next;
-          state.hasPrevious = action.payload.pagination.has_previous;
-        } else {
-          // Legacy response - treat as single page
-          state.totalCount = action.payload.events.length;
-          state.totalPages = 1;
-          state.hasNext = false;
-          state.hasPrevious = false;
-        }
+        // Replace current events with refreshed list
+        state.events = action.payload.items;
+        state.nextCursor = action.payload.pagination.next_cursor;
+        state.prevCursor = action.payload.pagination.prev_cursor;
+        state.hasNext = action.payload.pagination.has_next;
+        state.hasPrevious = action.payload.pagination.has_previous;
+        state.pageSize = action.payload.pagination.page_size;
+        state.totalCount = action.payload.pagination.total_count;
       })
-      .addCase(fetchEvents.rejected, (state, action) => {
+      .addCase(refreshEvents.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Failed to fetch events";
+        state.error = action.payload || "Failed to refresh events";
       });
   },
 });
 
-export const { addEvent, removeEvent, setPage, setPageSize, setFilters, clearFilters } = eventsSlice.actions;
+export const {
+  resetEvents,
+  setFilters,
+  setPageSize,
+  clearError,
+  addEvent,
+  removeEvent,
+  updateEvent,
+} = eventsSlice.actions;
+
 export default eventsSlice.reducer;

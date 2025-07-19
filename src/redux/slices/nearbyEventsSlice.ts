@@ -1,30 +1,24 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { fetchNearbyEventsByLocation as fetchEventsAPI } from "../../apis/eventsAPI";
+import { fetchNearbyEventsByLocationWithCursor } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { 
-  PaginatedResponse, 
-  LocationEventsApiParams 
+  CursorPaginatedResponse, 
+  CursorLocationEventsApiParams 
 } from "../../types/Pagination";
 import type { RootState } from "../store";
-import { 
-  createCacheKey, 
-  getCachedData, 
-  PaginatedCacheData, 
-  CACHE_TTL,
-  prefetchPage 
-} from "../../utils/cacheUtils";
 
 interface NearbyEventsState {
   events: Event[];
   loading: boolean;
+  loadingMore: boolean;
   error: string | null;
-  // Pagination state
-  currentPage: number;
-  pageSize: number;
-  totalCount: number;
-  totalPages: number;
+  nextCursor?: string;
+  prevCursor?: string;
   hasNext: boolean;
   hasPrevious: boolean;
+  pageSize: number;
+  totalCount?: number;
+  hasFetched: boolean;
   // Location state
   lastCity: string | null;
   lastState: string | null;
@@ -33,96 +27,74 @@ interface NearbyEventsState {
 const initialState: NearbyEventsState = {
   events: [],
   loading: false,
+  loadingMore: false,
   error: null,
-  currentPage: 1,
-  pageSize: 12,
-  totalCount: 0,
-  totalPages: 0,
+  nextCursor: undefined,
+  prevCursor: undefined,
   hasNext: false,
   hasPrevious: false,
+  pageSize: 12,
+  totalCount: undefined,
+  hasFetched: false,
   lastCity: null,
   lastState: null,
 };
 
-export const fetchNearbyEventsByLocation = createAsyncThunk<
-  Omit<PaginatedResponse<Event>, 'items'> & { events: Event[] },
-  LocationEventsApiParams,
+// Initial fetch for nearby events
+export const fetchInitialNearbyEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorLocationEventsApiParams,
   { state: RootState; rejectValue: string }
->("nearbyEvents/fetchByLocation", async (params, { rejectWithValue }) => {
-  const requestParams = {
-    city: params.city,
-    state: params.state,
-    page: params.page || 1,
-    page_size: params.page_size || 12,
-  };
-
+>("nearbyEvents/fetchInitial", async (params, { rejectWithValue }) => {
   try {
-    // Create cache key
-    const cacheKey = createCacheKey.nearbyEvents(
-      requestParams.city,
-      requestParams.state,
-      requestParams.page,
-      requestParams.page_size
-    );
-    
-    // Use cached data with API fallback
-    const cachedData = await getCachedData<Event>(
-      cacheKey,
-      async () => {
-        const response = await fetchEventsAPI(requestParams) as PaginatedResponse<Event>;
-        
-        return {
-          items: response.items,
-          totalCount: response.total_count,
-          totalPages: response.total_pages,
-          page: response.page,
-          pageSize: response.page_size,
-          hasNext: response.has_next,
-          hasPrevious: response.has_previous,
-        };
-      },
-      CACHE_TTL.NEARBY_EVENTS
-    );
-    
-    // Prefetch next page if available
-    if (cachedData.hasNext) {
-      const nextPageParams = { ...requestParams, page: requestParams.page + 1 };
-      const nextPageCacheKey = createCacheKey.nearbyEvents(
-        nextPageParams.city,
-        nextPageParams.state,
-        nextPageParams.page,
-        nextPageParams.page_size
-      );
-      
-      prefetchPage<Event>(
-        nextPageCacheKey,
-        async () => {
-          const response = await fetchEventsAPI(nextPageParams) as PaginatedResponse<Event>;
-          return {
-            items: response.items,
-            totalCount: response.total_count,
-            totalPages: response.total_pages,
-            page: response.page,
-            pageSize: response.page_size,
-            hasNext: response.has_next,
-            hasPrevious: response.has_previous,
-          };
-        },
-        CACHE_TTL.NEARBY_EVENTS
-      );
-    }
-    
-    return {
-      events: cachedData.items,
-      total_count: cachedData.totalCount,
-      page: cachedData.page,
-      page_size: cachedData.pageSize,
-      total_pages: cachedData.totalPages,
-      has_next: cachedData.hasNext,
-      has_previous: cachedData.hasPrevious,
-    };
+    const response = await fetchNearbyEventsByLocationWithCursor({
+      city: params.city,
+      state: params.state,
+      page_size: params.page_size || 12,
+      cursor: undefined, // No cursor for initial load
+    });
+    return response;
   } catch (error) {
     return rejectWithValue("Failed to fetch nearby events");
+  }
+});
+
+// Load more nearby events
+export const loadMoreNearbyEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { cursor: string; city: string; state: string; pageSize?: number },
+  { state: RootState; rejectValue: string }
+>("nearbyEvents/loadMore", async ({ cursor, city, state, pageSize = 12 }, { rejectWithValue }) => {
+  try {
+    const response = await fetchNearbyEventsByLocationWithCursor({
+      city,
+      state,
+      cursor,
+      page_size: pageSize,
+      direction: 'next',
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to load more nearby events");
+  }
+});
+
+// Refresh nearby events for a location
+export const refreshNearbyEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { city: string; state: string; pageSize?: number },
+  { state: RootState; rejectValue: string }
+>("nearbyEvents/refresh", async ({ city, state, pageSize = 12 }, { rejectWithValue }) => {
+  try {
+    const response = await fetchNearbyEventsByLocationWithCursor({
+      city,
+      state,
+      page_size: pageSize,
+      cursor: undefined, // No cursor for refresh
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to refresh nearby events");
   }
 });
 
@@ -130,50 +102,97 @@ const nearbyEventsSlice = createSlice({
   name: "nearbyEvents",
   initialState,
   reducers: {
+    // Reset state
     resetNearbyEvents: (state) => {
       Object.assign(state, initialState);
     },
-    setPage: (state, action: PayloadAction<number>) => {
-      state.currentPage = action.payload;
-    },
+    
+    // Update page size
     setPageSize: (state, action: PayloadAction<number>) => {
       state.pageSize = action.payload;
-      state.currentPage = 1; // Reset to first page when changing page size
+    },
+    
+    // Update location
+    setLocation: (state, action: PayloadAction<{ city: string; state: string }>) => {
+      state.lastCity = action.payload.city;
+      state.lastState = action.payload.state;
+    },
+    
+    // Clear error
+    clearError: (state) => {
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchNearbyEventsByLocation.pending, (state) => {
+      // Initial fetch
+      .addCase(fetchInitialNearbyEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchNearbyEventsByLocation.fulfilled, (state, action) => {
-        state.events = action.payload.events;
-        
-        // Update location state
-        if (action.meta.arg.city) {
-          state.lastCity = action.meta.arg.city;
-        }
-        if (action.meta.arg.state) {
-          state.lastState = action.meta.arg.state;
-        }
-        
-        // Update pagination state
-        state.currentPage = action.payload.page;
-        state.pageSize = action.payload.page_size;
-        state.totalCount = action.payload.total_count;
-        state.totalPages = action.payload.total_pages;
-        state.hasNext = action.payload.has_next;
-        state.hasPrevious = action.payload.has_previous;
-        
+      .addCase(fetchInitialNearbyEvents.fulfilled, (state, action) => {
         state.loading = false;
+        state.hasFetched = true;
+        state.events = action.payload.items;
+        state.nextCursor = action.payload.pagination.next_cursor;
+        state.prevCursor = action.payload.pagination.prev_cursor;
+        state.hasNext = action.payload.pagination.has_next;
+        state.hasPrevious = action.payload.pagination.has_previous;
+        state.pageSize = action.payload.pagination.page_size;
+        state.totalCount = action.payload.pagination.total_count;
       })
-      .addCase(fetchNearbyEventsByLocation.rejected, (state, action) => {
+      .addCase(fetchInitialNearbyEvents.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch nearby events";
+      })
+      
+      // Load more
+      .addCase(loadMoreNearbyEvents.pending, (state) => {
+        state.loadingMore = true;
+        state.error = null;
+      })
+      .addCase(loadMoreNearbyEvents.fulfilled, (state, action) => {
+        state.loadingMore = false;
+        state.events = [...state.events, ...action.payload.items];
+        state.nextCursor = action.payload.pagination.next_cursor;
+        state.prevCursor = action.payload.pagination.prev_cursor;
+        state.hasNext = action.payload.pagination.has_next;
+        state.hasPrevious = action.payload.pagination.has_previous;
+        state.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(loadMoreNearbyEvents.rejected, (state, action) => {
+        state.loadingMore = false;
+        state.error = action.payload || "Failed to load more nearby events";
+      })
+      
+      // Refresh
+      .addCase(refreshNearbyEvents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(refreshNearbyEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.hasFetched = true;
+        state.events = action.payload.items;
+        state.nextCursor = action.payload.pagination.next_cursor;
+        state.prevCursor = action.payload.pagination.prev_cursor;
+        state.hasNext = action.payload.pagination.has_next;
+        state.hasPrevious = action.payload.pagination.has_previous;
+        state.pageSize = action.payload.pagination.page_size;
+        state.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(refreshNearbyEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to refresh nearby events";
       });
   },
 });
 
-export const { resetNearbyEvents, setPage, setPageSize } = nearbyEventsSlice.actions;
+export const {
+  resetNearbyEvents,
+  setPageSize,
+  setLocation,
+  clearError,
+} = nearbyEventsSlice.actions;
+
 export default nearbyEventsSlice.reducer;

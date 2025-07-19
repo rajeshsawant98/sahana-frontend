@@ -70,7 +70,7 @@ const LocationNavbar: React.FC = () => {
   }, []);
 
   const handleLocationClick = (): void => {
-    navigate('/nearby-events', { 
+    navigate('/events/nearby', { 
       state: { 
         city: location.city, 
         state: location.state 

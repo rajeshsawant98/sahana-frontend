@@ -410,10 +410,11 @@ Add `vercel.json` for React Router fallback:
 ### Project Documentation
 
 - **[📚 Documentation Hub](./docs/README.md)** - Complete project documentation
-- **[📋 JIRA Stories](./docs/JIRA_STORIES.md)** - Anonymous user enhancement stories
 - **[API Architecture Guide](./docs/API_SEPARATION_GUIDE.md)** - API design patterns
-- **[Dark Mode Implementation](./docs/DARK_MODE_IMPLEMENTATION.md)** - Theme system guide
 - **[Documentation Guidelines](./docs/DOCUMENTATION_GUIDELINES.md)** - Contributing standards
+- **[Friends System Guide](./docs/FRIENDS_FRONTEND_GUIDE.md)** - Complete friends system implementation
+- **[Archive Implementation](./docs/ARCHIVE_IMPLEMENTATION.md)** - Event archive system guide
+- **[Backend API Usage Report](./docs/BACKEND_API_USAGE_REPORT.md)** - API usage documentation
 
 ### External Resources
 

@@ -1,8 +1,16 @@
 // Pagination types for API responses and UI components
 
+// Legacy offset-based pagination (used only by admin pages)
 export interface PaginationParams {
   page?: number;
   page_size?: number;
+}
+
+// New cursor-based pagination
+export interface CursorPaginationParams {
+  cursor?: string;
+  page_size?: number;
+  direction?: 'next' | 'prev';
 }
 
 export interface EventFilters {
@@ -25,7 +33,7 @@ export interface LocationParams {
   state: string;
 }
 
-// Generic paginated response structure
+// Generic paginated response structure (legacy)
 export interface PaginatedResponse<T> {
   items: T[];
   total_count: number;
@@ -34,6 +42,19 @@ export interface PaginatedResponse<T> {
   total_pages: number;
   has_next: boolean;
   has_previous: boolean;
+}
+
+// New cursor-based pagination response
+export interface CursorPaginatedResponse<T> {
+  items: T[];
+  pagination: {
+    next_cursor?: string;
+    prev_cursor?: string;
+    has_next: boolean;
+    has_previous: boolean;
+    page_size: number;
+    total_count?: number; // Optional for UI display
+  };
 }
 
 // Legacy response format (without pagination)
@@ -47,10 +68,16 @@ export interface LegacyUsersResponse {
   count?: number;
 }
 
-// Combined API request parameters
+// Combined API request parameters (legacy - used only by admin pages)
 export interface EventsApiParams extends PaginationParams, EventFilters {}
-export interface LocationEventsApiParams extends PaginationParams, LocationParams {}
 export interface UsersApiParams extends PaginationParams, UserFilters {}
+
+// Combined API request parameters (cursor-based - used by main app)
+export interface CursorEventsApiParams extends CursorPaginationParams, EventFilters {}
+export interface CursorLocationEventsApiParams extends CursorPaginationParams, LocationParams {}
+
+// REMOVED: LocationEventsApiParams - was only used by removed legacy APIs
+// REMOVED: CursorUsersApiParams - no cursor-based user pagination needed
 
 // Type imports (these should be imported from their respective files)
 import { Event } from './Event';

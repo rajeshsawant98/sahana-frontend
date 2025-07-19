@@ -18,7 +18,7 @@ import { Event as EventIcon, Archive } from "@mui/icons-material";
 import { NavBar } from "../../components/navigation";
 import { PaginationControls } from "../../components/ui";
 import { EventFilters as EventFiltersComponent, BulkArchiveButton } from "../../components/events";
-import { fetchAllAdminEvents, fetchAllAdminArchivedEvents } from "../../apis/eventsAPI";
+import { fetchAllPublicEvents, fetchAllAdminArchivedEvents } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { EventFilters, PaginatedResponse, LegacyEventsResponse } from "../../types/Pagination";
 import { useNavigate } from "react-router-dom";
@@ -60,7 +60,7 @@ const ManageEvents: React.FC = () => {
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
-      const cacheKey = createCacheKey.adminEvents(currentPage, pageSize, filters);
+      const cacheKey = createCacheKey.events(currentPage, pageSize, filters);
       
       const cachedData = await getCachedData<Event>(
         cacheKey,
@@ -71,7 +71,7 @@ const ManageEvents: React.FC = () => {
             ...filters,
           };
           
-          const response = await fetchAllAdminEvents(params);
+          const response = await fetchAllPublicEvents(params);
           
           if (isPaginatedResponse(response)) {
             return {
@@ -210,7 +210,6 @@ const ManageEvents: React.FC = () => {
     if (activeTab === 1) {
       fetchArchivedEventsData();
     }
-    console.log(`Successfully archived ${archivedCount} events`);
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {

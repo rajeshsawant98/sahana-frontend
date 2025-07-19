@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles';
 import { Box, TextField, Button, Typography, CircularProgress, Backdrop } from "@mui/material";
 import { loginUser, loginWithGoogle, getCurrentUser } from "../apis/authAPI";
 import { login } from "../redux/slices/authSlice";
-import { fetchCreatedEvents, fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
+import { fetchInitialCreatedEvents, fetchInitialRsvpEvents } from "../redux/slices/userEventsSlice";
 import { AppDispatch } from "../redux/store";
 import { AnimateSVG } from "../components/ui";
 import fingerprintSVG from "../assets/fingerprint.svg?raw";
@@ -54,8 +54,8 @@ const LoginPage: React.FC = () => {
         );
         
         // Fetch user events data in the background for better UX
-        dispatch(fetchCreatedEvents({ page: 1, page_size: 12 }));
-        dispatch(fetchRSVPedEvents({ page: 1, page_size: 12 }));
+        dispatch(fetchInitialCreatedEvents({ page_size: 12 }));
+        dispatch(fetchInitialRsvpEvents({ page_size: 12 }));
         
       } catch (profileError) {
         // Fallback to minimal user data if profile fetch fails
@@ -104,8 +104,8 @@ const LoginPage: React.FC = () => {
         );
         
         // Fetch user events data in the background for better UX
-        dispatch(fetchCreatedEvents({ page: 1, page_size: 12 }));
-        dispatch(fetchRSVPedEvents({ page: 1, page_size: 12 }));
+        dispatch(fetchInitialCreatedEvents({ page_size: 12 }));
+        dispatch(fetchInitialRsvpEvents({ page_size: 12 }));
         
       } catch (profileError) {
         // Fallback to minimal user data if profile fetch fails

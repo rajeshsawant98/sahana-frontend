@@ -6,20 +6,21 @@ This folder contains comprehensive documentation for the Sahana Frontend applica
 
 ### Core System Documentation
 
-- **[CACHING_IMPLEMENTATION.md](./CACHING_IMPLEMENTATION.md)** - Technical details of the pagination caching system
 - **[CACHE_GUIDE.md](./CACHE_GUIDE.md)** - Developer handbook for working with the cache system
-- **[CACHING_SUMMARY.md](./CACHING_SUMMARY.md)** - Overview and benefits of the caching implementation
+- **[PAGINATION_CLEANUP.md](./PAGINATION_CLEANUP.md)** - Documentation of pagination API cleanup
+- **[BACKEND_API_USAGE_REPORT.md](./BACKEND_API_USAGE_REPORT.md)** - API usage report for backend team
 
 ### Architecture Documentation
 
-- **[REDUX_VS_CACHE_EXPLANATION.md](./REDUX_VS_CACHE_EXPLANATION.md)** - Understanding the separation between Redux and cache layers
-- **[CACHE_VS_REDIS_COMPARISON.md](./CACHE_VS_REDIS_COMPARISON.md)** - Comparison between our frontend cache and Redis
 - **[ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md)** - Visual diagrams of the system architecture
+- **[ARCHIVE_IMPLEMENTATION.md](./ARCHIVE_IMPLEMENTATION.md)** - Event archive system implementation
 
 ### Development Guides
 
 - **[API_SEPARATION_GUIDE.md](./API_SEPARATION_GUIDE.md)** - Documentation for separating API calls from components into dedicated API modules
 - **[DOCUMENTATION_GUIDELINES.md](./DOCUMENTATION_GUIDELINES.md)** - Standards and templates for creating documentation
+- **[FRIENDS_FRONTEND_GUIDE.md](./FRIENDS_FRONTEND_GUIDE.md)** - Complete guide for the Friends system frontend
+- **[BACKEND_COMMUNICATION_TEMPLATES.md](./BACKEND_COMMUNICATION_TEMPLATES.md)** - Templates for communicating with backend team
 
 ## 🔧 Quick Reference
 
@@ -39,13 +40,14 @@ Centralized API architecture with dedicated modules:
 - `src/apis/authAPI.ts` - Authentication endpoints
 - `src/apis/eventsAPI.ts` - Event management endpoints  
 - `src/apis/adminAPI.ts` - Admin functionality endpoints
+- `src/apis/friendsAPI.ts` - Friends system endpoints
 
 ### Performance Features
 
-- 70% reduction in API calls for repeated pagination
-- Automatic prefetching of next pages
+- Cursor-based pagination for infinite scroll
+- Offset-based pagination for admin interfaces
 - Smart cache invalidation on data changes
-- Memory-efficient TTL-based expiration
+- Streamlined API calls after technical debt cleanup
 
 ## 📝 Contributing
 

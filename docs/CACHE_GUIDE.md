@@ -480,4 +480,4 @@ if (import.meta.env.PROD) {
 }
 ```
 
-This guide covers the essential patterns for working with the caching system. For more detailed implementation examples, refer to the existing Redux slices and the technical documentation in `CACHING_IMPLEMENTATION.md`.
+This guide covers the essential patterns for working with the caching system. For more detailed implementation examples, refer to the existing Redux slices and the cache utilities in `src/utils/cacheUtils.ts`.

@@ -29,13 +29,9 @@ export const Friends: React.FC = () => {
   };
 
   const handleViewProfile = (friendId: string) => {
-    // Navigate to user profile page
-    console.log('View profile:', friendId);
-  };
-
-  const handleMessage = (friendId: string) => {
-    // Navigate to messages or open chat
-    console.log('Message friend:', friendId);
+    // TODO: Navigate to friend's profile page
+  };  const handleMessage = (friendId: string) => {
+    // TODO: Open messaging interface
   };
 
   const tabIndex = friendsState.ui.selectedTab === 'friends' ? 0 

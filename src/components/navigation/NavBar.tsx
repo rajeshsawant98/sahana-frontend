@@ -46,13 +46,14 @@ const NavBar: React.FC = () => {
   // Dynamic navigation items based on authentication status and role
   const navItems: NavItem[] = isAuthenticated 
     ? [
-        { text: 'Events', route: '/events' },
-        { text: 'My Events', route: '/events/my' },
+        { text: 'Events', route: '/events' }, // Now uses infinite scroll by default
+        { text: 'My Events', route: '/events/my' }, // Now uses infinite scroll by default
         { text: 'Friends', route: '/friends' },
         { text: 'Interests', route: '/interests' },
         ...(user?.role === 'admin' ? [{ text: 'Admin Panel', route: '/admin' }] : []),
       ]
     : [
+        { text: 'Events', route: '/events' }, // Public access to main events (infinite scroll)
         { text: 'Login', route: '/login' },
       ];
 

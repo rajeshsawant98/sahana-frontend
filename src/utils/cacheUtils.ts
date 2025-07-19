@@ -31,40 +31,50 @@ export interface PaginatedCacheData<T> {
 
 // Cache key generators
 export const createCacheKey = {
+  // ACTIVELY USED: Admin offset/limit pagination
   events: (page: number, pageSize: number, filters: EventFilters): string => {
     const filterStr = JSON.stringify(filters);
     return `events_${page}_${pageSize}_${btoa(filterStr)}`;
   },
   
-  nearbyEvents: (city: string, state: string, page: number, pageSize: number): string => {
-    return `nearby_${city}_${state}_${page}_${pageSize}`;
+  // ACTIVELY USED: Main app cursor-based pagination
+  cursorEvents: (cursor: string | null, pageSize: number, filters: EventFilters): string => {
+    const filterStr = JSON.stringify(filters);
+    return `cursor_events_${cursor || 'initial'}_${pageSize}_${btoa(filterStr)}`;
   },
   
-  userCreatedEvents: (page: number, pageSize: number): string => {
-    return `user_created_${page}_${pageSize}`;
+  // ACTIVELY USED: Nearby events cursor pagination
+  cursorNearbyEvents: (cursor: string | null, city: string, state: string, pageSize: number): string => {
+    return `cursor_nearby_${city}_${state}_${cursor || 'initial'}_${pageSize}`;
   },
   
-  userRSVPedEvents: (page: number, pageSize: number): string => {
-    return `user_rsvped_${page}_${pageSize}`;
+  // ACTIVELY USED: User events cursor pagination
+  cursorUserCreatedEvents: (cursor: string | null, pageSize: number): string => {
+    return `cursor_user_created_${cursor || 'initial'}_${pageSize}`;
   },
   
-  userOrganizedEvents: (page: number, pageSize: number): string => {
-    return `user_organized_${page}_${pageSize}`;
+  cursorUserRSVPedEvents: (cursor: string | null, pageSize: number): string => {
+    return `cursor_user_rsvped_${cursor || 'initial'}_${pageSize}`;
   },
   
-  userModeratedEvents: (page: number, pageSize: number): string => {
-    return `user_moderated_${page}_${pageSize}`;
+  cursorUserOrganizedEvents: (cursor: string | null, pageSize: number): string => {
+    return `cursor_user_organized_${cursor || 'initial'}_${pageSize}`;
   },
   
+  cursorUserModeratedEvents: (cursor: string | null, pageSize: number): string => {
+    return `cursor_user_moderated_${cursor || 'initial'}_${pageSize}`;
+  },
+  
+  // ACTIVELY USED: Admin pages
   adminUsers: (page: number, pageSize: number, filters: UserFilters): string => {
     const filterStr = JSON.stringify(filters);
     return `admin_users_${page}_${pageSize}_${btoa(filterStr)}`;
   },
-  
-  adminEvents: (page: number, pageSize: number, filters: EventFilters): string => {
-    const filterStr = JSON.stringify(filters);
-    return `admin_events_${page}_${pageSize}_${btoa(filterStr)}`;
-  },
+
+  // REMOVED UNUSED CACHE KEYS:
+  // - nearbyEvents (legacy offset/limit)
+  // - userCreatedEvents, userRSVPedEvents, userOrganizedEvents, userModeratedEvents (legacy offset/limit)
+  // - adminEvents (API doesn't exist in backend)
 };
 
 // In-memory cache with automatic cleanup
@@ -165,12 +175,25 @@ export const invalidateCache = {
     cacheManager.invalidate('admin_events_');
   },
   
+  // Invalidate cursor-based events cache
+  cursorEvents: () => {
+    cacheManager.invalidate('cursor_events_');
+  },
+  
   // Invalidate when user events change (RSVP, create, etc.)
   userEvents: () => {
     cacheManager.invalidate('user_created_');
     cacheManager.invalidate('user_rsvped_');
     cacheManager.invalidate('user_organized_');
     cacheManager.invalidate('user_moderated_');
+  },
+  
+  // Invalidate cursor-based user events cache
+  cursorUserEvents: () => {
+    cacheManager.invalidate('cursor_user_created_');
+    cacheManager.invalidate('cursor_user_rsvped_');
+    cacheManager.invalidate('cursor_user_organized_');
+    cacheManager.invalidate('cursor_user_moderated_');
   },
   
   // Invalidate nearby events for specific location
@@ -180,6 +203,11 @@ export const invalidateCache = {
     } else {
       cacheManager.invalidate('nearby_');
     }
+  },
+  
+  // Invalidate cursor-based nearby events cache
+  cursorNearbyEvents: () => {
+    cacheManager.invalidate('cursor_nearby_');
   },
   
   // Invalidate admin data

@@ -5,7 +5,7 @@ import { useDispatch } from "react-redux";
 import { useTheme } from '@mui/material/styles';
 import { registerUser, getCurrentUser } from '../../apis/authAPI';
 import { login } from "../../redux/slices/authSlice";
-import { fetchCreatedEvents, fetchRSVPedEvents } from "../../redux/slices/userEventsSlice";
+import { fetchInitialCreatedEvents, fetchInitialRsvpEvents } from "../../redux/slices/userEventsSlice";
 import { AppDispatch } from '../../redux/store';
 import signupBackground from '../../assets/SignUp.svg';
 
@@ -39,8 +39,6 @@ const SignUpComponent: React.FC = () => {
         name,
       });
 
-      console.log('Backend response:', response);
-
       const { access_token, refresh_token } = response;
 
       // ✅ Store refresh token in localStorage
@@ -59,8 +57,8 @@ const SignUpComponent: React.FC = () => {
         }));
         
         // Fetch user events data in the background for better UX
-        dispatch(fetchCreatedEvents({ page: 1, page_size: 12 }));
-        dispatch(fetchRSVPedEvents({ page: 1, page_size: 12 }));
+        dispatch(fetchInitialCreatedEvents({ page_size: 12 }));
+        dispatch(fetchInitialRsvpEvents({ page_size: 12 }));
         
       } catch (profileError) {
         // Fallback to minimal user data if profile fetch fails

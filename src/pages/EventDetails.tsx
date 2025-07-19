@@ -28,14 +28,13 @@ const EventDetails: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const rsvpedEvents = useSelector((state: RootState) => state.userEvents.rsvpedEvents);
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-  const isRSVPed = useMemo(
-    () => isAuthenticated && rsvpedEvents.some((e) => e.eventId === id || e.eventId === id),
-    [isAuthenticated, rsvpedEvents, id]
-  );
+  const isRSVPed = useMemo(() => {
+    if (!isAuthenticated || !currentUser || !event) return false;
+    return event.rsvpList?.includes(currentUser.email) || false;
+  }, [isAuthenticated, currentUser, event]);
 
   const canEditEvent = useMemo(() => {
     if (!event || !currentUser) return false;
@@ -63,9 +62,14 @@ const EventDetails: React.FC = () => {
     
     try {
       await rsvpToEvent(id, { status: "joined" });
-      window.location.reload();
+      
+      // Refresh the event data to get updated RSVP list
+      const updatedEvent = await fetchEventById(id);
+      setEvent(updatedEvent);
+      
     } catch (err) {
       console.error("RSVP failed", err);
+      setError("Failed to join event. Please try again.");
     }
   };
 
@@ -92,27 +96,17 @@ const EventDetails: React.FC = () => {
 
   const { latitude, longitude, formattedAddress, name } = location || {};
 
-  const formatDateTime = (dateString: string): string => {
-    return new Date(dateString).toLocaleString("en-US", {
+  const formatDateTime = (dateString: string, includeTimezone = false): string => {
+    const options: Intl.DateTimeFormatOptions = {
       weekday: "long",
       month: "long",
       day: "numeric",
       hour: "numeric",
       minute: "numeric",
       hour12: true,
-    });
-  };
-
-  const formatDateTimeWithTimezone = (dateString: string): string => {
-    return new Date(dateString).toLocaleString("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-      timeZoneName: "short",
-    });
+      ...(includeTimezone && { timeZoneName: "short" }),
+    };
+    return new Date(dateString).toLocaleString("en-US", options);
   };
 
   return (
@@ -233,7 +227,7 @@ const EventDetails: React.FC = () => {
       <Box sx={{ px: 4, py: 2 }}>
         {categories?.length > 0 && (
           <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
-            {categories.map((cat, index) => (
+            {categories.map((cat: string, index: number) => (
               <Chip
                 key={index}
                 label={cat}
@@ -251,7 +245,7 @@ const EventDetails: React.FC = () => {
               Date and Time
             </Typography>
             <Typography color="text.secondary" sx={{ mb: 3 }}>
-              {formatDateTimeWithTimezone(startTime)}
+              {formatDateTime(startTime, true)}
             </Typography>
 
             <Typography variant="h6" gutterBottom>

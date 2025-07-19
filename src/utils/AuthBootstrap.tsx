@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login, initialize } from "../redux/slices/authSlice";
-import { fetchCreatedEvents, fetchRSVPedEvents } from "../redux/slices/userEventsSlice";
+import { fetchInitialCreatedEvents, fetchInitialRsvpEvents } from "../redux/slices/userEventsSlice";
 import { refreshToken, getCurrentUser } from "../apis/authAPI";
 import { updateAccessToken } from "../redux/tokenManager";
 import { RootState } from "../redux/store";
@@ -59,8 +59,8 @@ const AuthBootstrap = () => {
           // Fetch user events data in the background for better UX
           // Use Promise.allSettled to handle errors gracefully
           Promise.allSettled([
-            dispatch(fetchCreatedEvents({ page: 1, page_size: 12 })),
-            dispatch(fetchRSVPedEvents({ page: 1, page_size: 12 }))
+            dispatch(fetchInitialCreatedEvents({ page_size: 12 })),
+            dispatch(fetchInitialRsvpEvents({ page_size: 12 }))
           ]).catch((error) => {
             console.warn("Some user events failed to load:", error);
           });
@@ -80,8 +80,8 @@ const AuthBootstrap = () => {
         // Fetch user events data in the background for better UX
         // Use Promise.allSettled to handle errors gracefully
         Promise.allSettled([
-          dispatch(fetchCreatedEvents({ page: 1, page_size: 12 })),
-          dispatch(fetchRSVPedEvents({ page: 1, page_size: 12 }))
+          dispatch(fetchInitialCreatedEvents({ page_size: 12 })),
+          dispatch(fetchInitialRsvpEvents({ page_size: 12 }))
         ]).catch((error) => {
           console.warn("Some user events failed to load:", error);
         });

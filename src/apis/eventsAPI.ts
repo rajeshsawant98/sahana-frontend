@@ -4,8 +4,10 @@ import {
   PaginatedResponse, 
   LegacyEventsResponse, 
   EventsApiParams,
-  LocationEventsApiParams,
-  PaginationParams 
+  CursorPaginationParams,
+  CursorPaginatedResponse,
+  CursorEventsApiParams,
+  CursorLocationEventsApiParams
 } from "../types/Pagination";
 
 // Event API interfaces
@@ -41,80 +43,83 @@ export interface UpdateModeratorsRequest {
   moderatorEmails: string[];
 }
 
-// External events (Ticketmaster) - Updated with pagination
-export const fetchExternalEventsByLocation = async (
-  params: LocationEventsApiParams
-): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
-  const { city, state, page, page_size } = params;
-  const queryParams = new URLSearchParams({
-    city,
-    state,
-    ...(page && { page: page.toString() }),
-    ...(page_size && { page_size: page_size.toString() }),
-  });
-  
-  const res = await axiosInstance.get(`/events/location/external?${queryParams}`);
-  return res.data;
-};
+// External events (Ticketmaster) - REMOVED: Unused legacy offset/limit version
+// External events (Ticketmaster) - REMOVED: Unused cursor version  
 
-export const fetchNearbyEventsByLocation = async (
-  params: LocationEventsApiParams
-): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
-  const { city, state, page, page_size } = params;
+// Nearby events - REMOVED: Unused legacy offset/limit version
+
+// Nearby events - NEW: Cursor-based pagination
+export const fetchNearbyEventsByLocationWithCursor = async (
+  params: CursorLocationEventsApiParams
+): Promise<CursorPaginatedResponse<Event>> => {
+  const { city, state, cursor, page_size, direction } = params;
   const queryParams = new URLSearchParams({
     city,
     state,
-    ...(page && { page: page.toString() }),
+    ...(cursor && { cursor }),
     ...(page_size && { page_size: page_size.toString() }),
+    ...(direction && { direction }),
   });
   
   const res = await axiosInstance.get(`/events/location/nearby?${queryParams}`);
   return res.data;
 };
 
-// 🟢 Created events (by user) - Updated with pagination
-export const fetchCreatedEvents = async (
-  params?: PaginationParams
-): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+// 🟢 Created events (by user) - REMOVED: Unused legacy offset/limit version
+
+// 🟢 Created events (by user) - NEW: Cursor-based pagination
+export const fetchCreatedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
   const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
   if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
   
   const res = await axiosInstance.get(`/events/me/created${queryParams.toString() ? `?${queryParams}` : ''}`);
   return res.data;
 };
 
-// 🔵 RSVP'd events (user joined) - Updated with pagination
-export const fetchRSVPedEvents = async (
-  params?: PaginationParams
-): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+// 🔵 RSVP'd events (user joined) - REMOVED: Unused legacy offset/limit version
+
+// 🔵 RSVP'd events (user joined) - NEW: Cursor-based pagination
+export const fetchRSVPedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
   const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
   if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
   
   const res = await axiosInstance.get(`/events/me/rsvped${queryParams.toString() ? `?${queryParams}` : ''}`);
   return res.data;
 };
 
-// 🟠 Organized events (user is organizer) - Updated with pagination
-export const fetchOrganizedEvents = async (
-  params?: PaginationParams
-): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+// 🟠 Organized events (user is organizer) - REMOVED: Unused legacy offset/limit version
+
+// 🟠 Organized events (user is organizer) - NEW: Cursor-based pagination
+export const fetchOrganizedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
   const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
   if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
   
   const res = await axiosInstance.get(`/events/me/organized${queryParams.toString() ? `?${queryParams}` : ''}`);
   return res.data;
 };
 
-// 🟣 Moderated events (user is moderator) - Updated with pagination
-export const fetchModeratedEvents = async (
-  params?: PaginationParams
-): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+// 🟣 Moderated events (user is moderator) - REMOVED: Unused legacy offset/limit version
+
+// 🟣 Moderated events (user is moderator) - NEW: Cursor-based pagination
+export const fetchModeratedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
   const queryParams = new URLSearchParams();
-  if (params?.page) queryParams.set('page', params.page.toString());
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
   if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
   
   const res = await axiosInstance.get(`/events/me/moderated${queryParams.toString() ? `?${queryParams}` : ''}`);
   return res.data;
@@ -148,15 +153,16 @@ export const fetchAllPublicEvents = async (
   return res.data;
 };
 
-// 🔸 Admin: Get all events (unfiltered) - Updated with pagination
-export const fetchAllAdminEvents = async (
-  params?: EventsApiParams
-): Promise<PaginatedResponse<Event> | LegacyEventsResponse> => {
+// 🔺 All public events - Cursor-based pagination
+export const fetchAllPublicEventsWithCursor = async (
+  params?: CursorEventsApiParams
+): Promise<CursorPaginatedResponse<Event>> => {
   const queryParams = new URLSearchParams();
   
-  // Add pagination parameters
-  if (params?.page) queryParams.set('page', params.page.toString());
+  // Add cursor pagination parameters
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
   if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
   
   // Add filter parameters
   if (params?.city) queryParams.set('city', params.city);
@@ -167,9 +173,15 @@ export const fetchAllAdminEvents = async (
   if (params?.start_date) queryParams.set('start_date', params.start_date);
   if (params?.end_date) queryParams.set('end_date', params.end_date);
   
-  const res = await axiosInstance.get(`/events${queryParams.toString() ? `?${queryParams}` : ''}`);
+  const url = `/events${queryParams.toString() ? `?${queryParams}` : ''}`;
+  const res = await axiosInstance.get(url);
+  
   return res.data;
 };
+
+// 🔸 Admin: Get all events (unfiltered) - REMOVED: API doesn't exist in backend 
+
+// 🔸 Admin: Get all events (unfiltered) - REMOVED: Unused cursor version
 
 // ✨ NEW: Event management functions
 export const fetchEventById = async (eventId: string): Promise<Event> => {

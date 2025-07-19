@@ -1,139 +1,208 @@
-import React, { useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
-import { useTheme } from '@mui/material/styles';
-import { fetchNearbyEventsByLocation, setPage, setPageSize } from "../redux/slices/nearbyEventsSlice";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Typography,
-  Grid,
-  CircularProgress,
   Container,
+  Button,
+  Grid2,
+  CircularProgress,
+  Stack,
+  Alert,
 } from "@mui/material";
+import { LocationOn as LocationIcon, Refresh as RefreshIcon } from "@mui/icons-material";
+import { useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { NavBar } from "../components/navigation";
 import { EventCard } from "../components/events";
-import { PaginationControls } from "../components/ui";
-
-interface LocationState {
-  city?: string;
-  state?: string;
-}
+import { InfiniteScroll } from "../components/ui";
+import { Event } from "../types/Event";
+import {
+  fetchInitialNearbyEvents,
+  loadMoreNearbyEvents,
+  refreshNearbyEvents,
+  setLocation,
+} from "../redux/slices/nearbyEventsSlice";
 
 const NearbyEventsPage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const theme = useTheme();
-  const { 
-    events, 
-    loading, 
-    error, 
-    currentPage, 
-    pageSize, 
-    totalCount, 
-    totalPages
-  } = useAppSelector((state) => state.nearbyEvents);
-  
   const location = useLocation();
-  const locationState = location.state as LocationState;
-  const city = locationState?.city;
-  const state = locationState?.state || "AZ"; // Fallback state
+  const [city, setCity] = useState<string>("");
+  const [state, setState] = useState<string>("");
+  
+  const {
+    events,
+    loading,
+    loadingMore,
+    error,
+    nextCursor,
+    hasNext,
+    pageSize,
+    totalCount,
+    hasFetched,
+    lastCity,
+    lastState,
+  } = useAppSelector((state) => state.nearbyEvents);
 
-  // Initial load when component mounts or location changes
+  // Get location from navigation state (from LocationNavbar) or use geolocation as fallback
   useEffect(() => {
-    if (city && state) {
-      dispatch(fetchNearbyEventsByLocation({
+    const routeState = location.state as { city?: string; state?: string } | null;
+    
+    if (routeState?.city && routeState?.state) {
+      // Use location from LocationNavbar
+      setCity(routeState.city);
+      setState(routeState.state);
+    } else if (navigator.geolocation) {
+      // Fallback to geolocation
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // In a real app, you'd reverse geocode these coordinates to get city/state
+          // For now, let's use a default location
+          setCity("Boston");
+          setState("MA");
+        },
+        (error) => {
+          console.warn("Geolocation error:", error);
+          // Default to a popular city
+          setCity("San Francisco");
+          setState("CA");
+        }
+      );
+    } else {
+      // Default location if geolocation is not supported
+      setCity("New York");
+      setState("NY");
+    }
+  }, [location.state]);
+
+  // Fetch nearby events when location changes
+  useEffect(() => {
+    if (city && state && (!hasFetched || city !== lastCity || state !== lastState)) {
+      dispatch(setLocation({ city, state }));
+      dispatch(fetchInitialNearbyEvents({
         city,
         state,
-        page: currentPage,
         page_size: pageSize,
       }));
     }
-  }, [dispatch, city, state]); // Only trigger on location changes
+  }, [city, state, pageSize, dispatch, hasFetched, lastCity, lastState]);
 
-  const handlePageChange = (page: number) => {
-    dispatch(setPage(page));
-    
-    // Immediately trigger API call with new page
-    if (city && state) {
-      dispatch(fetchNearbyEventsByLocation({
-        city,
-        state,
-        page: page, // Use the new page directly
-        page_size: pageSize,
+  // Handle load more
+  const handleLoadMore = useCallback(() => {
+    if (nextCursor && hasNext && !loadingMore && lastCity && lastState) {
+      dispatch(loadMoreNearbyEvents({
+        cursor: nextCursor,
+        city: lastCity,
+        state: lastState,
+        pageSize,
       }));
     }
-  };
+  }, [dispatch, nextCursor, hasNext, loadingMore, lastCity, lastState, pageSize]);
 
-  const handlePageSizeChange = (newPageSize: number) => {
-    dispatch(setPageSize(newPageSize));
-    
-    // Immediately trigger API call with new page size (page resets to 1)
-    if (city && state) {
-      dispatch(fetchNearbyEventsByLocation({
-        city,
-        state,
-        page: 1, // Reset to page 1 when changing page size
-        page_size: newPageSize,
+  // Handle refresh
+  const handleRefresh = useCallback(() => {
+    if (lastCity && lastState) {
+      dispatch(refreshNearbyEvents({
+        city: lastCity,
+        state: lastState,
+        pageSize,
       }));
     }
+  }, [dispatch, lastCity, lastState, pageSize]);
+
+  const getCurrentLocationString = () => {
+    return lastCity && lastState ? `${lastCity}, ${lastState}` : "Unknown Location";
   };
 
   return (
-    <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>
+    <>
       <NavBar />
       <Container>
-        <Typography variant="h4" gutterBottom>
-          {city && state ? `Nearby Events in ${city}, ${state}` : "Nearby Events"}
-        </Typography>
-        
-        {!loading && events.length > 0 && (
-          <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-            Found {totalCount} events (Page {currentPage} of {totalPages})
+        {/* Header */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" gutterBottom>
+            Nearby Events
           </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Discover events happening in your area
+          </Typography>
+          {lastCity && lastState && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+              <LocationIcon color="primary" sx={{ fontSize: 20 }} />
+              <Typography variant="body2" color="text.secondary">
+                Showing events near: <strong>{getCurrentLocationString()}</strong>
+              </Typography>
+              <Button
+                variant="outlined"
+                onClick={handleRefresh}
+                disabled={loading || !lastCity || !lastState}
+                startIcon={<RefreshIcon />}
+                size="small"
+              >
+                Refresh
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        {/* Error Display */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
         )}
 
-        {loading ? (
-          <CircularProgress />
-        ) : error ? (
-          <Typography color="error">
-            Error: {error}
-          </Typography>
-        ) : !city || !state ? (
-          <Typography>
-            Unable to determine location. Please access this page by clicking on your location in the navigation bar.
-          </Typography>
-        ) : events.length === 0 ? (
-          <Typography>
-            No events found nearby.
-          </Typography>
-        ) : (
-          <>
-            <Grid
-              container
-              spacing={3}
-              display="flex"
-              flexWrap="wrap"
-              alignItems="stretch"
-            >
-              {events.map((event) => (
-                <Grid item xs={12} sm={6} md={4} key={event.eventId}>
-                  <EventCard event={event} />
-                </Grid>
-              ))}
-            </Grid>
+        {/* Loading State (Initial Load) */}
+        {loading && events.length === 0 && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
 
-            {/* Pagination Controls */}
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              onPageChange={handlePageChange}
-              onPageSizeChange={handlePageSizeChange}
-            />
-          </>
+        {/* Empty State */}
+        {!loading && events.length === 0 && !error && hasFetched && (
+          <Box sx={{ textAlign: 'center', py: 6 }}>
+            <Typography variant="h6" color="text.secondary" gutterBottom>
+              No events found in {getCurrentLocationString()}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Try searching for a different city or check back later for new events.
+            </Typography>
+          </Box>
+        )}
+
+        {/* Events List with Infinite Scroll */}
+        {events.length > 0 && (
+          <InfiniteScroll
+            loading={loadingMore}
+            hasMore={hasNext}
+            onLoadMore={handleLoadMore}
+            loadingMessage="Loading more nearby events..."
+            endMessage={`🎉 You've seen all events in ${getCurrentLocationString()}!`}
+            error={!!error}
+            errorMessage={error || "Failed to load more events"}
+          >
+            <Grid2 container spacing={3}>
+              {events.map((event: Event, index: number) => (
+                <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={`${event.eventId}-${index}`}>
+                  <EventCard event={event} />
+                </Grid2>
+              ))}
+            </Grid2>
+          </InfiniteScroll>
+        )}
+
+        {/* Event Count Footer */}
+        {events.length > 0 && (
+          <Box sx={{ textAlign: 'center', py: 2, mt: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Showing {events.length}
+              {totalCount !== undefined && ` of ${totalCount}`} 
+              {` events in ${getCurrentLocationString()}`}
+            </Typography>
+          </Box>
         )}
       </Container>
-    </Box>
+    </>
   );
 };
 

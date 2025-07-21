@@ -1,27 +1,25 @@
-export interface User {
+
+
+export interface FriendProfile {
   id: string;
   name: string;
   email: string;
   bio?: string;
   profile_picture?: string;
-  location?: {
-    address: string;
-    latitude: number;
-    longitude: number;
-  };
+  location?: Record<string, any>;
   interests?: string[];
-  events_created?: number;
-  events_attended?: number;
   created_at?: string;
 }
 
-export interface FriendProfile extends User {
-  events_created: number;
-  events_attended: number;
-}
-
-export interface UserSearchResult extends User {
-  friendship_status: 'none' | 'friends' | 'pending_sent' | 'pending_received';
+export interface UserSearchResult {
+  id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  profile_picture?: string;
+  location?: Record<string, any>;
+  interests?: string[];
+  friendship_status?: 'none' | 'friends' | 'pending_sent' | 'pending_received';
 }
 
 export interface FriendRequest {

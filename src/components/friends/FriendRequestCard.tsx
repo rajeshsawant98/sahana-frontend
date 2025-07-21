@@ -84,14 +84,7 @@ export const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
               </Typography>
             )}
             
-            <Box display="flex" gap={1} mt={1}>
-              <Typography variant="caption" color="text.secondary">
-                📅 {profile.events_created} events created
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                🎯 {profile.events_attended} events attended
-              </Typography>
-            </Box>
+
             
             {profile.interests && profile.interests.length > 0 && (
               <Box sx={{ mt: 1 }}>

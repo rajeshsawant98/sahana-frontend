@@ -104,7 +104,16 @@ export const Friends: React.FC = () => {
               {friendsState.friends.map((friend) => (
                 <FriendCard
                   key={friend.id}
-                  friend={friend}
+                  friend={{
+                    id: friend.id,
+                    name: friend.name ?? 'Unknown',
+                    email: friend.email ?? '',
+                    bio: friend.bio,
+                    profile_picture: friend.profile_picture,
+                    location: friend.location,
+                    interests: friend.interests,
+                    created_at: friend.created_at,
+                  }}
                   onViewProfile={handleViewProfile}
                   onMessage={handleMessage}
                 />

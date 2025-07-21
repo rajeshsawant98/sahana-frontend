@@ -46,20 +46,12 @@ export const FriendCard: React.FC<FriendCardProps> = ({
               </Typography>
             )}
             
-            {friend.location && (
+            {friend.location && (typeof friend.location === 'object') && (
               <Typography variant="caption" color="text.secondary">
-                📍 {friend.location.address}
+               📍 {friend.location.city || ''}, {friend.location.state || ''}
+
               </Typography>
             )}
-            
-            <Box display="flex" gap={2} mt={1}>
-              <Typography variant="caption" color="text.secondary">
-                📅 {friend.events_created} events created
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                🎯 {friend.events_attended} events attended
-              </Typography>
-            </Box>
             
             {friend.interests && friend.interests.length > 0 && (
               <Box sx={{ mt: 1 }}>
@@ -81,9 +73,11 @@ export const FriendCard: React.FC<FriendCardProps> = ({
               </Box>
             )}
             
-            <Typography variant="caption" color="text.secondary" display="block" mt={1}>
-              Friends since {new Date(friend.created_at || '').toLocaleDateString()}
-            </Typography>
+            {friend.created_at && (
+              <Typography variant="caption" color="text.secondary" display="block" mt={1}>
+                Friends since {new Date(friend.created_at).toLocaleDateString()}
+              </Typography>
+            )}
           </Box>
           
           <Box>

@@ -4,6 +4,7 @@ import {
   fetchRSVPedEventsWithCursor,
   fetchOrganizedEventsWithCursor,
   fetchModeratedEventsWithCursor,
+  fetchInterestedEventsWithCursor,
 } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { 
@@ -33,6 +34,7 @@ interface UserEventsState {
   rsvped: UserEventState;
   organized: UserEventState;
   moderated: UserEventState;
+  interested: UserEventState;
 }
 
 const defaultEventState: UserEventState = {
@@ -54,6 +56,7 @@ const initialState: UserEventsState = {
   rsvped: { ...defaultEventState },
   organized: { ...defaultEventState },
   moderated: { ...defaultEventState },
+  interested: { ...defaultEventState },
 };
 
 // Created Events Actions
@@ -192,6 +195,40 @@ export const loadMoreModeratedEvents = createAsyncThunk<
   }
 });
 
+// Interested Events Actions
+export const fetchInitialInterestedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  CursorPaginationParams,
+  { state: RootState; rejectValue: string }
+>("userEvents/fetchInitialInterested", async (params, { rejectWithValue }) => {
+  try {
+    const response = await fetchInterestedEventsWithCursor({
+      page_size: params.page_size || 12,
+      cursor: undefined,
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to fetch interested events");
+  }
+});
+
+export const loadMoreInterestedEvents = createAsyncThunk<
+  CursorPaginatedResponse<Event>,
+  { cursor: string; pageSize?: number },
+  { state: RootState; rejectValue: string }
+>("userEvents/loadMoreInterested", async ({ cursor, pageSize = 12 }, { rejectWithValue }) => {
+  try {
+    const response = await fetchInterestedEventsWithCursor({
+      cursor,
+      page_size: pageSize,
+      direction: 'next',
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue("Failed to load more interested events");
+  }
+});
+
 const userEventsSlice = createSlice({
   name: "cursorUserEvents",
   initialState,
@@ -214,6 +251,9 @@ const userEventsSlice = createSlice({
     resetModeratedEvents: (state) => {
       state.moderated = { ...defaultEventState };
     },
+    resetInterestedEvents: (state) => {
+      state.interested = { ...defaultEventState };
+    },
     
     // Update page size
     setCreatedPageSize: (state, action: PayloadAction<number>) => {
@@ -227,6 +267,9 @@ const userEventsSlice = createSlice({
     },
     setModeratedPageSize: (state, action: PayloadAction<number>) => {
       state.moderated.pageSize = action.payload;
+    },
+    setInterestedPageSize: (state, action: PayloadAction<number>) => {
+      state.interested.pageSize = action.payload;
     },
     
     // Remove RSVP'd event (when user cancels RSVP)
@@ -397,6 +440,44 @@ const userEventsSlice = createSlice({
       .addCase(loadMoreModeratedEvents.rejected, (state, action) => {
         state.moderated.loadingMore = false;
         state.moderated.error = action.payload || "Failed to load more moderated events";
+      })
+      
+      // Interested Events
+      .addCase(fetchInitialInterestedEvents.pending, (state) => {
+        state.interested.loading = true;
+        state.interested.error = null;
+      })
+      .addCase(fetchInitialInterestedEvents.fulfilled, (state, action) => {
+        state.interested.loading = false;
+        state.interested.hasFetched = true;
+        state.interested.events = action.payload.items;
+        state.interested.nextCursor = action.payload.pagination.next_cursor;
+        state.interested.prevCursor = action.payload.pagination.prev_cursor;
+        state.interested.hasNext = action.payload.pagination.has_next;
+        state.interested.hasPrevious = action.payload.pagination.has_previous;
+        state.interested.pageSize = action.payload.pagination.page_size;
+        state.interested.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(fetchInitialInterestedEvents.rejected, (state, action) => {
+        state.interested.loading = false;
+        state.interested.error = action.payload || "Failed to fetch interested events";
+      })
+      .addCase(loadMoreInterestedEvents.pending, (state) => {
+        state.interested.loadingMore = true;
+        state.interested.error = null;
+      })
+      .addCase(loadMoreInterestedEvents.fulfilled, (state, action) => {
+        state.interested.loadingMore = false;
+        state.interested.events = [...state.interested.events, ...action.payload.items];
+        state.interested.nextCursor = action.payload.pagination.next_cursor;
+        state.interested.prevCursor = action.payload.pagination.prev_cursor;
+        state.interested.hasNext = action.payload.pagination.has_next;
+        state.interested.hasPrevious = action.payload.pagination.has_previous;
+        state.interested.totalCount = action.payload.pagination.total_count;
+      })
+      .addCase(loadMoreInterestedEvents.rejected, (state, action) => {
+        state.interested.loadingMore = false;
+        state.interested.error = action.payload || "Failed to load more interested events";
       });
   },
 });
@@ -407,10 +488,12 @@ export const {
   resetRSVPedEvents,
   resetOrganizedEvents,
   resetModeratedEvents,
+  resetInterestedEvents,
   setCreatedPageSize,
   setRSVPedPageSize,
   setOrganizedPageSize,
   setModeratedPageSize,
+  setInterestedPageSize,
   removeRSVPedEvent,
   addCreatedEventLocal,
 } = userEventsSlice.actions;

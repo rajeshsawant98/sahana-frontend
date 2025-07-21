@@ -22,14 +22,17 @@ import {
   fetchInitialRsvpEvents,
   fetchInitialOrganizedEvents,
   fetchInitialModeratedEvents,
+  fetchInitialInterestedEvents,
   loadMoreCreatedEvents,
   loadMoreRsvpEvents,
   loadMoreOrganizedEvents,
   loadMoreModeratedEvents,
+  loadMoreInterestedEvents,
   resetCreatedEvents,
   resetRSVPedEvents,
   resetOrganizedEvents,
   resetModeratedEvents,
+  resetInterestedEvents,
 } from "../redux/slices/userEventsSlice";
 
 const MyEventsPage: React.FC = () => {
@@ -42,6 +45,7 @@ const MyEventsPage: React.FC = () => {
     rsvped,
     organized,
     moderated,
+    interested,
   } = useAppSelector((state) => state.userEvents);
 
   const { user } = useAppSelector((state) => state.auth);
@@ -61,6 +65,13 @@ const MyEventsPage: React.FC = () => {
       fetchInitial: fetchInitialRsvpEvents,
       loadMore: loadMoreRsvpEvents,
       reset: resetRSVPedEvents,
+    },
+    { 
+      label: "Interested", 
+      state: interested, 
+      fetchInitial: fetchInitialInterestedEvents,
+      loadMore: loadMoreInterestedEvents,
+      reset: resetInterestedEvents,
     },
     { 
       label: "Organized", 
@@ -125,8 +136,10 @@ const MyEventsPage: React.FC = () => {
       case 1:
         return "You haven't RSVP'd to any events yet. Browse events to join some!";
       case 2:
-        return "You're not organizing any events yet.";
+        return "You haven't marked any events as interested yet. Browse events and click the heart icon to add some!";
       case 3:
+        return "You're not organizing any events yet.";
+      case 4:
         return "You're not moderating any events yet.";
       default:
         return "No events found.";

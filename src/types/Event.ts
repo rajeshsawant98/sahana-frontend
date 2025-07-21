@@ -1,4 +1,11 @@
-import { LocationData } from "./User";
+import { Location } from "./User";
+
+export interface RSVP {
+  email: string;
+  status: "joined" | "interested" | "attended" | "no_show";
+  rating?: number;
+  review?: string;
+}
 
 export interface Event {
   eventId: string;
@@ -14,8 +21,8 @@ export interface Event {
   createdByEmail: string;
   organizers: string[];
   moderators: string[];
-  location?: LocationData;
-  rsvpList?: string[]; // Array of user emails who have RSVP'd
+  location?: Location;
+  rsvpList?: RSVP[]; // Array of RSVP objects
   // Archive fields
   isArchived?: boolean;
   archivedAt?: string;

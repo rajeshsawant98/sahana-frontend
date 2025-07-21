@@ -16,9 +16,11 @@ import {
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CheckIcon from "@mui/icons-material/Check";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import { RootState } from "../redux/store";
 import { Event } from "../types/Event";
-import { fetchEventById, rsvpToEvent } from "../apis/eventsAPI";
+import { fetchEventById, rsvpToEvent, cancelRSVP } from "../apis/eventsAPI";
 import { NavBar } from "../components/navigation";
 
 const EventDetails: React.FC = () => {
@@ -31,10 +33,14 @@ const EventDetails: React.FC = () => {
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-  const isRSVPed = useMemo(() => {
-    if (!isAuthenticated || !currentUser || !event) return false;
-    return event.rsvpList?.includes(currentUser.email) || false;
+  // Find current user's RSVP object
+  const userRSVP = useMemo(() => {
+    if (!isAuthenticated || !currentUser || !event || !event.rsvpList) return undefined;
+    return event.rsvpList.find(rsvp => rsvp.email === currentUser.email);
   }, [isAuthenticated, currentUser, event]);
+
+  const isRSVPed = !!userRSVP && (userRSVP.status === "joined" || userRSVP.status === "interested");
+  const rsvpStatus = userRSVP?.status;
 
   const canEditEvent = useMemo(() => {
     if (!event || !currentUser) return false;
@@ -57,19 +63,35 @@ const EventDetails: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const handleRSVP = async (): Promise<void> => {
+  const handleRSVP = async (status: "joined" | "interested"): Promise<void> => {
     if (!id || !isAuthenticated) return;
-    
+    setError(null);
     try {
-      await rsvpToEvent(id, { status: "joined" });
-      
-      // Refresh the event data to get updated RSVP list
+      await rsvpToEvent(id, { status });
       const updatedEvent = await fetchEventById(id);
       setEvent(updatedEvent);
-      
-    } catch (err) {
-      console.error("RSVP failed", err);
-      setError("Failed to join event. Please try again.");
+    } catch (err: any) {
+      const apiError = err?.response?.data?.detail || `Failed to RSVP as ${status}. Please try again.`;
+      setError(apiError);
+    }
+  };
+
+  const handleInterestedToggle = async (): Promise<void> => {
+    if (!id || !isAuthenticated) return;
+    setError(null);
+    try {
+      if (rsvpStatus === "interested") {
+        // Cancel RSVP as interested
+        await cancelRSVP(id, "interested");
+      } else {
+        // RSVP as interested
+        await rsvpToEvent(id, { status: "interested" });
+      }
+      const updatedEvent = await fetchEventById(id);
+      setEvent(updatedEvent);
+    } catch (err: any) {
+      const apiError = err?.response?.data?.detail || "Failed to update interest. Please try again.";
+      setError(apiError);
     }
   };
 
@@ -199,15 +221,27 @@ const EventDetails: React.FC = () => {
               )}
               {!isOnline && (
                 isAuthenticated ? (
-                  isRSVPed ? (
-                    <Button variant="outlined" color="success" startIcon={<CheckIcon />} disabled>
-                      Joined
+                  <>
+                    <Button
+                      variant={rsvpStatus === "joined" ? "outlined" : "contained"}
+                      color="primary"
+                      startIcon={rsvpStatus === "joined" ? <CheckIcon /> : undefined}
+                      disabled={rsvpStatus === "joined"}
+                      onClick={() => handleRSVP("joined")}
+                    >
+                      {rsvpStatus === "joined" ? "Joined" : "Join Event"}
                     </Button>
-                  ) : (
-                    <Button variant="contained" color="primary" onClick={handleRSVP}>
-                      Join Event
-                    </Button>
-                  )
+                    {rsvpStatus !== "joined" && (
+                      <Button
+                        variant={rsvpStatus === "interested" ? "contained" : "outlined"}
+                        color="secondary"
+                        startIcon={rsvpStatus === "interested" ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                        onClick={handleInterestedToggle}
+                      >
+                        Interested
+                      </Button>
+                    )}
+                  </>
                 ) : (
                   <Button 
                     variant="contained" 

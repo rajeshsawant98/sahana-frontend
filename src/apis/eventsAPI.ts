@@ -1,16 +1,4 @@
-import axiosInstance from "../utils/axiosInstance";
-import { Event, ArchiveEventRequest, ArchiveEventResponse, ArchivedEventsResponse, BulkArchiveResponse } from "../types/Event";
-import { 
-  PaginatedResponse, 
-  LegacyEventsResponse, 
-  EventsApiParams,
-  CursorPaginationParams,
-  CursorPaginatedResponse,
-  CursorEventsApiParams,
-  CursorLocationEventsApiParams
-} from "../types/Pagination";
-
-// Event API interfaces
+// --- Type Definitions ---
 export interface CreateEventRequest {
   eventName: string;
   description?: string;
@@ -32,7 +20,9 @@ export interface CreateEventResponse {
 }
 
 export interface RSVPRequest {
-  status: string;
+  status: "joined" | "interested" | "attended" | "no_show";
+  rating?: number;
+  review?: string;
 }
 
 export interface UpdateOrganizersRequest {
@@ -42,13 +32,75 @@ export interface UpdateOrganizersRequest {
 export interface UpdateModeratorsRequest {
   moderatorEmails: string[];
 }
+import axiosInstance from "../utils/axiosInstance";
+import { Event, ArchiveEventRequest, ArchiveEventResponse, ArchivedEventsResponse, BulkArchiveResponse, RSVP } from "../types/Event";
+import { 
+  PaginatedResponse, 
+  LegacyEventsResponse, 
+  EventsApiParams,
+  CursorPaginationParams,
+  CursorPaginatedResponse,
+  CursorEventsApiParams,
+  CursorLocationEventsApiParams
+} from "../types/Pagination";
 
-// External events (Ticketmaster) - REMOVED: Unused legacy offset/limit version
-// External events (Ticketmaster) - REMOVED: Unused cursor version  
+// Event List Endpoints (Cursor-based)
+export const fetchCreatedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
+  const queryParams = new URLSearchParams();
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
+  const res = await axiosInstance.get(`/events/me/created${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
+};
 
-// Nearby events - REMOVED: Unused legacy offset/limit version
+export const fetchRSVPedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
+  const queryParams = new URLSearchParams();
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
+  const res = await axiosInstance.get(`/events/me/rsvped${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
+};
 
-// Nearby events - NEW: Cursor-based pagination
+export const fetchInterestedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
+  const queryParams = new URLSearchParams();
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
+  const res = await axiosInstance.get(`/events/me/interested${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
+};
+
+export const fetchOrganizedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
+  const queryParams = new URLSearchParams();
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
+  const res = await axiosInstance.get(`/events/me/organized${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
+};
+
+export const fetchModeratedEventsWithCursor = async (
+  params?: CursorPaginationParams
+): Promise<CursorPaginatedResponse<Event>> => {
+  const queryParams = new URLSearchParams();
+  if (params?.cursor) queryParams.set('cursor', params.cursor);
+  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params?.direction) queryParams.set('direction', params.direction);
+  const res = await axiosInstance.get(`/events/me/moderated${queryParams.toString() ? `?${queryParams}` : ''}`);
+  return res.data;
+};
+
+// Location-based Events
 export const fetchNearbyEventsByLocationWithCursor = async (
   params: CursorLocationEventsApiParams
 ): Promise<CursorPaginatedResponse<Event>> => {
@@ -60,75 +112,12 @@ export const fetchNearbyEventsByLocationWithCursor = async (
     ...(page_size && { page_size: page_size.toString() }),
     ...(direction && { direction }),
   });
-  
   const res = await axiosInstance.get(`/events/location/nearby?${queryParams}`);
   return res.data;
 };
 
-// 🟢 Created events (by user) - REMOVED: Unused legacy offset/limit version
+// ...existing code...
 
-// 🟢 Created events (by user) - NEW: Cursor-based pagination
-export const fetchCreatedEventsWithCursor = async (
-  params?: CursorPaginationParams
-): Promise<CursorPaginatedResponse<Event>> => {
-  const queryParams = new URLSearchParams();
-  if (params?.cursor) queryParams.set('cursor', params.cursor);
-  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
-  if (params?.direction) queryParams.set('direction', params.direction);
-  
-  const res = await axiosInstance.get(`/events/me/created${queryParams.toString() ? `?${queryParams}` : ''}`);
-  return res.data;
-};
-
-// 🔵 RSVP'd events (user joined) - REMOVED: Unused legacy offset/limit version
-
-// 🔵 RSVP'd events (user joined) - NEW: Cursor-based pagination
-export const fetchRSVPedEventsWithCursor = async (
-  params?: CursorPaginationParams
-): Promise<CursorPaginatedResponse<Event>> => {
-  const queryParams = new URLSearchParams();
-  if (params?.cursor) queryParams.set('cursor', params.cursor);
-  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
-  if (params?.direction) queryParams.set('direction', params.direction);
-  
-  const res = await axiosInstance.get(`/events/me/rsvped${queryParams.toString() ? `?${queryParams}` : ''}`);
-  return res.data;
-};
-
-// 🟠 Organized events (user is organizer) - REMOVED: Unused legacy offset/limit version
-
-// 🟠 Organized events (user is organizer) - NEW: Cursor-based pagination
-export const fetchOrganizedEventsWithCursor = async (
-  params?: CursorPaginationParams
-): Promise<CursorPaginatedResponse<Event>> => {
-  const queryParams = new URLSearchParams();
-  if (params?.cursor) queryParams.set('cursor', params.cursor);
-  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
-  if (params?.direction) queryParams.set('direction', params.direction);
-  
-  const res = await axiosInstance.get(`/events/me/organized${queryParams.toString() ? `?${queryParams}` : ''}`);
-  return res.data;
-};
-
-// 🟣 Moderated events (user is moderator) - REMOVED: Unused legacy offset/limit version
-
-// 🟣 Moderated events (user is moderator) - NEW: Cursor-based pagination
-export const fetchModeratedEventsWithCursor = async (
-  params?: CursorPaginationParams
-): Promise<CursorPaginatedResponse<Event>> => {
-  const queryParams = new URLSearchParams();
-  if (params?.cursor) queryParams.set('cursor', params.cursor);
-  if (params?.page_size) queryParams.set('page_size', params.page_size.toString());
-  if (params?.direction) queryParams.set('direction', params.direction);
-  
-  const res = await axiosInstance.get(`/events/me/moderated${queryParams.toString() ? `?${queryParams}` : ''}`);
-  return res.data;
-};
-
-export const cancelRSVP = async (eventId: string): Promise<string> => {
-  await axiosInstance.delete(`/events/${eventId}/rsvp`);
-  return eventId;
-};
 
 // 🔺 All public events - Updated with pagination
 export const fetchAllPublicEvents = async (
@@ -202,8 +191,31 @@ export const deleteEvent = async (eventId: string): Promise<void> => {
   await axiosInstance.delete(`/events/${eventId}`);
 };
 
-export const rsvpToEvent = async (eventId: string, data: RSVPRequest): Promise<void> => {
-  await axiosInstance.post(`/events/${eventId}/rsvp`, data);
+export const rsvpToEvent = async (eventId: string, data: RSVPRequest): Promise<any> => {
+  const response = await axiosInstance.post(`/events/${eventId}/rsvp`, data);
+  return response.data;
+};
+
+export const cancelRSVP = async (eventId: string, status: "joined" | "interested"): Promise<{ message: string; rsvp: RSVP }> => {
+  const response = await axiosInstance.delete(`/events/${eventId}/rsvp?status=${status}`);
+  return response.data;
+};
+
+export const updateRSVPStatus = async (
+  eventId: string,
+  data: { status: "attended" | "no_show"; rating?: number; review?: string }
+): Promise<{ message: string; rsvp: RSVP }> => {
+  const response = await axiosInstance.patch(`/events/${eventId}/rsvp/status`, data);
+  return response.data;
+};
+
+export const fetchRSVPList = async (
+  eventId: string,
+  page = 1,
+  page_size = 10
+): Promise<{ rsvps: RSVP[]; page: number; page_size: number; total: number }> => {
+  const response = await axiosInstance.get(`/events/${eventId}/rsvps?page=${page}&page_size=${page_size}`);
+  return response.data;
 };
 
 export const updateEventOrganizers = async (eventId: string, data: UpdateOrganizersRequest): Promise<void> => {

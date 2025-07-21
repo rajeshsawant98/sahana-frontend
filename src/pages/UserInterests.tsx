@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import {
+  Box,
+  Button,
+  Typography,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavBar } from '../components/navigation';
 import { updateUserInterests } from '../apis/authAPI';
@@ -109,13 +118,15 @@ const UserInterests: React.FC = () => {
             alignItems: 'flex-start',
           }}
         >
-          <Box sx={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 1.5,
-          }}>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 1.5,
+            }}
+          >
             <Typography
               variant='h4'
               fontWeight={700}
@@ -232,22 +243,10 @@ const UserInterests: React.FC = () => {
                 }}
               />
             </Box>
-            <Typography
-              variant='caption'
-              sx={{ color: 'text.secondary', fontWeight: 400, ml: 0.5 }}
-            >
-              Click a chip to remove it from your interests.
-            </Typography>
           </Box>
 
           {/* Popular Categories in single column */}
           <Box sx={{ width: '100%', mb: 2 }}>
-            <Typography
-              variant='body2'
-              sx={{ color: 'text.secondary', mb: 1.5, fontWeight: 400 }}
-            >
-              Click a chip to add it to your interests.
-            </Typography>
             {popularCategories.map((cat: PopularCategory) => (
               <CategorySection
                 key={cat.label}
@@ -267,7 +266,9 @@ const UserInterests: React.FC = () => {
             <Typography>{dialogMsg}</Typography>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDialogOpen(false)} autoFocus>OK</Button>
+            <Button onClick={() => setDialogOpen(false)} autoFocus>
+              OK
+            </Button>
           </DialogActions>
         </Dialog>
       </Box>

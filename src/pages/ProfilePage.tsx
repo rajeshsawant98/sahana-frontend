@@ -19,7 +19,7 @@ import { NavBar } from "../components/navigation";
 import { Autocomplete } from "@react-google-maps/api";
 import { login } from "../redux/slices/authSlice";
 import { RootState, AppDispatch } from "../redux/store";
-import { User, LocationData } from "../types/User";
+import { User, Location } from "../types/User";
 
 const ProfilePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -28,7 +28,7 @@ const ProfilePage: React.FC = () => {
   const { user: cachedProfile, accessToken } = useSelector((state: RootState) => state.auth);
   const [profile, setProfile] = useState<Partial<User>>({});
   const [formData, setFormData] = useState<Partial<User>>({});
-  const [location, setLocation] = useState<Partial<LocationData>>({});
+  const [location, setLocation] = useState<Partial<Location>>({});
   const [locationInput, setLocationInput] = useState<string>("");
   const [message, setMessage] = useState<string>("");
   const [openSnackbar, setOpenSnackbar] = useState<boolean>(false);
@@ -61,7 +61,7 @@ const ProfilePage: React.FC = () => {
   const handleUpdateProfile = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     try {
-      const updatedProfile = { ...formData, location: location as LocationData };
+      const updatedProfile = { ...formData, location: location as Location };
       await updateUserProfile(updatedProfile);
       setProfile(updatedProfile);
       dispatch(login({ 
@@ -97,7 +97,7 @@ const ProfilePage: React.FC = () => {
         )?.long_name;
 
         if (lat !== undefined && lng !== undefined) {
-          const newLocation: LocationData = {
+          const newLocation: Location = {
             latitude: lat,
             longitude: lng,
             city: city || "",

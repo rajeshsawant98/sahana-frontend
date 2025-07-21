@@ -32,29 +32,18 @@ export const AppRoutes: React.FC = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignUpComponent />} />
       <Route path="/events/:id" element={<EventDetails />} />
+      <Route path="/events" element={<EventsPage />} />
 
       {/* Protected User Routes */}
       <Route path="/home" element={<ProtectedRoute element={<LandingPage />} />} />
       <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
       <Route path="/interests" element={<ProtectedRoute element={<UserInterests />} />} />
       {/* Main routes now use infinite scroll */}
-      <Route path="/events" element={<ProtectedRoute element={<EventsPage />} />} />
       <Route path="/events/:id/edit" element={<ProtectedRoute element={<EditEvent />} />} />
       <Route path="/events/new" element={<ProtectedRoute element={<CreateEvent />} />} />
       <Route path="/events/my" element={<ProtectedRoute element={<MyEventsPage />} />} />
       <Route path="/friends" element={<ProtectedRoute element={<Friends />} />} />
-      
-      {/* Infinite scroll routes with descriptive paths */}
-      <Route path="/events-infinite" element={<ProtectedRoute element={<EventsPage />} />} />
-      <Route path="/events/my-infinite" element={<ProtectedRoute element={<MyEventsPage />} />} />
       <Route path="/events/nearby" element={<NearbyEventsPage />} />
-
-      {/* Legacy route redirects for backward compatibility */}
-      <Route path="/nearby-events" element={<NearbyEventsPage />} />
-      <Route path="/events/nearby-infinite" element={<NearbyEventsPage />} />
-      
-      {/* Create Event route */}
-      <Route path="/create-event" element={<ProtectedRoute element={<CreateEvent />} />} />
 
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminRoute element={<AdminDashboard />} />} />

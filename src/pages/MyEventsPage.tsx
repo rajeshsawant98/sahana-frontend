@@ -109,7 +109,7 @@ const MyEventsPage: React.FC = () => {
   }, [dispatch, currentTab.reset, currentTab.fetchInitial, currentState.pageSize]);
 
   const handleCreateEvent = () => {
-    navigate("/create-event");
+    navigate("/events/new");
   };
 
   const getTabLabel = (index: number) => {

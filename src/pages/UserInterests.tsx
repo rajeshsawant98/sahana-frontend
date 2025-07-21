@@ -133,7 +133,7 @@ const UserInterests: React.FC = () => {
         <Box
           sx={{
             width: '100%',
-            maxWidth: 800,
+            maxWidth: 1000,
             background: theme => theme.palette.mode === 'dark' ? '#232526' : '#fff',
             borderRadius: '28px',
             boxShadow: theme => theme.palette.mode === 'dark' ? '0 6px 32px rgba(0,0,0,0.45)' : '0 6px 32px rgba(0,0,0,0.10)',
@@ -185,15 +185,43 @@ const UserInterests: React.FC = () => {
                 </Typography>
               )}
               {interests.map((interest, idx) => (
-                <span
+                <Box
                   key={interest}
-                  className="modern-interest-chip selected"
+                  component="span"
                   title="Remove from your interests"
                   onClick={() => setInterests(interests.filter(i => i !== interest))}
+                  sx={theme => ({
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: theme.palette.primary.main,
+                    color: theme.palette.getContrastText(theme.palette.primary.main),
+                    borderRadius: '8px',
+                    height: 36,
+                    minWidth: 120,
+                    maxWidth: 180,
+                    px: 2,
+                    fontSize: 15,
+                    fontWeight: 500,
+                    marginRight: '8px',
+                    marginBottom: '8px',
+                    border: `1.5px solid ${theme.palette.primary.main}`,
+                    boxShadow: '0 2px 8px rgba(25,118,210,0.10)',
+                    cursor: 'pointer',
+                    transition: 'background 0.15s, color 0.15s, border 0.15s, box-shadow 0.15s',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    '&:hover': {
+                      background: theme.palette.primary.light,
+                      color: theme.palette.primary.contrastText,
+                      border: `1.5px solid ${theme.palette.primary.dark}`,
+                    },
+                  })}
                 >
-                  <span>{interest}</span>
-                  <span className="chip-action-icon">×</span>
-                </span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{interest}</span>
+                  <span style={{ marginLeft: 6, fontSize: 16, fontWeight: 700, pointerEvents: 'none' }}>×</span>
+                </Box>
               ))}
               {/* Inline custom input for adding interests */}
               <input
@@ -238,28 +266,40 @@ const UserInterests: React.FC = () => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
                   {cat.interests.filter(interest => !interests.includes(interest)).map(interest => (
-                    <button
+                    <Box
                       key={interest}
+                      component="button"
                       type="button"
-                      className="modern-interest-chip"
                       onClick={() => handleToggleInterest(interest)}
-                      style={{
-                        marginBottom: 4,
+                      title="Add to your interests"
+                      sx={theme => ({
+                        marginBottom: 1,
                         cursor: 'pointer',
                         outline: 'none',
-                        border: 'none',
-                        background: 'none',
-                        padding: 0,
-                        position: 'relative',
+                        border: `1.5px solid ${theme.palette.primary.main}`,
+                        background: theme.palette.background.paper,
+                        color: theme.palette.text.primary,
+                        borderRadius: '8px',
+                        padding: '6px 16px',
+                        fontSize: 15,
+                        fontWeight: 500,
+                        marginRight: '8px',
                         display: 'inline-flex',
                         alignItems: 'center',
                         userSelect: 'none',
-                      }}
-                      title="Add to your interests"
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                        transition: 'background 0.15s, color 0.15s, border 0.15s, box-shadow 0.15s',
+                        '&:hover': {
+                          background: theme.palette.primary.light,
+                          color: theme.palette.primary.contrastText,
+                          border: `1.5px solid ${theme.palette.primary.dark}`,
+                          boxShadow: '0 2px 8px rgba(25,118,210,0.08)',
+                        },
+                      })}
                     >
                       <span>{interest}</span>
-                      <span className="chip-action-icon">+</span>
-                    </button>
+                      <span style={{ marginLeft: 6, fontSize: 16, fontWeight: 700, pointerEvents: 'none' }}>+</span>
+                    </Box>
                   ))}
                 </Box>
               </Box>
@@ -276,58 +316,7 @@ const UserInterests: React.FC = () => {
             {loading ? <CircularProgress size={22} color="inherit" /> : interests.length === 0 ? 'Select at least 1 to continue' : 'Save Interests'}
           </Button>
         </Box>
-        <style>{`
-          .modern-interest-chip {
-            display: inline-flex;
-            align-items: center;
-            background: #f0f2f5;
-            color: #222;
-            border-radius: 8px;
-            padding: 6px 16px;
-            font-size: 15px;
-            font-weight: 500;
-            margin-right: 8px;
-            margin-bottom: 8px;
-            border: 1.5px solid #e0e6ea;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-            transition: background 0.15s, color 0.15s, border 0.15s, box-shadow 0.15s;
-            cursor: pointer;
-          }
-          .modern-interest-chip.selected {
-            background: #1976d2;
-            color: #fff;
-            border: 1.5px solid #1976d2;
-            box-shadow: 0 2px 8px rgba(25,118,210,0.10);
-          }
-          .modern-interest-chip:hover {
-            background: #e3eaf6;
-            color: #1976d2;
-            border: 1.5px solid #1976d2;
-            box-shadow: 0 2px 8px rgba(25,118,210,0.08);
-          }
-          .chip-action-icon {
-            display: inline-block;
-            margin-left: 6px;
-            font-size: 16px;
-            font-weight: 700;
-            pointer-events: none;
-          }
-          @media (prefers-color-scheme: dark) {
-            .modern-interest-chip {
-              background: #23272e;
-              color: #eaf1fb;
-              border: 1.5px solid #333a44;
-            }
-            .modern-interest-chip.selected {
-              background: #1976d2;
-              color: #fff;
-              border: 1.5px solid #1976d2;
-            }
-            .chip-action-icon {
-              color: #fff;
-            }
-          }
-        `}</style>
+        {/* Styles moved to sx props using theme colors */}
       </Box>
     </>
   );

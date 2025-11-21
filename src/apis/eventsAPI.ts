@@ -1,8 +1,10 @@
+import { Location } from "../types/User";
+
 // --- Type Definitions ---
 export interface CreateEventRequest {
   eventName: string;
   description?: string;
-  location?: any;
+  location?: Location;
   startTime: string;
   duration: number;
   categories: string[];

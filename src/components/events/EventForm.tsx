@@ -20,7 +20,7 @@ import { Autocomplete as MuiAutocomplete } from "@mui/material";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../../utils/firebase_init";
 import { v4 as uuidv4 } from "uuid";
-import { LocationData } from "../../types/User";
+import { Location } from "../../types/User";
 
 interface EventFormData {
   eventName: string;
@@ -29,7 +29,7 @@ interface EventFormData {
   startTime: string;
   duration: number;
   categories: string[];
-  location?: LocationData;
+  location?: Location;
   isOnline: boolean;
   joinLink?: string;
   organizers: string[];

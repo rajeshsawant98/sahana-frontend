@@ -3,8 +3,7 @@ import { updateAccessToken, getAccessToken } from "../redux/tokenManager";
 
 // Set base URL and headers
 const axiosInstance = axios.create({
-    //baseURL: "http://localhost:8000/api", 
-    baseURL: "https://sahana-backend-856426602401.us-west1.run.app/api", // Use this for production
+    baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api",
     headers: {
         "Content-Type": "application/json",
     },
@@ -41,8 +40,7 @@ axiosInstance.interceptors.response.use(
 
                 // Request a new access token
                 const res = await axios.post(
-                    "https://sahana-backend-856426602401.us-west1.run.app/api/auth/refresh",
-                    //"http://localhost:8000/api/auth/refresh",
+                    `${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api"}/auth/refresh`,
                     { refresh_token: refreshToken }
                 );
 

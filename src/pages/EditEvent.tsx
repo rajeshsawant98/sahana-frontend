@@ -17,7 +17,7 @@ import {
   Box,
 } from "@mui/material";
 import { Event } from "../types/Event";
-import { LocationData } from "../types/User";
+import { Location } from "../types/User";
 
 interface EventFormData {
   eventName: string;
@@ -26,7 +26,7 @@ interface EventFormData {
   startTime: string;
   duration: number;
   categories: string[];
-  location?: LocationData;
+  location?: Location;
   isOnline: boolean;
   joinLink?: string;
   organizers: string[];

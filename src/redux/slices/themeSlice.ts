@@ -6,7 +6,7 @@ interface ThemeState {
 }
 
 const initialState: ThemeState = {
-  darkMode: localStorage.getItem('darkMode') === 'true' || false,
+  darkMode: false, // Default to light mode, persistence will override if saved
 };
 
 const themeSlice = createSlice({
@@ -15,11 +15,9 @@ const themeSlice = createSlice({
   reducers: {
     toggleDarkMode: (state) => {
       state.darkMode = !state.darkMode;
-      localStorage.setItem('darkMode', state.darkMode.toString());
     },
     setDarkMode: (state, action: PayloadAction<boolean>) => {
       state.darkMode = action.payload;
-      localStorage.setItem('darkMode', action.payload.toString());
     },
   },
 });

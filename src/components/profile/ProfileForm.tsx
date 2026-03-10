@@ -11,6 +11,47 @@ import { Autocomplete } from '@react-google-maps/api';
 import { User, Location } from '../../types/User';
 import { useLocationAutocomplete } from '../../hooks/useLocationAutocomplete';
 
+// Precompute both dark/light variants — only 2 objects ever exist
+const fieldLabelStyles = {
+  light: { mb: 1, color: '#666666', fontSize: '14px', fontWeight: 500 },
+  dark:  { mb: 1, color: '#b0b0b0', fontSize: '14px', fontWeight: 500 },
+} as const;
+
+const textFieldStyles = {
+  light: {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: '#ffffff',
+      color: '#333333',
+      '& fieldset': { borderColor: '#ddd' },
+      '&:hover fieldset': { borderColor: '#bbb' },
+      '&.Mui-focused fieldset': { borderColor: '#1976d2' },
+    },
+    '& .MuiInputLabel-root': { color: '#666666' },
+  },
+  dark: {
+    '& .MuiOutlinedInput-root': {
+      backgroundColor: '#2a2a2a',
+      color: '#ffffff',
+      '& fieldset': { borderColor: '#444444' },
+      '&:hover fieldset': { borderColor: '#666666' },
+      '&.Mui-focused fieldset': { borderColor: '#1976d2' },
+    },
+    '& .MuiInputLabel-root': { color: '#b0b0b0' },
+  },
+};
+
+const textDisplayStyles = {
+  light: { color: '#333333', py: 0.5, fontSize: '16px' },
+  dark:  { color: '#ffffff', py: 0.5, fontSize: '16px' },
+} as const;
+
+const textDisplayBioStyles = {
+  light: { color: '#333333', py: 0.5, fontSize: '16px', lineHeight: 1.5 },
+  dark:  { color: '#ffffff', py: 0.5, fontSize: '16px', lineHeight: 1.5 },
+} as const;
+
+const buttonSx = { borderRadius: '8px', textTransform: 'none', px: 3, py: 1, fontSize: '14px' } as const;
+
 interface ProfileFormProps {
   profile: Partial<User>;
   isEditing: boolean;
@@ -30,53 +71,30 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     defaultValues: profile
   });
 
+  const mode = darkMode ? 'dark' : 'light';
+
   // Update form when profile changes
   useEffect(() => {
     reset(profile);
   }, [profile, reset]);
 
-  const { 
-    locationInput, 
-    handleLocationInputChange, 
-    handlePlaceChanged, 
+  const {
+    locationInput,
+    handleLocationInputChange,
+    handlePlaceChanged,
     onLoad,
     setLocationInput
   } = useLocationAutocomplete({
     initialLocation: profile.location || undefined,
     onLocationChange: (loc) => setValue('location', loc)
   });
-  
+
   // Sync location input when profile changes (if not editing or just switched)
   useEffect(() => {
     if (profile.location) {
         setLocationInput(profile.location.name || `${profile.location.city}, ${profile.location.country}`);
     }
   }, [profile.location, setLocationInput]);
-
-  // Helper styles
-  const getFieldLabelStyle = () => ({
-    mb: 1,
-    color: darkMode ? '#b0b0b0' : '#666666',
-    fontSize: '14px',
-    fontWeight: 500
-  });
-
-  const getTextFieldStyle = () => ({
-    '& .MuiOutlinedInput-root': {
-      backgroundColor: darkMode ? '#2a2a2a' : '#ffffff',
-      color: darkMode ? '#ffffff' : '#333333',
-      '& fieldset': { borderColor: darkMode ? '#444444' : '#ddd' },
-      '&:hover fieldset': { borderColor: darkMode ? '#666666' : '#bbb' },
-      '&.Mui-focused fieldset': { borderColor: '#1976d2' }
-    },
-    '& .MuiInputLabel-root': { color: darkMode ? '#b0b0b0' : '#666666' }
-  });
-
-  const getTextDisplayStyle = () => ({
-    color: darkMode ? '#ffffff' : '#333333',
-    py: 0.5,
-    fontSize: '16px'
-  });
 
   const handleFormSubmit = (data: Partial<User>) => {
     // Handle interests string to array conversion if needed, 
@@ -98,62 +116,62 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         {/* Left Column */}
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={getFieldLabelStyle()}>Full Name</Typography>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Full Name</Typography>
             {isEditing ? (
               <Controller
                 name="name"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} fullWidth variant="outlined" size="small" sx={getTextFieldStyle()} />
+                  <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
                 )}
               />
             ) : (
-              <Typography variant="body1" sx={getTextDisplayStyle()}>{profile.name || "Not provided"}</Typography>
+              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.name || "Not provided"}</Typography>
             )}
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={getFieldLabelStyle()}>Birthday</Typography>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Birthday</Typography>
             {isEditing ? (
               <Controller
                 name="birthdate"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} type="date" fullWidth variant="outlined" size="small" InputLabelProps={{ shrink: true }} sx={getTextFieldStyle()} />
+                  <TextField {...field} type="date" fullWidth variant="outlined" size="small" InputLabelProps={{ shrink: true }} sx={textFieldStyles[mode]} />
                 )}
               />
             ) : (
-              <Typography variant="body1" sx={getTextDisplayStyle()}>{profile.birthdate || "Not provided"}</Typography>
+              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.birthdate || "Not provided"}</Typography>
             )}
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={getFieldLabelStyle()}>Bio</Typography>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Bio</Typography>
             {isEditing ? (
               <Controller
                 name="bio"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} multiline rows={3} fullWidth variant="outlined" size="small" sx={getTextFieldStyle()} />
+                  <TextField {...field} multiline rows={3} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
                 )}
               />
             ) : (
-              <Typography variant="body1" sx={{ ...getTextDisplayStyle(), lineHeight: 1.5 }}>{profile.bio || "No bio provided"}</Typography>
+              <Typography variant="body1" sx={textDisplayBioStyles[mode]}>{profile.bio || "No bio provided"}</Typography>
             )}
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={getFieldLabelStyle()}>Profession</Typography>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Profession</Typography>
             {isEditing ? (
               <Controller
                 name="profession"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} fullWidth variant="outlined" size="small" sx={getTextFieldStyle()} />
+                  <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
                 )}
               />
             ) : (
-              <Typography variant="body1" sx={getTextDisplayStyle()}>{profile.profession || "Not specified"}</Typography>
+              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.profession || "Not specified"}</Typography>
             )}
           </Box>
         </Grid2>
@@ -161,7 +179,7 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
         {/* Right Column */}
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={getFieldLabelStyle()}>Interests</Typography>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Interests</Typography>
             {isEditing ? (
               <Controller
                 name="interests"
@@ -172,34 +190,34 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                     value={Array.isArray(field.value) ? field.value.join(', ') : field.value || ''}
                     onChange={(e) => field.onChange(e.target.value)}
                     placeholder="Enter interests separated by commas"
-                    fullWidth variant="outlined" size="small" sx={getTextFieldStyle()} 
+                    fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} 
                   />
                 )}
               />
             ) : (
-              <Typography variant="body1" sx={getTextDisplayStyle()}>
+              <Typography variant="body1" sx={textDisplayStyles[mode]}>
                 {Array.isArray(profile.interests) && profile.interests.length > 0 ? profile.interests.join(', ') : "No interests listed"}
               </Typography>
             )}
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={getFieldLabelStyle()}>Phone Number</Typography>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Phone Number</Typography>
             {isEditing ? (
               <Controller
                 name="phoneNumber"
                 control={control}
                 render={({ field }) => (
-                  <TextField {...field} fullWidth variant="outlined" size="small" sx={getTextFieldStyle()} />
+                  <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
                 )}
               />
             ) : (
-              <Typography variant="body1" sx={getTextDisplayStyle()}>{profile.phoneNumber || "Not provided"}</Typography>
+              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.phoneNumber || "Not provided"}</Typography>
             )}
           </Box>
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={getFieldLabelStyle()}>Location</Typography>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Location</Typography>
             {isEditing ? (
               <Autocomplete onLoad={onLoad} onPlaceChanged={handlePlaceChanged}>
                 <TextField
@@ -209,11 +227,11 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   onChange={handleLocationInputChange}
                   variant="outlined"
                   size="small"
-                  sx={getTextFieldStyle()}
+                  sx={textFieldStyles[mode]}
                 />
               </Autocomplete>
             ) : (
-              <Typography variant="body1" sx={getTextDisplayStyle()}>
+              <Typography variant="body1" sx={textDisplayStyles[mode]}>
                 {profile.location?.city && profile.location?.country 
                   ? `${profile.location.city}, ${profile.location.country}` 
                   : 'Not provided'}
@@ -228,14 +246,14 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           <Button
             variant="outlined"
             onClick={onCancel}
-            sx={{ borderRadius: '8px', textTransform: 'none', px: 3, py: 1, fontSize: '14px' }}
+            sx={buttonSx}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
             type="submit"
-            sx={{ borderRadius: '8px', textTransform: 'none', px: 3, py: 1, fontSize: '14px' }}
+            sx={buttonSx}
           >
             Save Changes
           </Button>

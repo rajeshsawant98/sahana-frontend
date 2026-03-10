@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { updateUserProfile } from "../apis/authAPI";
 import {
@@ -61,16 +61,12 @@ const ProfilePage: React.FC = () => {
     setIsEditing(!isEditing);
   };
 
-  const getTimeBasedGreeting = (): string => {
-    const currentHour = new Date().getHours();
-    if (currentHour < 12) {
-      return "Good Morning";
-    } else if (currentHour < 17) {
-      return "Good Afternoon";
-    } else {
-      return "Good Evening";
-    }
-  };
+  const greeting = useMemo((): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  }, []);
 
   return (
     <>
@@ -95,7 +91,7 @@ const ProfilePage: React.FC = () => {
                 color: darkMode ? '#ffffff' : '#333333',
                 mb: 0.5 
               }}>
-                {getTimeBasedGreeting()}, {profile.name || "User"}!
+                {greeting}, {profile.name || "User"}!
               </Typography>
               <Typography variant="body2" sx={{ 
                 color: darkMode ? '#b0b0b0' : '#666666',

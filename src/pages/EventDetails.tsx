@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { GoogleMap, Marker } from "@react-google-maps/api";
@@ -39,7 +39,6 @@ const EventDetails: React.FC = () => {
     return event.rsvpList.find(rsvp => rsvp.email === currentUser.email);
   }, [isAuthenticated, currentUser, event]);
 
-  const isRSVPed = !!userRSVP && (userRSVP.status === "joined" || userRSVP.status === "interested");
   const rsvpStatus = userRSVP?.status;
 
   const canEditEvent = useMemo(() => {
@@ -95,11 +94,11 @@ const EventDetails: React.FC = () => {
     }
   };
 
-  const handleEditClick = (): void => {
-    if (id) {
-      navigate(`/events/${id}/edit`);
-    }
-  };
+  const handleEditClick = useCallback((): void => {
+    if (id) navigate(`/events/${id}/edit`);
+  }, [id, navigate]);
+
+  const handleNavigateToLogin = useCallback(() => navigate('/login'), [navigate]);
 
   if (loading) return <CircularProgress sx={{ m: 4 }} />;
   if (error) return <Alert severity="error">{error}</Alert>;
@@ -243,10 +242,10 @@ const EventDetails: React.FC = () => {
                     )}
                   </>
                 ) : (
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    onClick={() => navigate('/login')}
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleNavigateToLogin}
                   >
                     Login to Join
                   </Button>

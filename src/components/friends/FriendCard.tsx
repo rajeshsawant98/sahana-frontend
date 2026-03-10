@@ -17,7 +17,7 @@ interface FriendCardProps {
   onViewProfile?: (friendId: string) => void;
 }
 
-export const FriendCard: React.FC<FriendCardProps> = ({
+const FriendCard: React.FC<FriendCardProps> = ({
   friend,
   onMessage,
   onViewProfile,
@@ -109,3 +109,7 @@ export const FriendCard: React.FC<FriendCardProps> = ({
     </Card>
   );
 };
+
+const MemoFriendCard = React.memo(FriendCard);
+export { MemoFriendCard as FriendCard };
+export default MemoFriendCard;

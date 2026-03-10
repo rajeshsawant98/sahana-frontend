@@ -30,12 +30,12 @@ export const useFriends = () => {
     }
   }, [debouncedSearchTerm, dispatch]);
 
-  // Load friends on mount
+  // Load friends when tab switches to 'friends' and list is empty
   useEffect(() => {
     if (friendsState.ui.selectedTab === 'friends' && friendsState.friends.length === 0) {
       dispatch(fetchFriends());
     }
-  }, [friendsState.ui.selectedTab, friendsState.friends.length, dispatch]);
+  }, [friendsState.ui.selectedTab, dispatch]); // friends.length is a guard, not a trigger
 
   const handleSearchTermChange = (term: string) => {
     dispatch(setSearchTerm(term));

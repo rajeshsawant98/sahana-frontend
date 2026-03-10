@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -50,44 +50,44 @@ const MyEventsPage: React.FC = () => {
 
   const { user } = useAppSelector((state) => state.auth);
 
-  // Tab configuration
-  const tabs = [
-    { 
-      label: "Created", 
-      state: created, 
+  // Tab configuration — memoized so currentTab references are stable between renders
+  const tabs = useMemo(() => [
+    {
+      label: "Created",
+      state: created,
       fetchInitial: fetchInitialCreatedEvents,
       loadMore: loadMoreCreatedEvents,
       reset: resetCreatedEvents,
     },
-    { 
-      label: "RSVP'd", 
-      state: rsvped, 
+    {
+      label: "RSVP'd",
+      state: rsvped,
       fetchInitial: fetchInitialRsvpEvents,
       loadMore: loadMoreRsvpEvents,
       reset: resetRSVPedEvents,
     },
-    { 
-      label: "Interested", 
-      state: interested, 
+    {
+      label: "Interested",
+      state: interested,
       fetchInitial: fetchInitialInterestedEvents,
       loadMore: loadMoreInterestedEvents,
       reset: resetInterestedEvents,
     },
-    { 
-      label: "Organized", 
-      state: organized, 
+    {
+      label: "Organized",
+      state: organized,
       fetchInitial: fetchInitialOrganizedEvents,
       loadMore: loadMoreOrganizedEvents,
       reset: resetOrganizedEvents,
     },
-    { 
-      label: "Moderated", 
-      state: moderated, 
+    {
+      label: "Moderated",
+      state: moderated,
       fetchInitial: fetchInitialModeratedEvents,
       loadMore: loadMoreModeratedEvents,
       reset: resetModeratedEvents,
     },
-  ];
+  ], [created, rsvped, interested, organized, moderated]);
 
   const currentTab = tabs[activeTab];
   const currentState = currentTab.state;
@@ -97,7 +97,7 @@ const MyEventsPage: React.FC = () => {
     if (!currentState.hasFetched && !currentState.loading) {
       dispatch(currentTab.fetchInitial({ page_size: 12 }));
     }
-  }, [activeTab, currentState.hasFetched, currentState.loading, dispatch, currentTab.fetchInitial]);
+  }, [activeTab, currentState.hasFetched, currentState.loading, dispatch, currentTab]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);

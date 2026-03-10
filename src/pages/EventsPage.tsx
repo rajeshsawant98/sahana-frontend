@@ -25,6 +25,20 @@ import {
   clearError,
 } from "../redux/slices/eventsSlice";
 
+interface FilterChipProps {
+  filterKey: string;
+  value: string;
+  onRemove: (key: string) => void;
+}
+
+const FilterChip = React.memo(({ filterKey, value, onRemove }: FilterChipProps) => (
+  <Chip
+    label={`${filterKey}: ${value}`}
+    size="small"
+    onDelete={() => onRemove(filterKey)}
+  />
+));
+
 const EventsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const theme = useTheme();
@@ -100,6 +114,12 @@ const EventsPage: React.FC = () => {
     dispatch(clearError());
   }, [dispatch]);
 
+  const handleRemoveFilter = useCallback((key: string) => {
+    const newFilters = { ...filters };
+    delete newFilters[key as keyof EventFilters];
+    handleFiltersChange(newFilters);
+  }, [filters, handleFiltersChange]);
+
   const activeFilterCount = useMemo(
     () => Object.values(filters).filter(value => value !== undefined && value !== '').length,
     [filters]
@@ -153,15 +173,11 @@ const EventsPage: React.FC = () => {
               {Object.entries(filters).map(([key, value]) => {
                 if (!value) return null;
                 return (
-                  <Chip
+                  <FilterChip
                     key={key}
-                    label={`${key}: ${value}`}
-                    size="small"
-                    onDelete={() => {
-                      const newFilters = { ...filters };
-                      delete newFilters[key as keyof EventFilters];
-                      handleFiltersChange(newFilters);
-                    }}
+                    filterKey={key}
+                    value={value}
+                    onRemove={handleRemoveFilter}
                   />
                 );
               })}

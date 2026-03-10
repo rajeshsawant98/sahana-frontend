@@ -3,6 +3,21 @@ import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '../components/auth';
 import { AdminRoute } from '../components/admin';
 import { CircularProgress, Box } from '@mui/material';
+import { useJsApiLoader, Libraries } from '@react-google-maps/api';
+
+const MAPS_LIBRARIES: Libraries = ['places'];
+
+// Loads the Google Maps SDK and renders children only once ready.
+// Use this wrapper only on routes that need Maps/Places.
+const MapsLoader: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: MAPS_LIBRARIES,
+  });
+
+  if (!isLoaded) return <PageLoader />;
+  return <>{children}</>;
+};
 
 // Lazy-loaded pages
 const LandingPage = React.lazy(() => import('../pages/LandingPage'));
@@ -35,16 +50,16 @@ export const AppRoutes: React.FC = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignUpComponent />} />
-      <Route path="/events/:id" element={<EventDetails />} />
+      <Route path="/events/:id" element={<MapsLoader><EventDetails /></MapsLoader>} />
       <Route path="/events" element={<EventsPage />} />
 
       {/* Protected User Routes */}
       <Route path="/home" element={<ProtectedRoute element={<LandingPage />} />} />
-      <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
+      <Route path="/profile" element={<ProtectedRoute element={<MapsLoader><ProfilePage /></MapsLoader>} />} />
       <Route path="/interests" element={<ProtectedRoute element={<UserInterests />} />} />
       {/* Main routes now use infinite scroll */}
-      <Route path="/events/:id/edit" element={<ProtectedRoute element={<EditEvent />} />} />
-      <Route path="/events/new" element={<ProtectedRoute element={<CreateEvent />} />} />
+      <Route path="/events/:id/edit" element={<ProtectedRoute element={<MapsLoader><EditEvent /></MapsLoader>} />} />
+      <Route path="/events/new" element={<ProtectedRoute element={<MapsLoader><CreateEvent /></MapsLoader>} />} />
       <Route path="/events/my" element={<ProtectedRoute element={<MyEventsPage />} />} />
       <Route path="/friends" element={<ProtectedRoute element={<Friends />} />} />
       <Route path="/events/nearby" element={<NearbyEventsPage />} />

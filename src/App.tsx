@@ -6,7 +6,6 @@ import { CssBaseline } from "@mui/material";
 import { useSelector } from "react-redux";
 import { RootState } from "./redux/store";
 import { createAppTheme } from "./styles/theme/theme";
-import { LoadScript } from "@react-google-maps/api";
 import InitRedux from "./utils/InitRedux";
 import AuthBootstrap from "./utils/AuthBootstrap";
 import { CacheStatus } from "./components/ui";
@@ -22,16 +21,11 @@ const App = () => {
       <CssBaseline />
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
         <Router>
-          <LoadScript
-            googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-            libraries={["places"]}
-          >
             <InitRedux />
             <AuthBootstrap />
             <AppRoutes />
             {/* Development-only cache status component */}
             {import.meta.env.DEV && <CacheStatus />}
-          </LoadScript>
         </Router>
       </GoogleOAuthProvider>
     </ThemeProvider>

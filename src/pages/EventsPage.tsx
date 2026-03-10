@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from "react";
+import React, { useEffect, useCallback, useState, useMemo } from "react";
 import { useTheme } from '@mui/material/styles';
 import {
   Box,
@@ -30,20 +30,16 @@ const EventsPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const theme = useTheme();
   
-  const eventsState = useAppSelector((state) => state.events);
-  
-  const {
-    events,
-    loading,
-    loadingMore,
-    error,
-    hasNext,
-    nextCursor,
-    pageSize,
-    totalCount,
-    filters,
-    isInitialLoad,
-  } = eventsState;
+  const events = useAppSelector((state) => state.events.events);
+  const loading = useAppSelector((state) => state.events.loading);
+  const loadingMore = useAppSelector((state) => state.events.loadingMore);
+  const error = useAppSelector((state) => state.events.error);
+  const hasNext = useAppSelector((state) => state.events.hasNext);
+  const nextCursor = useAppSelector((state) => state.events.nextCursor);
+  const pageSize = useAppSelector((state) => state.events.pageSize);
+  const totalCount = useAppSelector((state) => state.events.totalCount);
+  const filters = useAppSelector((state) => state.events.filters);
+  const isInitialLoad = useAppSelector((state) => state.events.isInitialLoad);
 
   const [localFilters, setLocalFilters] = useState<EventFilters>(filters);
   const [showFilters, setShowFilters] = useState(false);
@@ -105,12 +101,10 @@ const EventsPage: React.FC = () => {
     dispatch(clearError());
   }, [dispatch]);
 
-  // Get active filter count
-  const getActiveFilterCount = () => {
-    return Object.values(filters).filter(value => value !== undefined && value !== '').length;
-  };
-
-  const activeFilterCount = getActiveFilterCount();
+  const activeFilterCount = useMemo(
+    () => Object.values(filters).filter(value => value !== undefined && value !== '').length,
+    [filters]
+  );
 
   return (
     <Box sx={{ backgroundColor: theme.palette.background.default, minHeight: "100vh" }}>

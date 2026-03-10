@@ -3,7 +3,6 @@ import { useTheme } from '@mui/material/styles';
 import {
   Box,
   Typography,
-  Grid2,
   CircularProgress,
   Container,
   Button,
@@ -11,10 +10,10 @@ import {
   Stack,
 } from "@mui/material";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
+import { VirtuosoGrid } from "react-virtuoso";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { NavBar } from "../components/navigation";
 import { EventCard, EventFilters as EventFiltersComponent } from "../components/events";
-import { InfiniteScroll } from "../components/ui";
 import { Event } from "../types/Event";
 import { EventFilters } from "../types/Pagination";
 import {
@@ -227,25 +226,47 @@ const EventsPage: React.FC = () => {
           </Box>
         )}
 
-        {/* Events List with Infinite Scroll */}
+        {/* Events List with Virtual Scroll */}
         {events.length > 0 && (
-          <InfiniteScroll
-            loading={loadingMore}
-            hasMore={hasNext}
-            onLoadMore={handleLoadMore}
-            loadingMessage="Loading more events..."
-            endMessage="🎉 You've seen all the events! Events are sorted chronologically - earliest events appear first."
-            error={!!error}
-            errorMessage={error || "Failed to load more events"}
-          >
-            <Grid2 container spacing={3}>
-              {events.map((event: Event, index: number) => (
-                <Grid2 size={{ xs: 12, sm: 6, md: 4 }} key={`${event.eventId}-${index}`}>
-                  <EventCard event={event} />
-                </Grid2>
-              ))}
-            </Grid2>
-          </InfiniteScroll>
+          <VirtuosoGrid
+            useWindowScroll
+            totalCount={events.length}
+            endReached={hasNext ? handleLoadMore : undefined}
+            overscan={400}
+            components={{
+              List: React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ style, children, ...props }, ref) => (
+                <Box
+                  ref={ref}
+                  style={style}
+                  {...props}
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                    gap: 3,
+                    mb: 2,
+                  }}
+                >
+                  {children}
+                </Box>
+              )),
+              Footer: () => (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                  {loadingMore && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <CircularProgress size={24} />
+                      <Typography variant="body2" color="text.secondary">Loading more events...</Typography>
+                    </Box>
+                  )}
+                  {!hasNext && !loadingMore && (
+                    <Typography variant="body2" color="text.secondary">
+                      🎉 You've seen all the events! Events are sorted chronologically - earliest events appear first.
+                    </Typography>
+                  )}
+                </Box>
+              ),
+            }}
+            itemContent={(index) => <EventCard event={events[index] as Event} />}
+          />
         )}
 
         {/* Event Count Footer */}

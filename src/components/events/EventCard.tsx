@@ -70,12 +70,13 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <Box display="flex" alignItems="top" gap={3} mb={3}>
           <Avatar
             src={event.imageUrl || musicImage}
-            sx={{ 
-              width: 80, 
+            sx={{
+              width: 80,
               height: 80,
               borderRadius: 3,
             }}
             variant="rounded"
+            slotProps={{ img: { loading: 'lazy' } }}
           />
           <Box flex={1}>
             <Typography

@@ -218,3 +218,5 @@ export const Friends: React.FC = () => {
     </>
   );
 };
+
+export default Friends;

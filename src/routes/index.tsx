@@ -1,31 +1,35 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '../components/auth';
 import { AdminRoute } from '../components/admin';
+import { CircularProgress, Box } from '@mui/material';
 
-// Page imports
-import LandingPage from '../pages/LandingPage';
-import LoginPage from '../pages/LoginPage';
-import { SignUpComponent } from '../components/auth';
-import ProfilePage from '../pages/ProfilePage';
-import UserInterests from '../pages/UserInterests';
-import EditEvent from '../pages/EditEvent';
-import EventDetails from '../pages/EventDetails';
-import CreateEvent from '../pages/CreateEvent';
-import { Friends } from '../pages/Friends';
+// Lazy-loaded pages
+const LandingPage = React.lazy(() => import('../pages/LandingPage'));
+const LoginPage = React.lazy(() => import('../pages/LoginPage'));
+const SignUpComponent = React.lazy(() => import('../components/auth/SignUpComponent'));
+const ProfilePage = React.lazy(() => import('../pages/ProfilePage'));
+const UserInterests = React.lazy(() => import('../pages/UserInterests'));
+const EditEvent = React.lazy(() => import('../pages/EditEvent'));
+const EventDetails = React.lazy(() => import('../pages/EventDetails'));
+const CreateEvent = React.lazy(() => import('../pages/CreateEvent'));
+const Friends = React.lazy(() => import('../pages/Friends'));
+const EventsPage = React.lazy(() => import('../pages/EventsPage'));
+const MyEventsPage = React.lazy(() => import('../pages/MyEventsPage'));
+const NearbyEventsPage = React.lazy(() => import('../pages/NearbyEventsPage'));
+const AdminDashboard = React.lazy(() => import('../pages/admin/AdminDashboard'));
+const ManageUsers = React.lazy(() => import('../pages/admin/ManageUsers'));
+const ManageEvents = React.lazy(() => import('../pages/admin/ManageEvents'));
 
-// Infinite scroll pages (now the default)
-import EventsPage from '../pages/EventsPage';
-import MyEventsPage from '../pages/MyEventsPage';
-import NearbyEventsPage from '../pages/NearbyEventsPage';
-
-// Admin pages
-import AdminDashboard from '../pages/admin/AdminDashboard';
-import ManageUsers from '../pages/admin/ManageUsers';
-import ManageEvents from '../pages/admin/ManageEvents';
+const PageLoader = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <CircularProgress />
+  </Box>
+);
 
 export const AppRoutes: React.FC = () => {
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
@@ -50,5 +54,6 @@ export const AppRoutes: React.FC = () => {
       <Route path="/admin/users" element={<AdminRoute element={<ManageUsers />} />} />
       <Route path="/admin/events" element={<AdminRoute element={<ManageEvents />} />} />
     </Routes>
+    </Suspense>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState, useMemo } from "react";
+import React, { useEffect, useCallback, useState, useMemo, useRef } from "react";
 import { useTheme } from '@mui/material/styles';
 import {
   Box,
@@ -8,9 +8,9 @@ import {
   Button,
   Chip,
   Stack,
+  IconButton,
 } from "@mui/material";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
-import { VirtuosoGrid } from "react-virtuoso";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { NavBar } from "../components/navigation";
 import { EventCard, EventFilters as EventFiltersComponent } from "../components/events";
@@ -56,6 +56,7 @@ const EventsPage: React.FC = () => {
 
   const [localFilters, setLocalFilters] = useState<EventFilters>(filters);
   const [showFilters, setShowFilters] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Initial load
   useEffect(() => {
@@ -77,6 +78,22 @@ const EventsPage: React.FC = () => {
       }));
     }
   }, [dispatch, nextCursor, hasNext, loadingMore, pageSize, filters]);
+
+  // Infinite scroll via IntersectionObserver
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNext && !loadingMore) {
+          handleLoadMore();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasNext, loadingMore, handleLoadMore]);
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
@@ -130,39 +147,53 @@ const EventsPage: React.FC = () => {
       <NavBar />
       <Container>
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mt: 4, mb: 3 }}>
           <Box>
-            <Typography variant="h4" gutterBottom>
-              Upcoming Events
+            <Typography
+              variant="h4"
+              sx={{ fontWeight: 700, letterSpacing: '-0.5px', mb: 0.5 }}
+            >
+              What's happening
             </Typography>
             {totalCount !== undefined && (
-              <Typography variant="subtitle1" color="text.secondary">
-                {totalCount} events found
-                {activeFilterCount > 0 && ` (${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} applied)`}
+              <Typography variant="body2" color="text.secondary">
+                {totalCount} events
+                {activeFilterCount > 0 && ` · ${activeFilterCount} filter${activeFilterCount > 1 ? 's' : ''} active`}
               </Typography>
             )}
           </Box>
-          
-          <Stack direction="row" spacing={2} alignItems="center">
-            {/* Filter Toggle */}
+
+          <Stack direction="row" spacing={1} alignItems="center">
             <Button
               variant={showFilters ? "contained" : "outlined"}
               onClick={() => setShowFilters(!showFilters)}
               size="small"
+              sx={{
+                borderRadius: '100px',
+                px: 2,
+                height: 34,
+                fontSize: '0.8rem',
+              }}
             >
               Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
             </Button>
-            
-            {/* Refresh Button */}
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
+
+            <IconButton
               onClick={handleRefresh}
               disabled={loading}
               size="small"
+              sx={{
+                color: 'text.secondary',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: '8px',
+                width: 34,
+                height: 34,
+                '&:hover': { color: 'primary.main', borderColor: 'primary.main' },
+              }}
             >
-              Refresh
-            </Button>
+              <RefreshIcon fontSize="small" />
+            </IconButton>
           </Stack>
         </Box>
 
@@ -227,14 +258,18 @@ const EventsPage: React.FC = () => {
 
         {/* No Events State */}
         {!loading && events.length === 0 && !error && (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="h6" color="text.secondary">
-              {activeFilterCount > 0 ? 'No events match your filters' : 'No events found'}
+          <Box sx={{ textAlign: 'center', py: 10 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+              {activeFilterCount > 0 ? 'No events match your filters' : 'No events yet'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              {activeFilterCount > 0 ? 'Try adjusting or clearing your filters.' : 'Check back soon!'}
             </Typography>
             {activeFilterCount > 0 && (
-              <Button 
+              <Button
                 onClick={handleClearFilters}
-                sx={{ mt: 2 }}
+                variant="outlined"
+                sx={{ borderRadius: '100px', px: 3 }}
               >
                 Clear Filters
               </Button>
@@ -242,57 +277,34 @@ const EventsPage: React.FC = () => {
           </Box>
         )}
 
-        {/* Events List with Virtual Scroll */}
+        {/* Events Grid */}
         {events.length > 0 && (
-          <VirtuosoGrid
-            useWindowScroll
-            totalCount={events.length}
-            endReached={hasNext ? handleLoadMore : undefined}
-            overscan={400}
-            components={{
-              List: React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ style, children, ...props }, ref) => (
-                <Box
-                  ref={ref}
-                  style={style}
-                  {...props}
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-                    gap: 3,
-                    mb: 2,
-                  }}
-                >
-                  {children}
-                </Box>
-              )),
-              Footer: () => (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-                  {loadingMore && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <CircularProgress size={24} />
-                      <Typography variant="body2" color="text.secondary">Loading more events...</Typography>
-                    </Box>
-                  )}
-                  {!hasNext && !loadingMore && (
-                    <Typography variant="body2" color="text.secondary">
-                      🎉 You've seen all the events! Events are sorted chronologically - earliest events appear first.
-                    </Typography>
-                  )}
-                </Box>
-              ),
-            }}
-            itemContent={(index) => <EventCard event={events[index] as Event} />}
-          />
+          <>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                gap: 3,
+                mb: 2,
+              }}
+            >
+              {events.map((event) => (
+                <EventCard key={(event as Event).eventId} event={event as Event} />
+              ))}
+            </Box>
+
+            {/* Sentinel + footer */}
+            <Box ref={sentinelRef} sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              {loadingMore && <CircularProgress size={20} />}
+              {!hasNext && !loadingMore && (
+                <Typography variant="body2" color="text.secondary">
+                  All caught up · {events.length} events
+                </Typography>
+              )}
+            </Box>
+          </>
         )}
 
-        {/* Event Count Footer */}
-        {events.length > 0 && (
-          <Box sx={{ textAlign: 'center', py: 2, mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Showing {events.length}{totalCount !== undefined && ` of ${totalCount}`} events
-            </Typography>
-          </Box>
-        )}
       </Container>
     </Box>
   );

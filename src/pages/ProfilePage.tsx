@@ -71,49 +71,25 @@ const ProfilePage: React.FC = () => {
   return (
     <>
       <NavBar />
-      <Box sx={{ 
-        backgroundColor: darkMode ? '#121212' : '#ffffff', 
-        minHeight: "100vh", 
-        padding: 0 
-      }}>
+      <Box sx={{ backgroundColor: 'background.default', minHeight: "100vh", padding: 0 }}>
         <Container maxWidth="lg" sx={{ py: 4 }}>
           {/* Header Section */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            mb: 4,
-            px: 2
-          }}>
-            <Box>
-              <Typography variant="h4" sx={{ 
-                fontWeight: 600, 
-                color: darkMode ? '#ffffff' : '#333333',
-                mb: 0.5 
-              }}>
-                {greeting}, {profile.name || "User"}!
-              </Typography>
-              <Typography variant="body2" sx={{ 
-                color: darkMode ? '#b0b0b0' : '#666666',
-                fontSize: '14px'
-              }}>
-                {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </Typography>
-            </Box>
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: '-0.3px', mb: 0.5 }}>
+              {greeting}, {profile.name || "User"}!
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </Typography>
           </Box>
 
           {/* Main Profile Card */}
-          <Card sx={{ 
-            borderRadius: '12px',
-            boxShadow: darkMode ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
-            border: darkMode ? '1px solid #333333' : '1px solid #e0e0e0',
-            backgroundColor: darkMode ? '#1e1e1e' : '#ffffff'
-          }}>
+          <Card>
             <CardContent sx={{ p: 4 }}>
               <ProfileHeader 
                 profile={profile} 
@@ -130,16 +106,6 @@ const ProfilePage: React.FC = () => {
                 onSubmit={handleUpdateProfile} 
               />
 
-              {!isEditing && (
-                <Box sx={{ 
-                  mt: 4, 
-                  pt: 3,
-                  borderTop: darkMode ? '1px solid #333333' : '1px solid #e0e0e0',
-                  display: 'flex', 
-                  justifyContent: 'center' 
-                }}>
-                </Box>
-              )}
             </CardContent>
           </Card>
         </Container>

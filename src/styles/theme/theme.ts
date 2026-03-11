@@ -1,55 +1,88 @@
 import { createTheme, Theme } from "@mui/material/styles";
 
-// Create a function that returns a theme based on dark mode preference
 const createAppTheme = (darkMode: boolean): Theme => {
   return createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
-        main: "#FFBF49", // Golden Yellow - same for both modes
+        main: "#FFBF49",
+        contrastText: "#000000",
       },
       secondary: {
-        main: "#49A3FF", // Cool Blue - same for both modes
+        main: "#49A3FF",
       },
       background: {
-        default: darkMode ? "#121212" : "#f5f5f5", // Dark gray for dark mode, light gray for light mode
-        paper: darkMode ? "#1e1e1e" : "#ffffff", // Dark paper for dark mode, white for light mode
+        default: darkMode ? "#0c0c0c" : "#f9f9f7",
+        paper: darkMode ? "#161616" : "#ffffff",
       },
       text: {
-        primary: darkMode ? "#ffffff" : "#212121", // White text for dark mode, dark text for light mode
-        secondary: darkMode ? "#b0b0b0" : "#757575", // Light gray for dark mode, darker gray for light mode
+        primary: darkMode ? "#f2f2f2" : "#111111",
+        secondary: darkMode ? "#888888" : "#666666",
       },
+      divider: darkMode ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
       action: {
-        hover: "#4CAF50", // Muted Green for hover - same for both modes
-        disabled: "#9E9E9E", // Gray for disabled state - same for both modes
+        hover: darkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+        disabled: "#9E9E9E",
       },
+    },
+    typography: {
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      h1: { fontWeight: 800, letterSpacing: "-2px" },
+      h2: { fontWeight: 700, letterSpacing: "-1px" },
+      h3: { fontWeight: 700, letterSpacing: "-0.5px" },
+      h4: { fontWeight: 700, letterSpacing: "-0.3px" },
+      h5: { fontWeight: 600 },
+      h6: { fontWeight: 600 },
+      button: { fontWeight: 600, letterSpacing: "-0.1px" },
+      body1: { lineHeight: 1.65 },
+      body2: { lineHeight: 1.6 },
+    },
+    shape: {
+      borderRadius: 4,
     },
     components: {
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: 8, // Rounded buttons for a modern look
-            height: 45, // Match the height of the text fields
-            padding: "12px 16px", // Adjust padding to ensure proper height
-            fontWeight: 600, // Make button text slightly bolder
-            textTransform: "none", // Prevent uppercase transformation
+            borderRadius: 10,
+            height: 40,
+            padding: "8px 18px",
+            fontWeight: 600,
+            textTransform: "none",
+            fontSize: "0.875rem",
+            transition: "all 0.15s ease",
           },
           contained: {
+            boxShadow: "none",
             "&:hover": {
-              backgroundColor: "#FFA500", // Slightly darker golden yellow on hover for contained buttons
-              boxShadow: "0 4px 8px rgba(255, 191, 73, 0.3)", // Add shadow on hover for contained buttons
+              boxShadow: "0 4px 12px rgba(255, 191, 73, 0.35)",
+              backgroundColor: "#FFA500",
             },
+          },
+          outlined: {
+            borderColor: darkMode ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)",
+            "&:hover": {
+              borderColor: "#FFBF49",
+              backgroundColor: "rgba(255,191,73,0.06)",
+            },
+          },
+        },
+      },
+      MuiAppBar: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
           },
         },
       },
       MuiLink: {
         styleOverrides: {
           root: {
-            color: darkMode ? "#ffffff" : "#333333", // Adapt link color based on theme
-            textDecoration: "none", // Remove underline from links
+            color: darkMode ? "#f2f2f2" : "#111111",
+            textDecoration: "none",
             "&:hover": {
-              color: "#FFBF49", // Golden yellow on hover for both themes
-              textDecoration: "none", // Keep the underline removed on hover
+              color: "#FFBF49",
+              textDecoration: "none",
             },
           },
         },
@@ -57,15 +90,46 @@ const createAppTheme = (darkMode: boolean): Theme => {
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 12, // More rounded corners for card components
-            boxShadow: darkMode 
-              ? "0 2px 8px rgba(0, 0, 0, 0.3)" 
-              : "0 2px 8px rgba(0, 0, 0, 0.1)", // Stronger shadow for dark mode
-            "&:hover": {
-              boxShadow: darkMode 
-                ? "0 4px 16px rgba(0, 0, 0, 0.4)" 
-                : "0 4px 16px rgba(0, 0, 0, 0.15)", // Enhanced shadow on hover
-            },
+            borderRadius: 16,
+            backgroundImage: "none",
+            boxShadow: darkMode
+              ? "0 2px 12px rgba(0, 0, 0, 0.4)"
+              : "0 2px 12px rgba(0, 0, 0, 0.06)",
+            border: darkMode ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(0,0,0,0.06)",
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            fontWeight: 500,
+            fontSize: "0.8rem",
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: "none",
+            fontWeight: 500,
+            fontSize: "0.875rem",
+            minHeight: 40,
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: {
+            height: 2,
+            borderRadius: 2,
+            backgroundColor: "#FFBF49",
           },
         },
       },
@@ -73,33 +137,34 @@ const createAppTheme = (darkMode: boolean): Theme => {
         styleOverrides: {
           root: {
             "& .MuiOutlinedInput-root": {
+              borderRadius: 10,
               "& fieldset": {
-                borderColor: "#FFBF49", // Set the border color to golden yellow
+                borderColor: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)",
               },
               "&:hover fieldset": {
-                borderColor: "#FFBF49", // Set the border color on hover to golden yellow
+                borderColor: "#FFBF49",
               },
               "&.Mui-focused fieldset": {
-                borderColor: "#FFBF49", // Set the border color on focus to golden yellow
+                borderColor: "#FFBF49",
               },
               "& input": {
-                color: darkMode ? "#ffffff" : "#212121", // Adapt input text color
+                color: darkMode ? "#f2f2f2" : "#111111",
               },
               "& input::placeholder": {
-                color: darkMode ? "#b0b0b0" : "#757575", // Adapt placeholder color
+                color: darkMode ? "#666666" : "#999999",
                 lineHeight: "24px",
               },
-              minHeight: 50, // Set minimum height for single-line fields
+              minHeight: 48,
               "&.MuiInputBase-multiline": {
-                height: "auto", // Allow multiline fields to auto-resize
-                minHeight: "auto", // Remove min-height for multiline
+                height: "auto",
+                minHeight: "auto",
               },
             },
             "& .MuiInputLabel-root": {
-              color: "#FFBF49", // Golden yellow color for the label
+              color: darkMode ? "#888888" : "#666666",
             },
             "& .MuiInputLabel-root.Mui-focused": {
-              color: "#FFBF49", // Golden yellow color when label is focused
+              color: "#FFBF49",
             },
           },
         },
@@ -108,30 +173,31 @@ const createAppTheme = (darkMode: boolean): Theme => {
         styleOverrides: {
           root: {
             "& .MuiInputLabel-root": {
-              color: "#FFBF49", // Golden yellow color for the label
+              color: darkMode ? "#888888" : "#666666",
             },
             "& .MuiInputLabel-root.Mui-focused": {
-              color: "#FFBF49", // Golden yellow color when label is focused
+              color: "#FFBF49",
             },
             "& .MuiOutlinedInput-root": {
+              borderRadius: 10,
               "& fieldset": {
-                borderColor: "#FFBF49", // Set the border color to golden yellow
+                borderColor: darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)",
               },
               "&:hover fieldset": {
-                borderColor: "#FFBF49", // Set the border color on hover to golden yellow
+                borderColor: "#FFBF49",
               },
               "&.Mui-focused fieldset": {
-                borderColor: "#FFBF49", // Set the border color on focus to golden yellow
+                borderColor: "#FFBF49",
               },
               "& input": {
-                color: darkMode ? "#ffffff" : "#212121", // Adapt input text color
+                color: darkMode ? "#f2f2f2" : "#111111",
               },
               "& input::placeholder": {
-                color: darkMode ? "#b0b0b0" : "#757575", // Adapt placeholder color
+                color: darkMode ? "#666666" : "#999999",
                 lineHeight: "24px",
               },
               "& .MuiSelect-select": {
-                color: darkMode ? "#ffffff" : "#212121", // Adapt text color based on theme
+                color: darkMode ? "#f2f2f2" : "#111111",
               },
             },
           },
@@ -141,7 +207,6 @@ const createAppTheme = (darkMode: boolean): Theme => {
   });
 };
 
-// Default theme (light mode)
 const theme: Theme = createAppTheme(false);
 
 export default theme;

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   AppBar,
   Toolbar,
-  Typography,
   Button,
   Box,
   IconButton,
@@ -12,8 +11,10 @@ import {
   ListItemButton,
   ListItemText,
   Avatar,
+  Divider,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
@@ -43,176 +44,152 @@ const NavBar: React.FC = () => {
     setDrawerOpen(open);
   };
 
-  // Dynamic navigation items based on authentication status and role
-  const navItems: NavItem[] = isAuthenticated 
+  const navItems: NavItem[] = isAuthenticated
     ? [
-        { text: 'Events', route: '/events' }, // Now uses infinite scroll by default
-        { text: 'My Events', route: '/events/my' }, // Now uses infinite scroll by default
+        { text: 'Events', route: '/events' },
+        { text: 'My Events', route: '/events/my' },
         { text: 'Friends', route: '/friends' },
         { text: 'Interests', route: '/interests' },
-        ...(user?.role === 'admin' ? [{ text: 'Admin Panel', route: '/admin' }] : []),
+        ...(user?.role === 'admin' ? [{ text: 'Admin', route: '/admin' }] : []),
       ]
     : [
-        { text: 'Events', route: '/events' }, // Public access to main events (infinite scroll)
+        { text: 'Events', route: '/events' },
         { text: 'Login', route: '/login' },
       ];
 
   const drawerContent = (
     <Box
       sx={{
-        width: 250,
-        backgroundColor: darkMode ? '#1e1e1e' : '#FFFFFF',
+        width: 280,
         height: '100%',
+        backgroundColor: darkMode ? '#0c0c0c' : '#ffffff',
+        display: 'flex',
+        flexDirection: 'column',
       }}
       role="presentation"
-      onClick={toggleDrawer(false)}
-      onKeyDown={toggleDrawer(false)}
     >
-      <List>
-        {/* Add Profile option for mobile if authenticated */}
+      {/* Drawer Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2.5 }}>
+        <Box
+          component="span"
+          onClick={() => { navigate(isAuthenticated ? '/home' : '/'); setDrawerOpen(false); }}
+          sx={{
+            background: 'linear-gradient(135deg, #FFBF49 0%, #FF8C00 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontWeight: 800,
+            fontSize: '1.35rem',
+            letterSpacing: '-0.5px',
+            cursor: 'pointer',
+            fontFamily: "'Inter', sans-serif",
+          }}
+        >
+          sahana
+        </Box>
+        <IconButton
+          onClick={() => setDrawerOpen(false)}
+          sx={{ color: darkMode ? '#888' : '#666', '&:hover': { backgroundColor: 'transparent' } }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+      </Box>
+
+      <Divider sx={{ borderColor: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }} />
+
+      {/* Nav Items */}
+      <List sx={{ flex: 1, py: 1.5 }}>
         {isAuthenticated && (
-          <ListItem key="Profile" disablePadding>
-            <ListItemButton 
-              onClick={() => navigate('/profile')}
-              sx={{
-                border: 'none !important',
-                outline: 'none !important',
-                boxShadow: 'none !important',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  border: 'none !important',
-                  outline: 'none !important',
-                  boxShadow: 'none !important',
-                  '& .MuiListItemText-primary': {
-                    color: '#FFBF49',
-                  },
-                },
-                '&:focus': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
-                },
-                '&:active': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
-                },
-              }}
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => { navigate('/profile'); setDrawerOpen(false); }}
+              sx={{ px: 2.5, py: 1.2, '&:hover': { backgroundColor: 'transparent', '& .MuiListItemText-primary': { color: '#FFBF49' } } }}
             >
               <ListItemText
                 primary="Profile"
-                sx={{
-                  color: darkMode ? '#ffffff' : '#333333',
-                  fontWeight: '500',
-                  textAlign: 'center',
-                }}
+                sx={{ '& .MuiListItemText-primary': { fontWeight: 500, color: darkMode ? '#f2f2f2' : '#111111', fontSize: '0.95rem' } }}
               />
             </ListItemButton>
           </ListItem>
         )}
-        
         {navItems.map(({ text, route }) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton 
-              onClick={() => navigate(route)}
-              sx={{
-                border: 'none !important',
-                outline: 'none !important',
-                boxShadow: 'none !important',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  border: 'none !important',
-                  outline: 'none !important',
-                  boxShadow: 'none !important',
-                  '& .MuiListItemText-primary': {
-                    color: '#FFBF49',
-                  },
-                },
-                '&:focus': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
-                },
-                '&:active': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
-                },
-              }}
+            <ListItemButton
+              onClick={() => { navigate(route); setDrawerOpen(false); }}
+              sx={{ px: 2.5, py: 1.2, '&:hover': { backgroundColor: 'transparent', '& .MuiListItemText-primary': { color: '#FFBF49' } } }}
             >
               <ListItemText
                 primary={text}
-                sx={{
-                  color: darkMode ? '#ffffff' : '#333333',
-                  fontWeight: '500',
-                  textAlign: 'center',
-                }}
+                sx={{ '& .MuiListItemText-primary': { fontWeight: 500, color: darkMode ? '#f2f2f2' : '#111111', fontSize: '0.95rem' } }}
               />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
+
+      <Divider sx={{ borderColor: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }} />
+
+      {/* Drawer Footer */}
+      <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <DarkModeToggle />
+        {isAuthenticated && <LogoutButton />}
+      </Box>
     </Box>
   );
 
   return (
     <AppBar
-      position="static"
+      position="sticky"
       sx={{
-        backgroundColor: 'transparent',
+        backgroundColor: darkMode ? '#0c0c0c' : '#ffffff',
         boxShadow: 'none',
-        borderBottom: 'none',
+        borderBottom: darkMode
+          ? '1px solid rgba(255,255,255,0.06)'
+          : '1px solid rgba(0,0,0,0.07)',
+        top: 0,
       }}
     >
-      <Toolbar sx={{ height: '60px' }}>
-        <Typography
-          variant="h6"
-          component="div"
-          sx={{
-            flexGrow: 1,
-            fontWeight: '600',
-            color: darkMode ? '#ffffff' : '#333333',
-            cursor: 'pointer',
-          }}
+      <Toolbar sx={{ height: '56px', px: { xs: 2, md: 4 }, minHeight: '56px !important' }}>
+        {/* Logo */}
+        <Box
+          component="span"
           onClick={() => navigate(isAuthenticated ? '/home' : '/')}
+          sx={{
+            background: 'linear-gradient(135deg, #FFBF49 0%, #FF8C00 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontWeight: 800,
+            fontSize: '1.25rem',
+            letterSpacing: '-0.5px',
+            cursor: 'pointer',
+            flexGrow: 1,
+            fontFamily: "'Inter', sans-serif",
+            userSelect: 'none',
+          }}
         >
-          Sahana
-        </Typography>
+          sahana
+        </Box>
 
         {/* Desktop Navigation */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, alignItems: 'center' }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, alignItems: 'center' }}>
           <LocationNavbar />
-          
-          {/* Dynamic Navigation Buttons */}
+
           {navItems.map((item) => (
             <Button
               key={item.text}
-              color="inherit"
               sx={{
-                color: darkMode ? '#ffffff' : '#333333',
-                fontWeight: '500',
-                transition: 'color 0.3s',
-                border: 'none !important',
-                outline: 'none !important',
-                boxShadow: 'none !important',
+                color: darkMode ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                px: 1.5,
+                minHeight: 'unset',
+                height: 36,
+                borderRadius: '8px',
+                transition: 'all 0.15s ease',
                 '&:hover': {
-                  color: '#FFBF49',
-                  backgroundColor: 'transparent',
-                  border: 'none !important',
-                  outline: 'none !important',
-                  boxShadow: 'none !important',
-                  transform: 'scale(1.1)',
-                  transition: 'transform 0.2s ease-in-out',
-                },
-                '&:focus': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
-                },
-                '&:active': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
+                  color: darkMode ? '#ffffff' : '#000000',
+                  backgroundColor: darkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)',
                 },
               }}
               onClick={() => navigate(item.route)}
@@ -220,103 +197,61 @@ const NavBar: React.FC = () => {
               {item.text}
             </Button>
           ))}
-          
-          {/* Profile Picture for authenticated users */}
+
           {isAuthenticated && (
             <IconButton
               onClick={() => navigate('/profile')}
               sx={{
-                border: 'none !important',
-                outline: 'none !important',
-                boxShadow: 'none !important',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                  border: 'none !important',
-                  outline: 'none !important',
-                  boxShadow: 'none !important',
-                  '& .MuiAvatar-root': {
-                    transform: 'scale(1.1)',
-                  },
-                },
-                '&:focus': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
-                },
-                '&:active': {
-                  outline: 'none !important',
-                  border: 'none !important',
-                  boxShadow: 'none !important',
-                },
+                ml: 0.5,
+                p: 0.5,
+                '&:hover': { backgroundColor: 'transparent' },
               }}
             >
               <Avatar
                 src={user?.profile_picture}
                 alt={user?.name || 'User'}
                 sx={{
-                  width: 32,
-                  height: 32,
+                  width: 30,
+                  height: 30,
                   cursor: 'pointer',
-                  transition: 'transform 0.2s ease-in-out',
-                  border: '1px solid',
-                  borderColor: darkMode ? '#ffffff' : 'primary.main',
+                  border: '2px solid #FFBF49',
+                  transition: 'transform 0.15s ease',
+                  '&:hover': { transform: 'scale(1.08)' },
                 }}
               >
                 {!user?.profile_picture && (user?.name ? user.name.charAt(0).toUpperCase() : 'U')}
               </Avatar>
             </IconButton>
           )}
-          
+
           <DarkModeToggle />
           {isAuthenticated && <LogoutButton />}
         </Box>
 
-        {/* Mobile Hamburger Menu */}
-        <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 1 }}>
+        {/* Mobile Controls */}
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 0.5 }}>
           <DarkModeToggle />
           <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
+            size="medium"
             onClick={toggleDrawer(true)}
             sx={{
-              color: darkMode ? '#ffffff' : '#333333',
-              border: 'none !important',
-              outline: 'none !important',
-              boxShadow: 'none !important',
-              '&:hover': {
-                backgroundColor: 'transparent',
-                border: 'none !important',
-                outline: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '&:focus': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
-              '&:active': {
-                outline: 'none !important',
-                border: 'none !important',
-                boxShadow: 'none !important',
-              },
+              color: darkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+              '&:hover': { backgroundColor: darkMode ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)' },
             }}
           >
-            <MenuIcon />
+            <MenuIcon fontSize="small" />
           </IconButton>
           <Drawer
             anchor="right"
             open={drawerOpen}
             onClose={toggleDrawer(false)}
+            PaperProps={{
+              sx: {
+                boxShadow: darkMode ? '-8px 0 32px rgba(0,0,0,0.5)' : '-8px 0 32px rgba(0,0,0,0.12)',
+              }
+            }}
           >
             {drawerContent}
-            {/* Add logout button in mobile drawer for authenticated users */}
-            {isAuthenticated && (
-              <Box sx={{ p: 2 }}>
-                <LogoutButton />
-              </Box>
-            )}
           </Drawer>
         </Box>
       </Toolbar>

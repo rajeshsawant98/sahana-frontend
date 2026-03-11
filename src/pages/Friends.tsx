@@ -11,6 +11,7 @@ import {
   Stack,
   Button,
 } from '@mui/material';
+// Note: Tabs/Tab/Badge kept for the nested friend requests sub-tabs
 import { Refresh } from '@mui/icons-material';
 import { useFriends } from '../hooks/useFriends';
 import { useFriendRequests } from '../hooks/useFriendRequests';
@@ -41,44 +42,90 @@ export const Friends: React.FC = () => {
     <>
       <NavBar />
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, letterSpacing: '-0.3px', mb: 3 }}>
           Friends
         </Typography>
-      
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabIndex} onChange={handleTabChange}>
-          <Tab 
-            label={
-              <Badge badgeContent={friendsState.friends.length} color="primary">
-                My Friends
-              </Badge>
-            } 
-          />
-          <Tab label="Search Users" />
-          <Tab 
-            label={
-              <Badge 
-                badgeContent={friendRequestsState.received.length} 
-                color="error"
+
+      {/* Pill Tab Switcher */}
+      <Box
+        sx={{
+          display: 'inline-flex',
+          gap: 0.5,
+          p: 0.5,
+          borderRadius: '12px',
+          backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+          mb: 3,
+        }}
+      >
+        {[
+          { label: 'My Friends', count: friendsState.friends.length, countColor: 'primary' as const },
+          { label: 'Search', count: undefined, countColor: undefined },
+          { label: 'Requests', count: friendRequestsState.received.length, countColor: 'error' as const },
+        ].map((tab, index) => (
+          <Box
+            key={index}
+            onClick={(e) => handleTabChange(e, index)}
+            sx={{
+              px: 2,
+              py: 0.75,
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              fontFamily: "'Inter', sans-serif",
+              fontSize: '0.875rem',
+              fontWeight: tabIndex === index ? 600 : 500,
+              color: tabIndex === index
+                ? (theme) => theme.palette.mode === 'dark' ? '#000' : '#000'
+                : 'text.secondary',
+              backgroundColor: tabIndex === index ? '#FFBF49' : 'transparent',
+              transition: 'all 0.15s ease',
+              userSelect: 'none',
+              '&:hover': {
+                color: tabIndex === index ? '#000' : 'text.primary',
+              },
+            }}
+          >
+            {tab.label}
+            {tab.count !== undefined && tab.count > 0 && (
+              <Box
+                sx={{
+                  minWidth: 18,
+                  height: 18,
+                  borderRadius: '100px',
+                  backgroundColor: tabIndex === index
+                    ? 'rgba(0,0,0,0.15)'
+                    : tab.countColor === 'error' ? '#ef4444' : '#FFBF49',
+                  color: tabIndex === index ? '#000' : '#fff',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  px: 0.5,
+                }}
               >
-                Requests
-              </Badge>
-            } 
-          />
-        </Tabs>
+                {tab.count}
+              </Box>
+            )}
+          </Box>
+        ))}
       </Box>
 
       {/* Friends List Tab */}
       {friendsState.ui.selectedTab === 'friends' && (
         <Box>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6">
-              Your Friends ({friendsState.friends.length})
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+              {friendsState.friends.length} friend{friendsState.friends.length !== 1 ? 's' : ''}
             </Typography>
             <Button
               startIcon={<Refresh />}
               onClick={friendsState.refreshFriends}
               disabled={friendsState.loading.friends}
+              size="small"
+              sx={{ borderRadius: '100px', px: 2, height: 32, fontSize: '0.8rem' }}
             >
               Refresh
             </Button>
@@ -126,9 +173,6 @@ export const Friends: React.FC = () => {
       {/* Search Tab */}
       {friendsState.ui.selectedTab === 'search' && (
         <Box>
-          <Typography variant="h6" gutterBottom>
-            Find New Friends
-          </Typography>
           <FriendSearch />
         </Box>
       )}

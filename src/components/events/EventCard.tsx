@@ -22,15 +22,9 @@ const cardBaseSx = {
   borderRadius: 4,
   overflow: "hidden",
   cursor: "pointer",
-  boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-  transition: "all 0.3s ease",
   display: "flex",
   flexDirection: "column",
   mx: "auto",
-  "&:hover": {
-    transform: "translateY(-4px)",
-    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
-  },
 } as const;
 
 const cardContentSx = { pb: 2, flex: 1, display: "flex", flexDirection: "column" } as const;

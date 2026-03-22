@@ -170,6 +170,19 @@ export const fetchAllPublicEventsWithCursor = async (
   return res.data;
 };
 
+// Natural language search
+export const searchEvents = async (
+  params: { q: string; page_size?: number; cursor?: string }
+): Promise<CursorPaginatedResponse<Event>> => {
+  const queryParams = new URLSearchParams();
+  queryParams.set('q', params.q);
+  if (params.page_size) queryParams.set('page_size', params.page_size.toString());
+  if (params.cursor) queryParams.set('cursor', params.cursor);
+
+  const res = await axiosInstance.get(`/events/search?${queryParams}`);
+  return res.data;
+};
+
 // 🔸 Admin: Get all events (unfiltered) - REMOVED: API doesn't exist in backend 
 
 // 🔸 Admin: Get all events (unfiltered) - REMOVED: Unused cursor version

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { fetchAllPublicEventsWithCursor } from "../../apis/eventsAPI";
+import { fetchAllPublicEventsWithCursor, searchEvents } from "../../apis/eventsAPI";
 import { Event } from "../../types/Event";
 import { 
   CursorPaginatedResponse, 
@@ -21,6 +21,7 @@ interface EventsState {
   pageSize: number;
   totalCount?: number;
   filters: EventFilters;
+  searchQuery: string;
   isInitialLoad: boolean;
 }
 
@@ -36,19 +37,24 @@ const initialState: EventsState = {
   pageSize: 12,
   totalCount: undefined,
   filters: {},
+  searchQuery: "",
   isInitialLoad: true,
 };
 
 // Fetch initial events (first page)
 export const fetchInitialEvents = createAsyncThunk<
   CursorPaginatedResponse<Event>,
-  CursorEventsApiParams,
+  CursorEventsApiParams & { searchQuery?: string },
   { state: RootState; rejectValue: string }
 >("events/fetchInitial", async (params, { rejectWithValue }) => {
   try {
+    const { searchQuery, ...rest } = params;
+    if (searchQuery) {
+      return await searchEvents({ q: searchQuery, page_size: rest.page_size || 12 });
+    }
     const response = await fetchAllPublicEventsWithCursor({
-      page_size: params.page_size || 12,
-      ...params,
+      page_size: rest.page_size || 12,
+      ...rest,
       cursor: undefined, // No cursor for initial load
     });
     return response;
@@ -60,10 +66,13 @@ export const fetchInitialEvents = createAsyncThunk<
 // Load more events (append to existing list)
 export const loadMoreEvents = createAsyncThunk<
   CursorPaginatedResponse<Event>,
-  { cursor: string; pageSize?: number; filters?: EventFilters },
+  { cursor: string; pageSize?: number; filters?: EventFilters; searchQuery?: string },
   { state: RootState; rejectValue: string }
->("events/loadMore", async ({ cursor, pageSize = 12, filters = {} }, { rejectWithValue }) => {
+>("events/loadMore", async ({ cursor, pageSize = 12, filters = {}, searchQuery }, { rejectWithValue }) => {
   try {
+    if (searchQuery) {
+      return await searchEvents({ q: searchQuery, page_size: pageSize, cursor });
+    }
     const response = await fetchAllPublicEventsWithCursor({
       cursor,
       page_size: pageSize,
@@ -80,13 +89,17 @@ export const loadMoreEvents = createAsyncThunk<
 // Refresh events (replace current list)
 export const refreshEvents = createAsyncThunk<
   CursorPaginatedResponse<Event>,
-  CursorEventsApiParams,
+  CursorEventsApiParams & { searchQuery?: string },
   { state: RootState; rejectValue: string }
 >("events/refresh", async (params, { rejectWithValue }) => {
   try {
+    const { searchQuery, ...rest } = params;
+    if (searchQuery) {
+      return await searchEvents({ q: searchQuery, page_size: rest.page_size || 12 });
+    }
     const response = await fetchAllPublicEventsWithCursor({
-      page_size: params.page_size || 12,
-      ...params,
+      page_size: rest.page_size || 12,
+      ...rest,
       cursor: undefined, // No cursor for refresh
     });
     return response;
@@ -107,6 +120,11 @@ const eventsSlice = createSlice({
     // Update filters
     setFilters: (state, action: PayloadAction<EventFilters>) => {
       state.filters = action.payload;
+    },
+    
+    // Update search query
+    setSearchQuery: (state, action: PayloadAction<string>) => {
+      state.searchQuery = action.payload;
     },
     
     // Update page size
@@ -223,6 +241,7 @@ const eventsSlice = createSlice({
 export const {
   resetEvents,
   setFilters,
+  setSearchQuery,
   setPageSize,
   clearError,
   addEvent,

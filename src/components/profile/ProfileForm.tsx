@@ -1,56 +1,39 @@
 import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { 
-  Box, 
-  Typography, 
-  TextField, 
-  Grid2, 
-  Button 
+import {
+  Box,
+  Typography,
+  TextField,
+  Grid2,
+  Button,
+  Chip,
 } from '@mui/material';
 import { Autocomplete } from '@react-google-maps/api';
 import { User, Location } from '../../types/User';
 import { useLocationAutocomplete } from '../../hooks/useLocationAutocomplete';
 
-// Precompute both dark/light variants — only 2 objects ever exist
-const fieldLabelStyles = {
-  light: { mb: 1, color: '#666666', fontSize: '14px', fontWeight: 500 },
-  dark:  { mb: 1, color: '#b0b0b0', fontSize: '14px', fontWeight: 500 },
+const fieldLabelSx = {
+  mb: 0.75,
+  color: 'text.secondary',
+  fontSize: '0.8rem',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '0.3px',
 } as const;
 
-const textFieldStyles = {
-  light: {
-    '& .MuiOutlinedInput-root': {
-      backgroundColor: '#ffffff',
-      color: '#333333',
-      '& fieldset': { borderColor: '#ddd' },
-      '&:hover fieldset': { borderColor: '#bbb' },
-      '&.Mui-focused fieldset': { borderColor: '#1976d2' },
-    },
-    '& .MuiInputLabel-root': { color: '#666666' },
+const textFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px',
+    fontSize: '0.95rem',
   },
-  dark: {
-    '& .MuiOutlinedInput-root': {
-      backgroundColor: '#2a2a2a',
-      color: '#ffffff',
-      '& fieldset': { borderColor: '#444444' },
-      '&:hover fieldset': { borderColor: '#666666' },
-      '&.Mui-focused fieldset': { borderColor: '#1976d2' },
-    },
-    '& .MuiInputLabel-root': { color: '#b0b0b0' },
-  },
-};
-
-const textDisplayStyles = {
-  light: { color: '#333333', py: 0.5, fontSize: '16px' },
-  dark:  { color: '#ffffff', py: 0.5, fontSize: '16px' },
 } as const;
 
-const textDisplayBioStyles = {
-  light: { color: '#333333', py: 0.5, fontSize: '16px', lineHeight: 1.5 },
-  dark:  { color: '#ffffff', py: 0.5, fontSize: '16px', lineHeight: 1.5 },
+const displayValueSx = {
+  py: 0.5,
+  fontSize: '0.95rem',
+  lineHeight: 1.6,
+  color: 'text.primary',
 } as const;
-
-const buttonSx = { borderRadius: '8px', textTransform: 'none', px: 3, py: 1, fontSize: '14px' } as const;
 
 interface ProfileFormProps {
   profile: Partial<User>;
@@ -67,13 +50,10 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
   onCancel,
   onSubmit
 }) => {
-  const { control, handleSubmit, reset, setValue, watch } = useForm<Partial<User>>({
+  const { control, handleSubmit, reset, setValue } = useForm<Partial<User>>({
     defaultValues: profile
   });
 
-  const mode = darkMode ? 'dark' : 'light';
-
-  // Update form when profile changes
   useEffect(() => {
     reset(profile);
   }, [profile, reset]);
@@ -89,169 +69,141 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
     onLocationChange: (loc) => setValue('location', loc)
   });
 
-  // Sync location input when profile changes (if not editing or just switched)
   useEffect(() => {
     if (profile.location) {
-        setLocationInput(profile.location.name || `${profile.location.city}, ${profile.location.country}`);
+      setLocationInput(profile.location.name || `${profile.location.city}, ${profile.location.country}`);
     }
   }, [profile.location, setLocationInput]);
 
   const handleFormSubmit = (data: Partial<User>) => {
-    // Handle interests string to array conversion if needed, 
-    // but react-hook-form can handle it if we parse it in the input or before submit.
-    // Here we assume the input is a string and we convert it.
-    // Wait, the original code did: value.split(',')...
-    
-    // We can do the transformation here
     const formattedData = { ...data };
     if (typeof data.interests === 'string') {
-        formattedData.interests = (data.interests as string).split(',').map((i: string) => i.trim()).filter((i: string) => i);
+      formattedData.interests = (data.interests as string).split(',').map((i: string) => i.trim()).filter((i: string) => i);
     }
     onSubmit(formattedData);
   };
+
+  // Render a field row
+  const renderField = (
+    label: string,
+    name: keyof User,
+    displayValue: React.ReactNode,
+    editInput: React.ReactNode
+  ) => (
+    <Box sx={{ mb: 3 }}>
+      <Typography variant="body2" sx={fieldLabelSx}>{label}</Typography>
+      {isEditing ? editInput : (
+        <Typography variant="body1" sx={displayValueSx}>
+          {displayValue || <Box component="span" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>Not provided</Box>}
+        </Typography>
+      )}
+    </Box>
+  );
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <Grid2 container spacing={4}>
         {/* Left Column */}
         <Grid2 size={{ xs: 12, md: 6 }}>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Full Name</Typography>
-            {isEditing ? (
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
-                )}
-              />
-            ) : (
-              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.name || "Not provided"}</Typography>
-            )}
-          </Box>
+          {renderField('Full Name', 'name', profile.name,
+            <Controller name="name" control={control} render={({ field }) => (
+              <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldSx} />
+            )} />
+          )}
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Birthday</Typography>
-            {isEditing ? (
-              <Controller
-                name="birthdate"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} type="date" fullWidth variant="outlined" size="small" InputLabelProps={{ shrink: true }} sx={textFieldStyles[mode]} />
-                )}
-              />
-            ) : (
-              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.birthdate || "Not provided"}</Typography>
-            )}
-          </Box>
+          {renderField('Birthday', 'birthdate', profile.birthdate,
+            <Controller name="birthdate" control={control} render={({ field }) => (
+              <TextField {...field} type="date" fullWidth variant="outlined" size="small" InputLabelProps={{ shrink: true }} sx={textFieldSx} />
+            )} />
+          )}
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Bio</Typography>
-            {isEditing ? (
-              <Controller
-                name="bio"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} multiline rows={3} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
-                )}
-              />
-            ) : (
-              <Typography variant="body1" sx={textDisplayBioStyles[mode]}>{profile.bio || "No bio provided"}</Typography>
-            )}
-          </Box>
+          {renderField('Bio', 'bio', profile.bio,
+            <Controller name="bio" control={control} render={({ field }) => (
+              <TextField {...field} multiline rows={3} fullWidth variant="outlined" size="small" sx={textFieldSx} />
+            )} />
+          )}
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Describe the kind of people you'd love to hang out with</Typography>
-            {isEditing ? (
-              <Controller
-                name="vibe_description"
-                control={control}
-                render={({ field }) => (
-                  <Box>
-                    <TextField
-                      {...field}
-                      value={field.value || ''}
-                      multiline
-                      rows={3}
-                      fullWidth
-                      variant="outlined"
-                      size="small"
-                      placeholder="e.g. People who love live music, stay up late talking about ideas, and don't take themselves too seriously."
-                      inputProps={{ maxLength: 500 }}
-                      sx={textFieldStyles[mode]}
-                    />
-                    <Typography
-                      variant="caption"
-                      sx={{ display: 'block', textAlign: 'right', mt: 0.5, color: mode === 'dark' ? '#888' : '#999' }}
-                    >
-                      {(field.value || '').length} / 500
-                    </Typography>
-                  </Box>
-                )}
-              />
-            ) : (
-              <Typography variant="body1" sx={textDisplayBioStyles[mode]}>{profile.vibe_description || "Not provided"}</Typography>
-            )}
-          </Box>
+          {renderField('Your Vibe', 'vibe_description', profile.vibe_description,
+            <Controller name="vibe_description" control={control} render={({ field }) => (
+              <Box>
+                <TextField
+                  {...field}
+                  value={field.value || ''}
+                  multiline
+                  rows={3}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  placeholder="e.g. People who love live music, stay up late talking about ideas, and don't take themselves too seriously."
+                  inputProps={{ maxLength: 500 }}
+                  sx={textFieldSx}
+                />
+                <Typography variant="caption" sx={{ display: 'block', textAlign: 'right', mt: 0.5, color: 'text.secondary' }}>
+                  {(field.value || '').length} / 500
+                </Typography>
+              </Box>
+            )} />
+          )}
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Profession</Typography>
-            {isEditing ? (
-              <Controller
-                name="profession"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
-                )}
-              />
-            ) : (
-              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.profession || "Not specified"}</Typography>
-            )}
-          </Box>
+          {renderField('Profession', 'profession', profile.profession,
+            <Controller name="profession" control={control} render={({ field }) => (
+              <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldSx} />
+            )} />
+          )}
         </Grid2>
 
         {/* Right Column */}
         <Grid2 size={{ xs: 12, md: 6 }}>
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Interests</Typography>
+            <Typography variant="body2" sx={fieldLabelSx}>Interests</Typography>
             {isEditing ? (
-              <Controller
-                name="interests"
-                control={control}
-                render={({ field }) => (
-                  <TextField 
-                    {...field} 
-                    value={Array.isArray(field.value) ? field.value.join(', ') : field.value || ''}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    placeholder="Enter interests separated by commas"
-                    fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} 
-                  />
-                )}
-              />
+              <Controller name="interests" control={control} render={({ field }) => (
+                <TextField
+                  {...field}
+                  value={Array.isArray(field.value) ? field.value.join(', ') : field.value || ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  placeholder="Enter interests separated by commas"
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  sx={textFieldSx}
+                />
+              )} />
             ) : (
-              <Typography variant="body1" sx={textDisplayStyles[mode]}>
-                {Array.isArray(profile.interests) && profile.interests.length > 0 ? profile.interests.join(', ') : "No interests listed"}
-              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, py: 0.5 }}>
+                {Array.isArray(profile.interests) && profile.interests.length > 0 ? (
+                  profile.interests.map((interest, i) => (
+                    <Chip
+                      key={i}
+                      label={interest}
+                      size="small"
+                      sx={{
+                        borderRadius: '8px',
+                        fontWeight: 500,
+                        fontSize: '0.8rem',
+                        backgroundColor: 'rgba(255, 191, 73, 0.12)',
+                        color: '#FFBF49',
+                        border: '1px solid rgba(255, 191, 73, 0.25)',
+                      }}
+                    />
+                  ))
+                ) : (
+                  <Typography variant="body1" sx={{ ...displayValueSx, color: 'text.disabled', fontStyle: 'italic' }}>
+                    No interests listed
+                  </Typography>
+                )}
+              </Box>
             )}
           </Box>
 
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Phone Number</Typography>
-            {isEditing ? (
-              <Controller
-                name="phoneNumber"
-                control={control}
-                render={({ field }) => (
-                  <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldStyles[mode]} />
-                )}
-              />
-            ) : (
-              <Typography variant="body1" sx={textDisplayStyles[mode]}>{profile.phoneNumber || "Not provided"}</Typography>
-            )}
-          </Box>
+          {renderField('Phone Number', 'phoneNumber', profile.phoneNumber,
+            <Controller name="phoneNumber" control={control} render={({ field }) => (
+              <TextField {...field} fullWidth variant="outlined" size="small" sx={textFieldSx} />
+            )} />
+          )}
 
           <Box sx={{ mb: 3 }}>
-            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Location</Typography>
+            <Typography variant="body2" sx={fieldLabelSx}>Location</Typography>
             {isEditing ? (
               <Autocomplete onLoad={onLoad} onPlaceChanged={handlePlaceChanged}>
                 <TextField
@@ -261,14 +213,14 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
                   onChange={handleLocationInputChange}
                   variant="outlined"
                   size="small"
-                  sx={textFieldStyles[mode]}
+                  sx={textFieldSx}
                 />
               </Autocomplete>
             ) : (
-              <Typography variant="body1" sx={textDisplayStyles[mode]}>
-                {profile.location?.city && profile.location?.country 
-                  ? `${profile.location.city}, ${profile.location.country}` 
-                  : 'Not provided'}
+              <Typography variant="body1" sx={displayValueSx}>
+                {profile.location?.city && profile.location?.country
+                  ? `${profile.location.city}, ${profile.location.country}`
+                  : <Box component="span" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>Not provided</Box>}
               </Typography>
             )}
           </Box>
@@ -276,18 +228,18 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
       </Grid2>
 
       {isEditing && (
-        <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+        <Box sx={{ mt: 2, pt: 3, display: 'flex', gap: 1.5, justifyContent: 'flex-end', borderTop: '1px solid', borderColor: 'divider' }}>
           <Button
             variant="outlined"
             onClick={onCancel}
-            sx={buttonSx}
+            sx={{ borderRadius: '100px', px: 2.5, height: 36, fontSize: '0.8rem' }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
             type="submit"
-            sx={buttonSx}
+            sx={{ borderRadius: '100px', px: 3, height: 36, fontSize: '0.8rem' }}
           >
             Save Changes
           </Button>

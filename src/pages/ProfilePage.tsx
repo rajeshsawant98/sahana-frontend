@@ -3,16 +3,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateUserProfile } from "../apis/authAPI";
 import {
   Box,
-  Card,
-  CardContent,
   Container,
   Snackbar,
   Typography,
+  Chip,
 } from "@mui/material";
+import { PersonRounded, CalendarToday } from "@mui/icons-material";
 import { NavBar } from "../components/navigation";
 import { login } from "../redux/slices/authSlice";
 import { RootState, AppDispatch } from "../redux/store";
-import { User, Location } from "../types/User";
+import { User } from "../types/User";
 import { ProfileHeader } from "../components/profile/ProfileHeader";
 import { ProfileForm } from "../components/profile/ProfileForm";
 
@@ -33,15 +33,14 @@ const ProfilePage: React.FC = () => {
 
   const handleUpdateProfile = async (updatedData: Partial<User>): Promise<void> => {
     try {
-      // Merge updated data with existing profile
       const updatedProfile = { ...profile, ...updatedData };
-      
+
       await updateUserProfile(updatedProfile);
       setProfile(updatedProfile);
-      dispatch(login({ 
-        user: updatedProfile as User, 
+      dispatch(login({
+        user: updatedProfile as User,
         accessToken: accessToken || '',
-        role: updatedProfile.role || 'user' 
+        role: updatedProfile.role || 'user'
       }));
       setMessage("Profile updated successfully");
       setIsEditing(false);
@@ -51,10 +50,6 @@ const ProfilePage: React.FC = () => {
     } finally {
       setOpenSnackbar(true);
     }
-  };
-
-  const handleCloseSnackbar = (): void => {
-    setOpenSnackbar(false);
   };
 
   const handleEditToggle = (): void => {
@@ -68,51 +63,100 @@ const ProfilePage: React.FC = () => {
     return "Good Evening";
   }, []);
 
+  const memberSince = useMemo(() => {
+    if (!profile.created_at) return null;
+    return new Date(profile.created_at).toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }, [profile.created_at]);
+
   return (
     <>
       <NavBar />
-      <Box sx={{ backgroundColor: 'background.default', minHeight: "100vh", padding: 0 }}>
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          {/* Header Section */}
+      <Box sx={{ backgroundColor: 'background.default', minHeight: "100vh" }}>
+        <Container maxWidth="md" sx={{ py: 4 }}>
+          {/* Page Header */}
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: '-0.3px', mb: 0.5 }}>
-              {greeting}, {profile.name || "User"}!
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 0.5 }}>
+              <Box
+                sx={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(255, 191, 73, 0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#FFBF49',
+                }}
+              >
+                <PersonRounded sx={{ fontSize: 24 }} />
+              </Box>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+                  {greeting}, {profile.name?.split(' ')[0] || "there"}!
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {new Date().toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </Typography>
+                  {memberSince && (
+                    <Chip
+                      icon={<CalendarToday sx={{ fontSize: 12 }} />}
+                      label={`Member since ${memberSince}`}
+                      size="small"
+                      sx={{
+                        height: 22,
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        backgroundColor: 'rgba(76, 175, 80, 0.12)',
+                        color: '#4CAF50',
+                        '& .MuiChip-icon': { color: '#4CAF50' },
+                      }}
+                    />
+                  )}
+                </Box>
+              </Box>
+            </Box>
           </Box>
 
-          {/* Main Profile Card */}
-          <Card>
-            <CardContent sx={{ p: 4 }}>
-              <ProfileHeader 
-                profile={profile} 
-                isEditing={isEditing} 
-                onEditToggle={handleEditToggle} 
-                darkMode={darkMode} 
-              />
-              
-              <ProfileForm 
-                profile={profile} 
-                isEditing={isEditing} 
-                darkMode={darkMode} 
-                onCancel={handleEditToggle} 
-                onSubmit={handleUpdateProfile} 
-              />
+          {/* Profile Card */}
+          <Box
+            sx={{
+              p: { xs: 2.5, sm: 4 },
+              borderRadius: '16px',
+              backgroundColor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <ProfileHeader
+              profile={profile}
+              isEditing={isEditing}
+              onEditToggle={handleEditToggle}
+              darkMode={darkMode}
+            />
 
-            </CardContent>
-          </Card>
+            <ProfileForm
+              profile={profile}
+              isEditing={isEditing}
+              darkMode={darkMode}
+              onCancel={handleEditToggle}
+              onSubmit={handleUpdateProfile}
+            />
+          </Box>
         </Container>
+
         <Snackbar
           open={openSnackbar}
           autoHideDuration={3000}
-          onClose={handleCloseSnackbar}
+          onClose={() => setOpenSnackbar(false)}
           message={message}
           anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         />

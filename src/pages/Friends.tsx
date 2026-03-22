@@ -276,7 +276,13 @@ export const Friends: React.FC = () => {
                   message="Update your profile and interests to get personalized friend suggestions!"
                 />
               ) : (
-                <Stack spacing={1.5}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    gap: 1.5,
+                  }}
+                >
                   {friendsState.recommendations.map((rec) => (
                     <Box
                       key={rec.id}
@@ -287,107 +293,126 @@ export const Friends: React.FC = () => {
                         border: '1px solid',
                         borderColor: 'divider',
                         display: 'flex',
-                        alignItems: 'flex-start',
-                        gap: 2.5,
+                        flexDirection: 'column',
+                        gap: 0,
                         transition: 'border-color 0.15s ease',
                         '&:hover': { borderColor: 'rgba(255, 191, 73, 0.4)' },
                       }}
                     >
-                      <Avatar
-                        src={rec.profile_picture}
-                        alt={rec.name}
-                        sx={{
-                          width: 56,
-                          height: 56,
-                          fontSize: '1.3rem',
-                          fontWeight: 700,
-                          backgroundColor: '#A29BFE',
-                          color: '#fff',
-                        }}
-                      >
-                        {rec.name.charAt(0).toUpperCase()}
-                      </Avatar>
-
-                      <Box flex={1} sx={{ minWidth: 0 }}>
-                        <Box display="flex" alignItems="center" gap={1} mb={0.25}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
-                            {rec.name}
-                          </Typography>
-                          <Chip
-                            label={`${Math.round(rec.score * 100)}% match`}
-                            size="small"
-                            sx={{
-                              backgroundColor: 'rgba(255, 191, 73, 0.15)',
-                              color: '#FFBF49',
-                              fontWeight: 700,
-                              fontSize: '0.7rem',
-                              height: 22,
-                              borderRadius: '100px',
-                            }}
-                          />
-                        </Box>
-                        {rec.profession && (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                            {rec.profession}
-                          </Typography>
-                        )}
-                        {rec.bio && (
-                          <Typography variant="body2" sx={{ mt: 0.75, lineHeight: 1.5, color: 'text.secondary' }}>
-                            {rec.bio}
-                          </Typography>
-                        )}
-                        {rec.vibe_description && (
-                          <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic', color: 'text.disabled', fontSize: '0.85rem' }}>
-                            "{rec.vibe_description}"
-                          </Typography>
-                        )}
-                        {rec.location && (typeof rec.location === 'object') && rec.location.city && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                            <LocationOn sx={{ fontSize: 14, color: 'text.disabled' }} />
-                            <Typography variant="caption" color="text.secondary">
-                              {rec.location.city}{rec.location.state ? `, ${rec.location.state}` : ''}
+                      {/* Top row: avatar + name/profession/match */}
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                        <Avatar
+                          src={rec.profile_picture}
+                          alt={rec.name}
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            fontSize: '1.1rem',
+                            fontWeight: 700,
+                            backgroundColor: '#A29BFE',
+                            color: '#fff',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {rec.name.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Box display="flex" alignItems="center" gap={0.75} flexWrap="wrap">
+                            <Typography
+                              variant="subtitle2"
+                              sx={{ fontWeight: 700, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                            >
+                              {rec.name}
                             </Typography>
+                            <Chip
+                              label={`${Math.round(rec.score * 100)}% match`}
+                              size="small"
+                              sx={{
+                                backgroundColor: 'rgba(255, 191, 73, 0.15)',
+                                color: '#FFBF49',
+                                fontWeight: 700,
+                                fontSize: '0.65rem',
+                                height: 20,
+                                borderRadius: '100px',
+                              }}
+                            />
                           </Box>
-                        )}
-                        {rec.interests && rec.interests.length > 0 && (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1.25 }}>
-                            {rec.interests.slice(0, 4).map((interest) => (
-                              <Chip
-                                key={interest}
-                                label={interest}
-                                size="small"
-                                sx={{
-                                  borderRadius: '8px',
-                                  fontWeight: 500,
-                                  fontSize: '0.75rem',
-                                  height: 24,
-                                  backgroundColor: 'rgba(255, 191, 73, 0.12)',
-                                  color: '#FFBF49',
-                                  border: '1px solid rgba(255, 191, 73, 0.2)',
-                                }}
-                              />
-                            ))}
-                            {rec.interests.length > 4 && (
-                              <Chip
-                                label={`+${rec.interests.length - 4}`}
-                                size="small"
-                                sx={{
-                                  borderRadius: '8px',
-                                  fontSize: '0.75rem',
-                                  height: 24,
-                                  border: '1px solid',
-                                  borderColor: 'divider',
-                                  color: 'text.secondary',
-                                  backgroundColor: 'transparent',
-                                }}
-                              />
-                            )}
-                          </Box>
-                        )}
+                          {rec.profession && (
+                            <Typography variant="caption" color="text.secondary">
+                              {rec.profession}
+                            </Typography>
+                          )}
+                        </Box>
                       </Box>
+
+                      {/* Bio / vibe */}
+                      {(rec.bio || rec.vibe_description) && (
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            mt: 1.25,
+                            lineHeight: 1.5,
+                            fontSize: '0.8rem',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {rec.bio || rec.vibe_description}
+                        </Typography>
+                      )}
+
+                      {/* Location */}
+                      {rec.location && (typeof rec.location === 'object') && rec.location.city && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.75 }}>
+                          <LocationOn sx={{ fontSize: 13, color: 'text.disabled' }} />
+                          <Typography variant="caption" color="text.secondary">
+                            {rec.location.city}{rec.location.state ? `, ${rec.location.state}` : ''}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {/* Interests */}
+                      {rec.interests && rec.interests.length > 0 && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1.25 }}>
+                          {rec.interests.slice(0, 3).map((interest) => (
+                            <Chip
+                              key={interest}
+                              label={interest}
+                              size="small"
+                              sx={{
+                                borderRadius: '8px',
+                                fontWeight: 500,
+                                fontSize: '0.7rem',
+                                height: 22,
+                                backgroundColor: 'rgba(255, 191, 73, 0.12)',
+                                color: '#FFBF49',
+                                border: '1px solid rgba(255, 191, 73, 0.2)',
+                              }}
+                            />
+                          ))}
+                          {rec.interests.length > 3 && (
+                            <Chip
+                              label={`+${rec.interests.length - 3}`}
+                              size="small"
+                              sx={{
+                                borderRadius: '8px',
+                                fontSize: '0.7rem',
+                                height: 22,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                color: 'text.secondary',
+                                backgroundColor: 'transparent',
+                              }}
+                            />
+                          )}
+                        </Box>
+                      )}
                     </Box>
                   ))}
-                </Stack>
+                </Box>
               )}
             </Box>
           )}

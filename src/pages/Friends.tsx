@@ -16,7 +16,7 @@ import {
   Chip,
 } from '@mui/material';
 // Note: Tabs/Tab/Badge kept for the nested friend requests sub-tabs
-import { Refresh } from '@mui/icons-material';
+import { Refresh, People } from '@mui/icons-material';
 import { useFriends } from '../hooks/useFriends';
 import { useFriendRequests } from '../hooks/useFriendRequests';
 import { FriendCard } from '../components/friends/FriendCard';
@@ -47,9 +47,31 @@ export const Friends: React.FC = () => {
     <>
       <NavBar />
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, letterSpacing: '-0.3px', mb: 3 }}>
-          Friends
-        </Typography>
+        {/* Header */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: '12px',
+              backgroundColor: 'rgba(162, 155, 254, 0.15)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#A29BFE',
+            }}
+          >
+            <People sx={{ fontSize: 24 }} />
+          </Box>
+          <Box>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 700, letterSpacing: '-0.3px', lineHeight: 1.2 }}>
+              Friends
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Connect with people and grow your community.
+            </Typography>
+          </Box>
+        </Box>
 
       {/* Pill Tab Switcher */}
       <Box

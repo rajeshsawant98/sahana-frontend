@@ -9,8 +9,7 @@ import {
   CircularProgress,
   Alert,
   Chip,
-  Grid,
-  Paper,
+  Container,
   Stack,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -18,6 +17,8 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CheckIcon from "@mui/icons-material/Check";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import EditIcon from "@mui/icons-material/Edit";
+import LinkIcon from "@mui/icons-material/Link";
 import { RootState } from "../redux/store";
 import { Event } from "../types/Event";
 import { fetchEventById, rsvpToEvent, cancelRSVP } from "../apis/eventsAPI";
@@ -33,7 +34,6 @@ const EventDetails: React.FC = () => {
   const currentUser = useSelector((state: RootState) => state.auth.user);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
-  // Find current user's RSVP object
   const userRSVP = useMemo(() => {
     if (!isAuthenticated || !currentUser || !event || !event.rsvpList) return undefined;
     return event.rsvpList.find(rsvp => rsvp.email === currentUser.email);
@@ -80,10 +80,8 @@ const EventDetails: React.FC = () => {
     setError(null);
     try {
       if (rsvpStatus === "interested") {
-        // Cancel RSVP as interested
         await cancelRSVP(id, "interested");
       } else {
-        // RSVP as interested
         await rsvpToEvent(id, { status: "interested" });
       }
       const updatedEvent = await fetchEventById(id);
@@ -100,8 +98,49 @@ const EventDetails: React.FC = () => {
 
   const handleNavigateToLogin = useCallback(() => navigate('/login'), [navigate]);
 
-  if (loading) return <CircularProgress sx={{ m: 4 }} />;
-  if (error) return <Alert severity="error">{error}</Alert>;
+  const formatDateTime = (dateString: string, includeTimezone = false): string => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+      ...(includeTimezone && { timeZoneName: "short" }),
+    };
+    return new Date(dateString).toLocaleString("en-US", options);
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <>
+        <NavBar />
+        <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 20 }}>
+            <CircularProgress sx={{ color: '#FFBF49' }} />
+          </Box>
+        </Box>
+      </>
+    );
+  }
+
+  // Error state
+  if (error && !event) {
+    return (
+      <>
+        <NavBar />
+        <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
+          <Container maxWidth="md" sx={{ py: 4 }}>
+            <Alert severity="error" sx={{ borderRadius: '12px' }}>
+              {error}
+            </Alert>
+          </Container>
+        </Box>
+      </>
+    );
+  }
+
   if (!event) return null;
 
   const {
@@ -117,205 +156,307 @@ const EventDetails: React.FC = () => {
 
   const { latitude, longitude, formattedAddress, name } = location || {};
 
-  const formatDateTime = (dateString: string, includeTimezone = false): string => {
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-      ...(includeTimezone && { timeZoneName: "short" }),
-    };
-    return new Date(dateString).toLocaleString("en-US", options);
-  };
-
   return (
     <>
       <NavBar />
-
-      {/* Hero Section */}
-      <Paper
-        elevation={3}
-        sx={{
-          position: "relative",
-          height: { xs: 300, md: 400 },
-          width: "100%",
-          borderRadius: 2,
-          mb: 4,
-          overflow: "hidden",
-          display: "flex",
-          alignItems: "flex-end",
-          px: 4,
-          py: 3,
-          backgroundColor: imageUrl ? "transparent" : "grey",
-        }}
-      >
-        {imageUrl && (
-          <>
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-                backgroundImage: `url(${imageUrl})`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                filter: "blur(6px)",
-                transform: "scale(1.1)",
-                zIndex: 1,
-              }}
-            />
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-                background: "rgba(0, 0, 0, 0.4)",
-                zIndex: 2,
-              }}
-            />
-          </>
-        )}
-
+      <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
+        {/* Hero Section */}
         <Box
           sx={{
             position: "relative",
-            zIndex: 3,
-            color: "white",
-            background: imageUrl ? "transparent" : "primary.main",
-            borderRadius: 2,
-            p: 3,
+            height: { xs: 280, md: 380 },
             width: "100%",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "flex-end",
           }}
         >
-          <Stack 
-            direction={{ xs: "column", sm: "row" }} 
-            justifyContent="space-between" 
-            alignItems={{ xs: "flex-start", sm: "center" }} 
-            spacing={2}
+          {imageUrl ? (
+            <>
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: `url(${imageUrl})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  filter: "blur(6px)",
+                  transform: "scale(1.1)",
+                  zIndex: 1,
+                }}
+              />
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 60%, rgba(0,0,0,0.1) 100%)",
+                  zIndex: 2,
+                }}
+              />
+            </>
+          ) : (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                background: (theme) =>
+                  theme.palette.mode === 'dark'
+                    ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+                    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                zIndex: 1,
+              }}
+            />
+          )}
+
+          <Container maxWidth="lg" sx={{ position: "relative", zIndex: 3, pb: 4 }}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              justifyContent="space-between"
+              alignItems={{ xs: "flex-start", sm: "flex-end" }}
+              spacing={2}
+            >
+              <Box>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontWeight: 800,
+                    color: "white",
+                    letterSpacing: '-0.5px',
+                    lineHeight: 1.1,
+                    mb: 1.5,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  {eventName}
+                </Typography>
+                <Stack direction="row" spacing={2} sx={{ color: "rgba(255,255,255,0.9)" }}>
+                  <Typography display="flex" alignItems="center" gap={0.75} variant="body2" sx={{ fontWeight: 500 }}>
+                    <CalendarTodayIcon sx={{ fontSize: 16 }} />
+                    {formatDateTime(startTime)}
+                  </Typography>
+                  <Typography display="flex" alignItems="center" gap={0.75} variant="body2" sx={{ fontWeight: 500 }}>
+                    <LocationOnIcon sx={{ fontSize: 16 }} />
+                    {name || "Online"}
+                  </Typography>
+                </Stack>
+              </Box>
+
+              <Stack direction="row" spacing={1.5}>
+                {isAuthenticated && canEditEvent && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<EditIcon sx={{ fontSize: 16 }} />}
+                    onClick={handleEditClick}
+                    sx={{
+                      borderRadius: '100px',
+                      height: 36,
+                      color: 'white',
+                      borderColor: 'rgba(255,255,255,0.4)',
+                      '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' },
+                    }}
+                  >
+                    Edit
+                  </Button>
+                )}
+                {!isOnline && (
+                  isAuthenticated ? (
+                    <>
+                      <Button
+                        variant={rsvpStatus === "joined" ? "outlined" : "contained"}
+                        startIcon={rsvpStatus === "joined" ? <CheckIcon /> : undefined}
+                        disabled={rsvpStatus === "joined"}
+                        onClick={() => handleRSVP("joined")}
+                        sx={{
+                          borderRadius: '100px',
+                          height: 36,
+                          px: 2.5,
+                          ...(rsvpStatus === "joined" && {
+                            color: 'white',
+                            borderColor: 'rgba(255,255,255,0.4)',
+                          }),
+                        }}
+                      >
+                        {rsvpStatus === "joined" ? "Joined" : "Join Event"}
+                      </Button>
+                      {rsvpStatus !== "joined" && (
+                        <Button
+                          variant={rsvpStatus === "interested" ? "contained" : "outlined"}
+                          color="secondary"
+                          startIcon={rsvpStatus === "interested" ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                          onClick={handleInterestedToggle}
+                          sx={{
+                            borderRadius: '100px',
+                            height: 36,
+                            px: 2,
+                            ...(rsvpStatus !== "interested" && {
+                              color: 'white',
+                              borderColor: 'rgba(255,255,255,0.4)',
+                              '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' },
+                            }),
+                          }}
+                        >
+                          Interested
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      onClick={handleNavigateToLogin}
+                      sx={{ borderRadius: '100px', height: 36, px: 2.5 }}
+                    >
+                      Login to Join
+                    </Button>
+                  )
+                )}
+              </Stack>
+            </Stack>
+          </Container>
+        </Box>
+
+        {/* Main Content */}
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {/* Error inline */}
+          {error && (
+            <Alert severity="error" sx={{ mb: 3, borderRadius: '12px' }}>
+              {error}
+            </Alert>
+          )}
+
+          {/* Category Chips */}
+          {categories?.length > 0 && (
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 4 }}>
+              {categories.map((cat: string, index: number) => (
+                <Chip
+                  key={index}
+                  label={cat}
+                  sx={{
+                    borderRadius: "100px",
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                    backgroundColor: 'rgba(255, 191, 73, 0.12)',
+                    color: '#FFBF49',
+                    border: '1px solid rgba(255, 191, 73, 0.25)',
+                  }}
+                />
+              ))}
+            </Box>
+          )}
+
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: 4,
+            }}
           >
+            {/* Left Column — Details */}
             <Box>
-              <Typography variant="h4" fontWeight={600} gutterBottom>
-                {eventName}
-              </Typography>
-              <Typography display="flex" alignItems="center" gap={1}>
-                <CalendarTodayIcon fontSize="small" />
-                {formatDateTime(startTime)}
-              </Typography>
-              <Typography display="flex" alignItems="center" gap={1}>
-                <LocationOnIcon fontSize="small" />
-                {name || "Online"}
-              </Typography>
+              {/* Date & Time Card */}
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  mb: 3,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
+                  Date and Time
+                </Typography>
+                <Typography sx={{ fontWeight: 500 }}>
+                  {formatDateTime(startTime, true)}
+                </Typography>
+              </Box>
+
+              {/* Location Card */}
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  mb: 3,
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
+                  Location
+                </Typography>
+                <Typography sx={{ fontWeight: 500, mb: 0.25 }}>{name}</Typography>
+                <Typography variant="body2" color="text.secondary">{formattedAddress}</Typography>
+              </Box>
+
+              {/* About Card */}
+              <Box
+                sx={{
+                  p: 3,
+                  borderRadius: '16px',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
+                  About this Event
+                </Typography>
+                <Typography color="text.secondary" sx={{ lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                  {description}
+                </Typography>
+              </Box>
             </Box>
 
-            <Stack direction="row" spacing={2}>
-              {isAuthenticated && canEditEvent && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  size="small"
-                  onClick={handleEditClick}
+            {/* Right Column — Map or Online Link */}
+            <Box>
+              {!isOnline && latitude && longitude && (
+                <Box
+                  sx={{
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
                 >
-                  Edit Event
-                </Button>
+                  <GoogleMap
+                    mapContainerStyle={{ width: "100%", height: "380px" }}
+                    center={{ lat: latitude, lng: longitude }}
+                    zoom={15}
+                  >
+                    <Marker position={{ lat: latitude, lng: longitude }} />
+                  </GoogleMap>
+                </Box>
               )}
-              {!isOnline && (
-                isAuthenticated ? (
-                  <>
-                    <Button
-                      variant={rsvpStatus === "joined" ? "outlined" : "contained"}
-                      color="primary"
-                      startIcon={rsvpStatus === "joined" ? <CheckIcon /> : undefined}
-                      disabled={rsvpStatus === "joined"}
-                      onClick={() => handleRSVP("joined")}
-                    >
-                      {rsvpStatus === "joined" ? "Joined" : "Join Event"}
-                    </Button>
-                    {rsvpStatus !== "joined" && (
-                      <Button
-                        variant={rsvpStatus === "interested" ? "contained" : "outlined"}
-                        color="secondary"
-                        startIcon={rsvpStatus === "interested" ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                        onClick={handleInterestedToggle}
-                      >
-                        Interested
-                      </Button>
-                    )}
-                  </>
-                ) : (
+
+              {isOnline && joinLink && (
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: '16px',
+                    backgroundColor: 'background.paper',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', fontSize: '0.75rem', color: 'text.secondary', mb: 2 }}>
+                    Join Online
+                  </Typography>
                   <Button
                     variant="contained"
-                    color="primary"
-                    onClick={handleNavigateToLogin}
+                    href={joinLink}
+                    target="_blank"
+                    startIcon={<LinkIcon />}
+                    sx={{ borderRadius: '100px', px: 3 }}
                   >
-                    Login to Join
+                    Join Now
                   </Button>
-                )
+                </Box>
               )}
-            </Stack>
-          </Stack>
-        </Box>
-      </Paper>
-
-      {/* Main Content */}
-      <Box sx={{ px: 4, py: 2 }}>
-        {categories?.length > 0 && (
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
-            {categories.map((cat: string, index: number) => (
-              <Chip
-                key={index}
-                label={cat}
-                color="primary"
-                variant="filled"
-                sx={{ borderRadius: "20px" }}
-              />
-            ))}
+            </Box>
           </Box>
-        )}
-
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <Typography variant="h6" gutterBottom>
-              Date and Time
-            </Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
-              {formatDateTime(startTime, true)}
-            </Typography>
-
-            <Typography variant="h6" gutterBottom>
-              Location
-            </Typography>
-            <Typography>{name}</Typography>
-            <Typography color="text.secondary">{formattedAddress}</Typography>
-
-            <Typography variant="h6" sx={{ mt: 4, mb: 1 }}>
-              About this Event
-            </Typography>
-            <Typography color="text.secondary">{description}</Typography>
-          </Grid>
-
-          {!isOnline && latitude && longitude && (
-            <Grid item xs={12} md={6}>
-              <GoogleMap
-                mapContainerStyle={{ width: "100%", height: "350px" }}
-                center={{ lat: latitude, lng: longitude }}
-                zoom={15}
-              >
-                <Marker position={{ lat: latitude, lng: longitude }} />
-              </GoogleMap>
-            </Grid>
-          )}
-        </Grid>
-
-        {isOnline && joinLink && (
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Join Online
-            </Typography>
-            <Button variant="contained" color="primary" href={joinLink} target="_blank">
-              Join Now
-            </Button>
-          </Box>
-        )}
+        </Container>
       </Box>
     </>
   );

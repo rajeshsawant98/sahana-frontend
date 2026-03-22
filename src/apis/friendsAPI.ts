@@ -6,7 +6,8 @@ import {
   SendFriendRequestPayload,
   FriendshipStatusResponse,
   FriendsApiParams,
-  FriendRequestsApiParams
+  FriendRequestsApiParams,
+  RecommendedUser
 } from '../types/friends';
 import { createCacheKey, CACHE_TTL, cacheManager } from '../utils/cacheUtils';
 import axiosInstance from '../utils/axiosInstance';
@@ -18,6 +19,7 @@ export const FRIENDS_CACHE_TTL = {
   FRIEND_REQUESTS: 5 * 60 * 1000, // 5 minutes - moderate freshness needed
   USER_SEARCH: 2 * 60 * 1000,    // 2 minutes - search results should be fresh
   USER_PROFILES: 15 * 60 * 1000, // 15 minutes - profile data changes rarely
+  RECOMMENDATIONS: 5 * 60 * 1000, // 5 minutes - recommendations freshness
 };
 
 // Extend createCacheKey with friends-specific keys
@@ -28,6 +30,7 @@ export const createFriendsCacheKey = {
   userSearch: (query: string) => `user_search_${query.toLowerCase().trim()}`,
   userProfile: (userId: string) => `user_profile_${userId}`,
   friendshipStatus: (userId: string) => `friendship_status_${userId}`,
+  recommendations: () => 'friend_recommendations',
 };
 
 // Generic cache helper for non-paginated data
@@ -147,6 +150,19 @@ class FriendsApiService {
         return response.data;
       },
       FRIENDS_CACHE_TTL.USER_PROFILES
+    );
+  }
+  // Get friend recommendations with caching
+  async getRecommendations(): Promise<RecommendedUser[]> {
+    const cacheKey = createFriendsCacheKey.recommendations();
+    
+    return await getCachedDataGeneric(
+      cacheKey,
+      async () => {
+        const response = await axiosInstance.get('/friends/recommendations');
+        return response.data;
+      },
+      FRIENDS_CACHE_TTL.RECOMMENDATIONS
     );
   }
 }

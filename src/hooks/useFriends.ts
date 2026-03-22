@@ -5,6 +5,7 @@ import {
   fetchFriends, 
   searchUsers, 
   sendFriendRequest,
+  fetchRecommendations,
   setSearchTerm,
   clearSearchResults,
   setSelectedTab,
@@ -37,6 +38,13 @@ export const useFriends = () => {
     }
   }, [friendsState.ui.selectedTab, dispatch]); // friends.length is a guard, not a trigger
 
+  // Load recommendations when tab switches to 'recommended' and list is empty
+  useEffect(() => {
+    if (friendsState.ui.selectedTab === 'recommended' && friendsState.recommendations.length === 0) {
+      dispatch(fetchRecommendations());
+    }
+  }, [friendsState.ui.selectedTab, dispatch]);
+
   const handleSearchTermChange = (term: string) => {
     dispatch(setSearchTerm(term));
   };
@@ -44,11 +52,16 @@ export const useFriends = () => {
   const handleSendFriendRequest = (receiverId: string) =>
     executeAsync(sendFriendRequest, receiverId);
 
+  const refreshRecommendations = () => {
+    dispatch(fetchRecommendations());
+  };
+
   return {
     ...friendsState,
     handleSearchTermChange,
     handleSendFriendRequest,
     handleTabChange,
     refreshFriends: refresh,
+    refreshRecommendations,
   };
 };

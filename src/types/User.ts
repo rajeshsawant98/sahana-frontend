@@ -17,6 +17,7 @@ export interface User {
   birthdate?: string; // Format: "YYYY-MM-DD"
   profession?: string;
   interests?: string[];
+  vibe_description?: string;
   role: "user" | "admin";
   profile_picture?: string;
   location?: Location | null;

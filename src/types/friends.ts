@@ -11,6 +11,20 @@ export interface FriendProfile {
   created_at?: string;
 }
 
+export interface RecommendedUser {
+  id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  profession?: string;
+  profile_picture?: string;
+  location?: Record<string, any>;
+  interests?: string[];
+  vibe_description?: string | null;
+  score: number;
+  reasons?: { similarityScore: number };
+}
+
 export interface UserSearchResult {
   id: string;
   name: string;
@@ -49,7 +63,7 @@ export interface FriendsUIState {
   searchTerm: string;
   searchResults: UserSearchResult[];
   isSearching: boolean;
-  selectedTab: 'friends' | 'requests' | 'search';
+  selectedTab: 'friends' | 'requests' | 'search' | 'recommended';
 }
 
 export interface FriendRequestsUIState {

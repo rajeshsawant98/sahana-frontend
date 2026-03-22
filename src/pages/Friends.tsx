@@ -10,6 +10,10 @@ import {
   Alert,
   Stack,
   Button,
+  Card,
+  CardContent,
+  Avatar,
+  Chip,
 } from '@mui/material';
 // Note: Tabs/Tab/Badge kept for the nested friend requests sub-tabs
 import { Refresh } from '@mui/icons-material';
@@ -25,7 +29,7 @@ export const Friends: React.FC = () => {
   const friendRequestsState = useFriendRequests();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    const tabs = ['friends', 'search', 'requests'] as const;
+    const tabs = ['friends', 'recommended', 'search', 'requests'] as const;
     friendsState.handleTabChange(tabs[newValue]);
   };
 
@@ -36,7 +40,8 @@ export const Friends: React.FC = () => {
   };
 
   const tabIndex = friendsState.ui.selectedTab === 'friends' ? 0 
-    : friendsState.ui.selectedTab === 'search' ? 1 : 2;
+    : friendsState.ui.selectedTab === 'recommended' ? 1
+    : friendsState.ui.selectedTab === 'search' ? 2 : 3;
 
   return (
     <>
@@ -59,6 +64,7 @@ export const Friends: React.FC = () => {
       >
         {[
           { label: 'My Friends', count: friendsState.friends.length, countColor: 'primary' as const },
+          { label: 'Recommended', count: friendsState.recommendations.length, countColor: 'primary' as const },
           { label: 'Search', count: undefined, countColor: undefined },
           { label: 'Requests', count: friendRequestsState.received.length, countColor: 'error' as const },
         ].map((tab, index) => (
@@ -164,6 +170,117 @@ export const Friends: React.FC = () => {
                   onViewProfile={handleViewProfile}
                   onMessage={handleMessage}
                 />
+              ))}
+            </Stack>
+          )}
+        </Box>
+      )}
+
+      {/* Recommended Tab */}
+      {friendsState.ui.selectedTab === 'recommended' && (
+        <Box>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2.5}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+              {friendsState.recommendations.length} recommendation{friendsState.recommendations.length !== 1 ? 's' : ''}
+            </Typography>
+            <Button
+              startIcon={<Refresh />}
+              onClick={friendsState.refreshRecommendations}
+              disabled={friendsState.loading.recommendations}
+              size="small"
+              sx={{ borderRadius: '100px', px: 2, height: 32, fontSize: '0.8rem' }}
+            >
+              Refresh
+            </Button>
+          </Box>
+
+          {friendsState.loading.recommendations ? (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress />
+            </Box>
+          ) : friendsState.errors.recommendations ? (
+            <Alert severity="error">{friendsState.errors.recommendations}</Alert>
+          ) : friendsState.recommendations.length === 0 ? (
+            <Box textAlign="center" py={8}>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No recommendations yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Update your profile and interests to get personalized friend suggestions!
+              </Typography>
+            </Box>
+          ) : (
+            <Stack spacing={2}>
+              {friendsState.recommendations.map((rec) => (
+                <Card key={rec.id} variant="outlined">
+                  <CardContent>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <Avatar
+                        src={rec.profile_picture}
+                        alt={rec.name}
+                        sx={{ width: 64, height: 64 }}
+                      >
+                        {rec.name.charAt(0).toUpperCase()}
+                      </Avatar>
+
+                      <Box flex={1}>
+                        <Box display="flex" alignItems="center" gap={1} mb={0.25}>
+                          <Typography variant="h6">{rec.name}</Typography>
+                          <Chip
+                            label={`${Math.round(rec.score * 100)}% match`}
+                            size="small"
+                            sx={{
+                              backgroundColor: 'rgba(255, 191, 73, 0.15)',
+                              color: '#FFBF49',
+                              fontWeight: 600,
+                              fontSize: '0.7rem',
+                              height: 22,
+                            }}
+                          />
+                        </Box>
+                        {rec.profession && (
+                          <Typography variant="body2" color="text.secondary">
+                            {rec.profession}
+                          </Typography>
+                        )}
+                        {rec.bio && (
+                          <Typography variant="body2" sx={{ mt: 0.5 }}>
+                            {rec.bio}
+                          </Typography>
+                        )}
+                        {rec.vibe_description && (
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                            "{rec.vibe_description}"
+                          </Typography>
+                        )}
+                        {rec.location && (typeof rec.location === 'object') && rec.location.city && (
+                          <Typography variant="caption" color="text.secondary">
+                            📍 {rec.location.city}{rec.location.state ? `, ${rec.location.state}` : ''}
+                          </Typography>
+                        )}
+                        {rec.interests && rec.interests.length > 0 && (
+                          <Box sx={{ mt: 1 }}>
+                            {rec.interests.slice(0, 4).map((interest) => (
+                              <Chip
+                                key={interest}
+                                label={interest}
+                                size="small"
+                                sx={{ mr: 0.5, mb: 0.5 }}
+                              />
+                            ))}
+                            {rec.interests.length > 4 && (
+                              <Chip
+                                label={`+${rec.interests.length - 4} more`}
+                                size="small"
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
               ))}
             </Stack>
           )}

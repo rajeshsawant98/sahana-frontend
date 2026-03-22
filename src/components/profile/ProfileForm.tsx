@@ -161,6 +161,40 @@ export const ProfileForm: React.FC<ProfileFormProps> = ({
           </Box>
 
           <Box sx={{ mb: 3 }}>
+            <Typography variant="body2" sx={fieldLabelStyles[mode]}>Describe the kind of people you'd love to hang out with</Typography>
+            {isEditing ? (
+              <Controller
+                name="vibe_description"
+                control={control}
+                render={({ field }) => (
+                  <Box>
+                    <TextField
+                      {...field}
+                      value={field.value || ''}
+                      multiline
+                      rows={3}
+                      fullWidth
+                      variant="outlined"
+                      size="small"
+                      placeholder="e.g. People who love live music, stay up late talking about ideas, and don't take themselves too seriously."
+                      inputProps={{ maxLength: 500 }}
+                      sx={textFieldStyles[mode]}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{ display: 'block', textAlign: 'right', mt: 0.5, color: mode === 'dark' ? '#888' : '#999' }}
+                    >
+                      {(field.value || '').length} / 500
+                    </Typography>
+                  </Box>
+                )}
+              />
+            ) : (
+              <Typography variant="body1" sx={textDisplayBioStyles[mode]}>{profile.vibe_description || "Not provided"}</Typography>
+            )}
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
             <Typography variant="body2" sx={fieldLabelStyles[mode]}>Profession</Typography>
             {isEditing ? (
               <Controller

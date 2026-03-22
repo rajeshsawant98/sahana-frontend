@@ -1,27 +1,31 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import friendsAPI from '../../apis/friendsAPI';
-import { FriendProfile, UserSearchResult, FriendsUIState } from '../../types/friends';
+import { FriendProfile, UserSearchResult, FriendsUIState, RecommendedUser } from '../../types/friends';
 import { invalidateCache } from '../../utils/cacheUtils';
 
 interface FriendsState {
   friends: FriendProfile[];
   searchResults: UserSearchResult[];
+  recommendations: RecommendedUser[];
   ui: FriendsUIState;
   loading: {
     friends: boolean;
     search: boolean;
     sendRequest: boolean;
+    recommendations: boolean;
   };
   errors: {
     friends: string | null;
     search: string | null;
     sendRequest: string | null;
+    recommendations: string | null;
   };
 }
 
 const initialState: FriendsState = {
   friends: [],
   searchResults: [],
+  recommendations: [],
   ui: {
     searchTerm: '',
     searchResults: [],
@@ -32,11 +36,13 @@ const initialState: FriendsState = {
     friends: false,
     search: false,
     sendRequest: false,
+    recommendations: false,
   },
   errors: {
     friends: null,
     search: null,
     sendRequest: null,
+    recommendations: null,
   },
 };
 
@@ -86,6 +92,18 @@ export const sendFriendRequest = createAsyncThunk(
   }
 );
 
+export const fetchRecommendations = createAsyncThunk(
+  'friends/fetchRecommendations',
+  async (_, { rejectWithValue }) => {
+    try {
+      const recommendations = await friendsAPI.getRecommendations();
+      return recommendations;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch recommendations');
+    }
+  }
+);
+
 const friendsSlice = createSlice({
   name: 'friends',
   initialState,
@@ -97,7 +115,7 @@ const friendsSlice = createSlice({
       state.searchResults = [];
       state.ui.searchTerm = '';
     },
-    setSelectedTab: (state, action: PayloadAction<'friends' | 'requests' | 'search'>) => {
+    setSelectedTab: (state, action: PayloadAction<'friends' | 'requests' | 'search' | 'recommended'>) => {
       state.ui.selectedTab = action.payload;
     },
     updateSearchResultStatus: (state, action: PayloadAction<{ userId: string; status: UserSearchResult['friendship_status'] }>) => {
@@ -112,6 +130,7 @@ const friendsSlice = createSlice({
         friends: null,
         search: null,
         sendRequest: null,
+        recommendations: null,
       };
     },
   },
@@ -158,6 +177,21 @@ const friendsSlice = createSlice({
       .addCase(sendFriendRequest.rejected, (state, action) => {
         state.loading.sendRequest = false;
         state.errors.sendRequest = action.payload as string;
+      });
+
+    // Fetch Recommendations
+    builder
+      .addCase(fetchRecommendations.pending, (state) => {
+        state.loading.recommendations = true;
+        state.errors.recommendations = null;
+      })
+      .addCase(fetchRecommendations.fulfilled, (state, action) => {
+        state.loading.recommendations = false;
+        state.recommendations = action.payload;
+      })
+      .addCase(fetchRecommendations.rejected, (state, action) => {
+        state.loading.recommendations = false;
+        state.errors.recommendations = action.payload as string;
       });
   },
 });

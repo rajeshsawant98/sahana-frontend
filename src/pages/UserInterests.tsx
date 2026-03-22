@@ -4,11 +4,10 @@ import {
   Button,
   Typography,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Container,
+  Snackbar,
 } from '@mui/material';
+import { FavoriteRounded } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { NavBar } from '../components/navigation';
 import { updateUserInterests } from '../apis/authAPI';
@@ -28,12 +27,10 @@ const UserInterests: React.FC = () => {
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
   const [interests, setInterests] = useState<string[]>([]);
-  // Popular categories and interests for a meetup app
   const [loading, setLoading] = useState<boolean>(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMsg, setDialogMsg] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState('');
 
-  // Load existing interests on mount
   useEffect(() => {
     if (user?.interests) {
       setInterests(user.interests);
@@ -50,13 +47,13 @@ const UserInterests: React.FC = () => {
 
   const handleSavePreferences = async (): Promise<void> => {
     if (interests.length < 1) {
-      setDialogMsg('Please select at least one interest.');
-      setDialogOpen(true);
+      setSnackbarMsg('Please select at least one interest.');
+      setSnackbarOpen(true);
       return;
     }
     if (!accessToken || !user) {
-      setDialogMsg('User not authenticated');
-      setDialogOpen(true);
+      setSnackbarMsg('User not authenticated');
+      setSnackbarOpen(true);
       return;
     }
     setLoading(true);
@@ -64,19 +61,16 @@ const UserInterests: React.FC = () => {
       await updateUserInterests({ interests });
       dispatch(
         login({
-          user: {
-            ...user,
-            interests,
-          },
+          user: { ...user, interests },
           accessToken,
           role: user.role,
         })
       );
-      setDialogMsg('Interests updated successfully!');
-      setDialogOpen(true);
+      setSnackbarMsg('Interests updated successfully!');
+      setSnackbarOpen(true);
     } catch (error) {
-      setDialogMsg('Error saving interests');
-      setDialogOpen(true);
+      setSnackbarMsg('Error saving interests. Please try again.');
+      setSnackbarOpen(true);
       console.error(error);
     } finally {
       setLoading(false);
@@ -86,153 +80,112 @@ const UserInterests: React.FC = () => {
   return (
     <>
       <NavBar />
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          background: (theme) =>
-            theme.palette.mode === 'dark'
-              ? 'radial-gradient(circle at 60% 40%, #232526 0%, #181a1b 100%)'
-              : 'radial-gradient(circle at 60% 40%, #f6f7f8 0%, #e3e6ea 100%)',
-        }}
-      >
-        <Box
-          sx={{
-            width: '100%',
-            maxWidth: 1000,
-            background: (theme) =>
-              theme.palette.mode === 'dark' ? '#232526' : '#fff',
-            borderRadius: '28px',
-            boxShadow: (theme) =>
-              theme.palette.mode === 'dark'
-                ? '0 6px 32px rgba(0,0,0,0.45)'
-                : '0 6px 32px rgba(0,0,0,0.10)',
-            p: { xs: 2.5, sm: 5 },
-            mt: 3,
-            mb: 3,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-          }}
-        >
-          <Box
-            sx={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              mb: 1.5,
-            }}
-          >
-            <Typography
-              variant='h4'
-              fontWeight={700}
-              sx={{
-                letterSpacing: '-0.5px',
-                fontFamily: 'inherit',
-                color: 'primary.main',
-                fontSize: { xs: 24, sm: 32 },
-              }}
-            >
-              Interests
-            </Typography>
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={handleSavePreferences}
-              sx={{
-                fontWeight: 600,
-                fontSize: 15,
-                borderRadius: '9px',
-                py: 1.1,
-                minWidth: 160,
-                ml: 2,
-              }}
-              disabled={loading || interests.length === 0}
-            >
-              {loading ? (
-                <CircularProgress size={22} color='inherit' />
-              ) : interests.length === 0 ? (
-                'Select at least 1 to continue'
-              ) : (
-                'Save Interests'
-              )}
-            </Button>
-          </Box>
-          <Typography
-            variant='body1'
-            sx={{
-              mb: 3,
-              color: 'text.secondary',
-              fontSize: 16,
-              fontWeight: 400,
-            }}
-          >
-            Select your interests to get better event suggestions and connect
-            with like-minded people.
-          </Typography>
+      <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
+        <Container maxWidth="md" sx={{ py: 4 }}>
+          {/* Header */}
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(255, 191, 73, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#FFBF49',
+                  }}
+                >
+                  <FavoriteRounded sx={{ fontSize: 24 }} />
+                </Box>
+                <Box>
+                  <Typography
+                    variant="h4"
+                    sx={{ fontWeight: 700, letterSpacing: '-0.3px', lineHeight: 1.2 }}
+                  >
+                    Interests
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Select your interests to get better event suggestions and connect with like-minded people.
+                  </Typography>
+                </Box>
+              </Box>
 
-          {/* User Interests Section - Card style */}
+              <Button
+                variant="contained"
+                onClick={handleSavePreferences}
+                disabled={loading || interests.length === 0}
+                sx={{ borderRadius: '100px', px: 3, height: 36, fontSize: '0.8rem', flexShrink: 0, mt: 0.5 }}
+              >
+                {loading ? (
+                  <CircularProgress size={18} color="inherit" />
+                ) : interests.length === 0 ? (
+                  'Select at least 1'
+                ) : (
+                  'Save Interests'
+                )}
+              </Button>
+            </Box>
+          </Box>
+
+          {/* Your Interests Section */}
           <Box
             sx={{
               width: '100%',
-              mb: 3,
-              background: (theme) =>
-                theme.palette.mode === 'dark' ? '#232526' : '#f8fafd',
-              borderRadius: '18px',
-              boxShadow: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? '0 2px 12px rgba(0,0,0,0.18)'
-                  : '0 2px 12px rgba(0,0,0,0.06)',
-              p: { xs: 2, sm: 3 },
-              border: (theme) =>
-                theme.palette.mode === 'dark'
-                  ? '1px solid #23272e'
-                  : '1px solid #e3e6ea',
-              minHeight: 80,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
+              mb: 4,
+              p: 3,
+              borderRadius: '16px',
+              backgroundColor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
             }}
           >
             <Typography
-              variant='subtitle1'
-              fontWeight={600}
-              sx={{ mb: 1, color: 'primary.main', fontSize: 16 }}
+              variant="subtitle1"
+              sx={{ fontWeight: 600, mb: 1.5, fontSize: '0.9rem', color: 'text.primary' }}
             >
               Your Interests
+              {interests.length > 0 && (
+                <Box
+                  component="span"
+                  sx={{
+                    ml: 1,
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: '100px',
+                    backgroundColor: 'rgba(255, 191, 73, 0.15)',
+                    color: '#FFBF49',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                  }}
+                >
+                  {interests.length}
+                </Box>
+              )}
             </Typography>
             <Box
               sx={{
-                width: '100%',
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: 1,
+                gap: 0.5,
                 alignItems: 'center',
-                mb: 1.5,
                 minHeight: 40,
               }}
             >
               {interests.length === 0 && (
-                <Typography
-                  variant='body2'
-                  sx={{ color: 'text.secondary', fontWeight: 400 }}
-                >
-                  Add or select interests below
+                <Typography variant="body2" color="text.secondary">
+                  Add or select interests below to get started
                 </Typography>
               )}
-              {interests.map((interest, idx) => (
+              {interests.map((interest) => (
                 <InterestChip
                   key={interest}
                   label={interest}
                   selected
-                  onClick={() =>
-                    setInterests(interests.filter((i) => i !== interest))
-                  }
-                  actionIcon='×'
+                  onClick={() => setInterests(interests.filter((i) => i !== interest))}
+                  actionIcon="×"
                 />
               ))}
               <InterestInput
@@ -245,33 +198,48 @@ const UserInterests: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Popular Categories in single column */}
-          <Box sx={{ width: '100%', mb: 2 }}>
-            {popularCategories.map((cat: PopularCategory) => (
-              <CategorySection
-                key={cat.label}
-                category={cat}
-                selectedInterests={interests}
-                onSelect={handleToggleInterest}
-              />
-            ))}
+          {/* Popular Categories */}
+          <Box sx={{ mb: 2 }}>
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 600, mb: 2, fontSize: '0.9rem' }}
+            >
+              Browse Popular Categories
+            </Typography>
+            <Box
+              sx={{
+                p: 3,
+                borderRadius: '16px',
+                backgroundColor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              {popularCategories.map((cat: PopularCategory, index) => (
+                <Box key={cat.label}>
+                  <CategorySection
+                    category={cat}
+                    selectedInterests={interests}
+                    onSelect={handleToggleInterest}
+                  />
+                  {index < popularCategories.length - 1 && (
+                    <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', my: 1.5 }} />
+                  )}
+                </Box>
+              ))}
+            </Box>
           </Box>
-
-          {/* Save button moved to header */}
-        </Box>
-        {/* Styles moved to sx props using theme colors */}
-        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)}>
-          <DialogTitle>Update Interests</DialogTitle>
-          <DialogContent>
-            <Typography>{dialogMsg}</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setDialogOpen(false)} autoFocus>
-              OK
-            </Button>
-          </DialogActions>
-        </Dialog>
+        </Container>
       </Box>
+
+      {/* Snackbar replaces the modal Dialog for a less intrusive UX */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMsg}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
     </>
   );
 };

@@ -46,3 +46,16 @@ export const fetchAllUsersWithCursor = async (
   const res = await axiosInstance.get(`/admin/users${queryParams.toString() ? `?${queryParams}` : ''}`);
   return res.data;
 };
+
+// Admin dashboard stats
+export interface AdminStats {
+  total_users: number;
+  total_events: number;
+  active_events: number;
+  archived_events: number;
+}
+
+export const fetchAdminStats = async (): Promise<AdminStats> => {
+  const res = await axiosInstance.get<AdminStats>('/admin/stats');
+  return res.data;
+};

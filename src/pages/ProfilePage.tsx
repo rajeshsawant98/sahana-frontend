@@ -130,10 +130,13 @@ const ProfilePage: React.FC = () => {
           <Box
             sx={{
               p: { xs: 2.5, sm: 4 },
-              borderRadius: '16px',
+              borderRadius: '20px',
               backgroundColor: 'background.paper',
               border: '1px solid',
-              borderColor: 'divider',
+              borderColor: (theme) => theme.palette.mode === 'light' ? 'rgba(0,0,0,0.08)' : 'divider',
+              boxShadow: (theme) => theme.palette.mode === 'light'
+                ? '0 8px 40px rgba(0,0,0,0.09)'
+                : 'none',
             }}
           >
             <ProfileHeader

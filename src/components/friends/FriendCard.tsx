@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Avatar,
-  Chip,
   Button,
 } from '@mui/material';
 import { LocationOn } from '@mui/icons-material';
@@ -14,16 +13,6 @@ interface FriendCardProps {
   onMessage?: (friendId: string) => void;
   onViewProfile?: (friendId: string) => void;
 }
-
-const interestChipSx = {
-  borderRadius: '8px',
-  fontWeight: 500,
-  fontSize: '0.7rem',
-  height: 22,
-  backgroundColor: 'rgba(255, 191, 73, 0.12)',
-  color: '#FFBF49',
-  border: '1px solid rgba(255, 191, 73, 0.2)',
-} as const;
 
 const FriendCard: React.FC<FriendCardProps> = ({
   friend,
@@ -38,7 +27,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
     <Box
       sx={{
         p: 2.5,
-        borderRadius: '16px',
+        borderRadius: '20px',
         backgroundColor: 'background.paper',
         border: '1px solid',
         borderColor: 'divider',
@@ -46,6 +35,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
+        height: '100%',
         transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
         '&:hover': {
           borderColor: 'rgba(162, 155, 254, 0.4)',
@@ -58,13 +48,14 @@ const FriendCard: React.FC<FriendCardProps> = ({
         src={friend.profile_picture}
         alt={friend.name}
         sx={{
-          width: 72,
-          height: 72,
-          fontSize: '1.6rem',
+          width: 80,
+          height: 80,
+          fontSize: '1.8rem',
           fontWeight: 700,
           backgroundColor: '#A29BFE',
           color: '#fff',
           mb: 1.5,
+          boxShadow: '0 2px 12px rgba(162,155,254,0.25)',
         }}
       >
         {friend.name.charAt(0).toUpperCase()}
@@ -74,7 +65,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
       <Typography
         variant="subtitle1"
         sx={{
-          fontWeight: 600,
+          fontWeight: 700,
           lineHeight: 1.2,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -86,29 +77,15 @@ const FriendCard: React.FC<FriendCardProps> = ({
       </Typography>
 
       {/* Location */}
-      {locationText && (
+      {locationText ? (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, mt: 0.5 }}>
-          <LocationOn sx={{ fontSize: 14, color: 'text.disabled' }} />
+          <LocationOn sx={{ fontSize: 13, color: 'text.disabled' }} />
           <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
             {locationText}
           </Typography>
         </Box>
-      )}
-
-      {/* Interest Chips */}
-      {friend.interests && friend.interests.length > 0 && (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 1.5, justifyContent: 'center' }}>
-          {friend.interests.slice(0, 3).map((interest) => (
-            <Chip key={interest} label={interest} size="small" sx={interestChipSx} />
-          ))}
-          {friend.interests.length > 3 && (
-            <Chip
-              label={`+${friend.interests.length - 3}`}
-              size="small"
-              sx={{ ...interestChipSx, backgroundColor: 'transparent', border: '1px solid', borderColor: 'divider', color: 'text.secondary' }}
-            />
-          )}
-        </Box>
+      ) : (
+        <Box sx={{ mt: 0.5, height: 18 }} />
       )}
 
       {/* Action Buttons */}
@@ -119,7 +96,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
             onClick={() => onViewProfile(friend.id)}
             size="small"
             fullWidth
-            sx={{ borderRadius: '100px', height: 32, fontSize: '0.75rem', textTransform: 'none' }}
+            sx={{ borderRadius: '100px', height: 34, fontSize: '0.75rem', textTransform: 'none', fontWeight: 600 }}
           >
             Profile
           </Button>
@@ -130,7 +107,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
             onClick={() => onMessage(friend.id)}
             size="small"
             fullWidth
-            sx={{ borderRadius: '100px', height: 32, fontSize: '0.75rem', textTransform: 'none' }}
+            sx={{ borderRadius: '100px', height: 34, fontSize: '0.75rem', textTransform: 'none', fontWeight: 600 }}
           >
             Message
           </Button>

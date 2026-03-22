@@ -216,7 +216,13 @@ export const Friends: React.FC = () => {
                   message="Search for users and send friend requests to start building your network!"
                 />
               ) : (
-                <Stack spacing={1.5}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                    gap: 2,
+                  }}
+                >
                   {friendsState.friends.map((friend) => (
                     <FriendCard
                       key={friend.id}
@@ -234,7 +240,7 @@ export const Friends: React.FC = () => {
                       onMessage={handleMessage}
                     />
                   ))}
-                </Stack>
+                </Box>
               )}
             </Box>
           )}

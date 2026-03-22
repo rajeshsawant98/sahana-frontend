@@ -22,27 +22,43 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-        <Avatar
-          src={profile.profile_picture || undefined}
-          sx={{
-            width: 80,
-            height: 80,
-            fontSize: '2rem',
-            fontWeight: 700,
-            backgroundColor: profile.profile_picture ? 'transparent' : '#FFBF49',
-            color: '#000',
-            border: '3px solid',
-            borderColor: 'rgba(255, 191, 73, 0.3)',
-          }}
-        >
-          {!profile.profile_picture && (profile.name?.[0]?.toUpperCase() || '?')}
-        </Avatar>
+        {/* Avatar with gradient ring */}
+        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+          <Box
+            sx={{
+              width: 92,
+              height: 92,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #FFBF49, #ff8c00)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: '3px',
+            }}
+          >
+            <Avatar
+              src={profile.profile_picture || undefined}
+              sx={{
+                width: '100%',
+                height: '100%',
+                fontSize: '2rem',
+                fontWeight: 700,
+                backgroundColor: (theme) =>
+                  theme.palette.mode === 'dark' ? '#1e1e1e' : '#fff',
+                color: '#FFBF49',
+              }}
+            >
+              {!profile.profile_picture && (profile.name?.[0]?.toUpperCase() || '?')}
+            </Avatar>
+          </Box>
+        </Box>
+
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, letterSpacing: '-0.2px', lineHeight: 1.2 }}>
-            {profile.name || "Not provided"}
+            {profile.name || 'Not provided'}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25, mb: 0.75 }}>
-            {profile.email || "Not provided"}
+            {profile.email || 'Not provided'}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             {profile.profession && (
@@ -78,6 +94,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           </Box>
         </Box>
       </Box>
+
       {!isEditing && (
         <Button
           variant="outlined"

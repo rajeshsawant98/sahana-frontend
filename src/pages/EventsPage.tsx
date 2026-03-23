@@ -86,8 +86,8 @@ const EventsPage: React.FC = () => {
     // Skip the very first render — initial load handles that
     if (isInitialLoad) return;
 
-    dispatch(setSearchQueryAction(debouncedQuery));
     dispatch(resetEvents());
+    dispatch(setSearchQueryAction(debouncedQuery));
     dispatch(fetchInitialEvents({
       page_size: pageSize,
       searchQuery: debouncedQuery || undefined,

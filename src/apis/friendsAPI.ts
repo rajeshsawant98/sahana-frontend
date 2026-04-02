@@ -1,13 +1,14 @@
-import { 
-  FriendProfile, 
-  UserSearchResult, 
-  FriendRequest, 
+import {
+  FriendProfile,
+  UserSearchResult,
+  FriendRequest,
   FriendRequestsResponse,
   SendFriendRequestPayload,
   FriendshipStatusResponse,
   FriendsApiParams,
   FriendRequestsApiParams,
-  RecommendedUser
+  RecommendedUser,
+  SemanticUserResult,
 } from '../types/friends';
 import { createCacheKey, CACHE_TTL, cacheManager } from '../utils/cacheUtils';
 import axiosInstance from '../utils/axiosInstance';
@@ -31,6 +32,7 @@ export const createFriendsCacheKey = {
   userProfile: (userId: string) => `user_profile_${userId}`,
   friendshipStatus: (userId: string) => `friendship_status_${userId}`,
   recommendations: () => 'friend_recommendations',
+  semanticSearch: (query: string) => `semantic_search_${query.toLowerCase().trim()}`,
 };
 
 // Generic cache helper for non-paginated data
@@ -152,6 +154,15 @@ class FriendsApiService {
       FRIENDS_CACHE_TTL.USER_PROFILES
     );
   }
+  // Semantic / AI search users (no caching — results are query-unique and user-specific)
+  async searchUsersSemantic(query: string, limit: number = 20): Promise<SemanticUserResult[]> {
+    if (!query.trim()) return [];
+    const response = await axiosInstance.get('/friends/search/semantic', {
+      params: { q: query, limit },
+    });
+    return response.data;
+  }
+
   // Get friend recommendations with caching
   async getRecommendations(): Promise<RecommendedUser[]> {
     const cacheKey = createFriendsCacheKey.recommendations();

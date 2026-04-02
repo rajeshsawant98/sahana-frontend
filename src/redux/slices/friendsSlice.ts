@@ -1,22 +1,25 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import friendsAPI from '../../apis/friendsAPI';
-import { FriendProfile, UserSearchResult, FriendsUIState, RecommendedUser } from '../../types/friends';
+import { FriendProfile, UserSearchResult, FriendsUIState, RecommendedUser, SemanticUserResult } from '../../types/friends';
 import { invalidateCache } from '../../utils/cacheUtils';
 
 interface FriendsState {
   friends: FriendProfile[];
   searchResults: UserSearchResult[];
+  semanticResults: SemanticUserResult[];
   recommendations: RecommendedUser[];
   ui: FriendsUIState;
   loading: {
     friends: boolean;
     search: boolean;
+    semanticSearch: boolean;
     sendRequest: boolean;
     recommendations: boolean;
   };
   errors: {
     friends: string | null;
     search: string | null;
+    semanticSearch: string | null;
     sendRequest: string | null;
     recommendations: string | null;
   };
@@ -25,22 +28,26 @@ interface FriendsState {
 const initialState: FriendsState = {
   friends: [],
   searchResults: [],
+  semanticResults: [],
   recommendations: [],
   ui: {
     searchTerm: '',
     searchResults: [],
     isSearching: false,
     selectedTab: 'friends',
+    searchMode: 'regular',
   },
   loading: {
     friends: false,
     search: false,
+    semanticSearch: false,
     sendRequest: false,
     recommendations: false,
   },
   errors: {
     friends: null,
     search: null,
+    semanticSearch: null,
     sendRequest: null,
     recommendations: null,
   },
@@ -92,6 +99,19 @@ export const sendFriendRequest = createAsyncThunk(
   }
 );
 
+export const semanticSearchUsers = createAsyncThunk(
+  'friends/semanticSearchUsers',
+  async ({ query, limit = 20 }: { query: string; limit?: number }, { rejectWithValue }) => {
+    try {
+      if (!query.trim()) return [];
+      const results = await friendsAPI.searchUsersSemantic(query, limit);
+      return results;
+    } catch (error) {
+      return rejectWithValue('Search unavailable, try again');
+    }
+  }
+);
+
 export const fetchRecommendations = createAsyncThunk(
   'friends/fetchRecommendations',
   async (_, { rejectWithValue }) => {
@@ -115,8 +135,17 @@ const friendsSlice = createSlice({
       state.searchResults = [];
       state.ui.searchTerm = '';
     },
+    clearSemanticResults: (state) => {
+      state.semanticResults = [];
+    },
     setSelectedTab: (state, action: PayloadAction<'friends' | 'requests' | 'search' | 'recommended'>) => {
       state.ui.selectedTab = action.payload;
+    },
+    setSearchMode: (state, action: PayloadAction<'regular' | 'semantic'>) => {
+      state.ui.searchMode = action.payload;
+      state.ui.searchTerm = '';
+      state.searchResults = [];
+      state.semanticResults = [];
     },
     updateSearchResultStatus: (state, action: PayloadAction<{ userId: string; status: UserSearchResult['friendship_status'] }>) => {
       const { userId, status } = action.payload;
@@ -124,11 +153,14 @@ const friendsSlice = createSlice({
       if (result) {
         result.friendship_status = status;
       }
+      // Also remove from semantic results since backend pre-filters connected users
+      state.semanticResults = state.semanticResults.filter(r => r.id !== userId);
     },
     clearErrors: (state) => {
       state.errors = {
         friends: null,
         search: null,
+        semanticSearch: null,
         sendRequest: null,
         recommendations: null,
       };
@@ -179,6 +211,21 @@ const friendsSlice = createSlice({
         state.errors.sendRequest = action.payload as string;
       });
 
+    // Semantic Search Users
+    builder
+      .addCase(semanticSearchUsers.pending, (state) => {
+        state.loading.semanticSearch = true;
+        state.errors.semanticSearch = null;
+      })
+      .addCase(semanticSearchUsers.fulfilled, (state, action) => {
+        state.loading.semanticSearch = false;
+        state.semanticResults = action.payload;
+      })
+      .addCase(semanticSearchUsers.rejected, (state, action) => {
+        state.loading.semanticSearch = false;
+        state.errors.semanticSearch = action.payload as string;
+      });
+
     // Fetch Recommendations
     builder
       .addCase(fetchRecommendations.pending, (state) => {
@@ -199,7 +246,9 @@ const friendsSlice = createSlice({
 export const {
   setSearchTerm,
   clearSearchResults,
+  clearSemanticResults,
   setSelectedTab,
+  setSearchMode,
   updateSearchResultStatus,
   clearErrors,
 } = friendsSlice.actions;

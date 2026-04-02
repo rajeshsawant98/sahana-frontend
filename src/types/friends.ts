@@ -1,4 +1,27 @@
 
+export interface Location {
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  formattedAddress: string | null;
+  name: string | null;
+}
+
+export interface SemanticUserResult {
+  id: string;
+  name: string;
+  email: string;
+  bio: string | null;
+  profession: string | null;
+  profile_picture: string | null;
+  location: Location | null;
+  interests: string[];
+  vibe_description: string | null;
+  similarity_score: number;
+  friendship_status: 'none';
+}
 
 export interface FriendProfile {
   id: string;
@@ -64,6 +87,7 @@ export interface FriendsUIState {
   searchResults: UserSearchResult[];
   isSearching: boolean;
   selectedTab: 'friends' | 'requests' | 'search' | 'recommended';
+  searchMode: 'regular' | 'semantic';
 }
 
 export interface FriendRequestsUIState {
